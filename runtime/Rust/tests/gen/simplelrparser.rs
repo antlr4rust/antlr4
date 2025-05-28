@@ -7,26 +7,26 @@
 #![allow(unused_mut)]
 #![allow(unused_braces)]
 use super::simplelrlistener::*;
-use antlr_rust::atn::{ATN, INVALID_ALT};
-use antlr_rust::atn_deserializer::ATNDeserializer;
-use antlr_rust::dfa::DFA;
-use antlr_rust::error_strategy::{DefaultErrorStrategy, ErrorStrategy};
-use antlr_rust::errors::*;
-use antlr_rust::int_stream::EOF;
-use antlr_rust::lazy_static;
-use antlr_rust::parser::{BaseParser, Parser, ParserNodeType, ParserRecog};
-use antlr_rust::parser_atn_simulator::ParserATNSimulator;
-use antlr_rust::parser_rule_context::{cast, cast_mut, BaseParserRuleContext, ParserRuleContext};
-use antlr_rust::recognizer::{Actions, Recognizer};
-use antlr_rust::rule_context::{BaseRuleContext, CustomRuleContext, RuleContext};
-use antlr_rust::token::{OwningToken, Token, TOKEN_EOF};
-use antlr_rust::token_factory::{CommonTokenFactory, TokenAware, TokenFactory};
-use antlr_rust::token_stream::TokenStream;
-use antlr_rust::tree::*;
-use antlr_rust::vocabulary::{Vocabulary, VocabularyImpl};
-use antlr_rust::PredictionContextCache;
-use antlr_rust::TokenSource;
-use antlr_rust::{TidAble, TidExt};
+use antlr4rust::atn::{ATN, INVALID_ALT};
+use antlr4rust::atn_deserializer::ATNDeserializer;
+use antlr4rust::dfa::DFA;
+use antlr4rust::error_strategy::{DefaultErrorStrategy, ErrorStrategy};
+use antlr4rust::errors::*;
+use antlr4rust::int_stream::EOF;
+use antlr4rust::lazy_static;
+use antlr4rust::parser::{BaseParser, Parser, ParserNodeType, ParserRecog};
+use antlr4rust::parser_atn_simulator::ParserATNSimulator;
+use antlr4rust::parser_rule_context::{cast, cast_mut, BaseParserRuleContext, ParserRuleContext};
+use antlr4rust::recognizer::{Actions, Recognizer};
+use antlr4rust::rule_context::{BaseRuleContext, CustomRuleContext, RuleContext};
+use antlr4rust::token::{OwningToken, Token, TOKEN_EOF};
+use antlr4rust::token_factory::{CommonTokenFactory, TokenAware, TokenFactory};
+use antlr4rust::token_stream::TokenStream;
+use antlr4rust::tree::*;
+use antlr4rust::vocabulary::{Vocabulary, VocabularyImpl};
+use antlr4rust::PredictionContextCache;
+use antlr4rust::TokenSource;
+use antlr4rust::{TidAble, TidExt};
 
 use std::any::{Any, TypeId};
 use std::borrow::{Borrow, BorrowMut};
@@ -95,7 +95,7 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: H) -> Self {
-        antlr_rust::recognizer::check_version("0", "3");
+        antlr4rust::recognizer::check_version("0", "3");
         let interpreter = Arc::new(ParserATNSimulator::new(
             _ATN.clone(),
             _decision_to_DFA.clone(),
@@ -143,17 +143,17 @@ pub trait SimpleLRParserContext<'input>:
 {
 }
 
-antlr_rust::coerce_from! { 'input : SimpleLRParserContext<'input> }
+antlr4rust::coerce_from! { 'input : SimpleLRParserContext<'input> }
 
 impl<'input> SimpleLRParserContext<'input> for TerminalNode<'input, SimpleLRParserContextType> {}
 impl<'input> SimpleLRParserContext<'input> for ErrorNode<'input, SimpleLRParserContextType> {}
 
-antlr_rust::tid! { impl<'input> TidAble<'input> for dyn SimpleLRParserContext<'input> + 'input }
+antlr4rust::tid! { impl<'input> TidAble<'input> for dyn SimpleLRParserContext<'input> + 'input }
 
-antlr_rust::tid! { impl<'input> TidAble<'input> for dyn SimpleLRListener<'input> + 'input }
+antlr4rust::tid! { impl<'input> TidAble<'input> for dyn SimpleLRListener<'input> + 'input }
 
 pub struct SimpleLRParserContextType;
-antlr_rust::tid! {SimpleLRParserContextType}
+antlr4rust::tid! {SimpleLRParserContextType}
 
 impl<'input> ParserNodeType<'input> for SimpleLRParserContextType {
     type TF = LocalTokenFactory<'input>;
@@ -187,7 +187,7 @@ pub struct SimpleLRParserExt<'input> {
 }
 
 impl<'input> SimpleLRParserExt<'input> {}
-antlr_rust::tid! { SimpleLRParserExt<'a> }
+antlr4rust::tid! { SimpleLRParserExt<'a> }
 
 impl<'input> TokenAware<'input> for SimpleLRParserExt<'input> {
     type TF = LocalTokenFactory<'input>;
@@ -275,7 +275,7 @@ impl<'input> CustomRuleContext<'input> for SContextExt<'input> {
     }
     //fn type_rule_index() -> usize where Self: Sized { RULE_s }
 }
-antlr_rust::tid! {SContextExt<'a>}
+antlr4rust::tid! {SContextExt<'a>}
 
 impl<'input> SContextExt<'input> {
     fn new(
@@ -372,7 +372,7 @@ impl<'input> CustomRuleContext<'input> for AContextExt<'input> {
     }
     //fn type_rule_index() -> usize where Self: Sized { RULE_a }
 }
-antlr_rust::tid! {AContextExt<'a>}
+antlr4rust::tid! {AContextExt<'a>}
 
 impl<'input> AContextExt<'input> {
     fn new(
@@ -491,7 +491,7 @@ where
 lazy_static! {
     static ref _ATN: Arc<ATN> =
         Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
-    static ref _decision_to_DFA: Arc<Vec<antlr_rust::RwLock<DFA>>> = {
+    static ref _decision_to_DFA: Arc<Vec<antlr4rust::RwLock<DFA>>> = {
         let mut dfa = Vec::new();
         let size = _ATN.decision_to_state.len();
         for i in 0..size {

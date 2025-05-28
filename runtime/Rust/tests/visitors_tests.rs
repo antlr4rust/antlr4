@@ -17,11 +17,11 @@ mod gen {
     use crate::gen::visitorbasicparser::{VisitorBasicParser, VisitorBasicParserContextType};
     use crate::gen::visitorbasicvisitor::VisitorBasicVisitorCompat;
     use crate::gen::visitorcalclexer::VisitorCalcLexer;
-    use antlr_rust::common_token_stream::CommonTokenStream;
-    use antlr_rust::parser::ParserNodeType;
-    use antlr_rust::token::Token;
-    use antlr_rust::tree::{ErrorNode, ParseTree, ParseTreeVisitorCompat, TerminalNode, Visitable};
-    use antlr_rust::InputStream;
+    use antlr4rust::common_token_stream::CommonTokenStream;
+    use antlr4rust::parser::ParserNodeType;
+    use antlr4rust::token::Token;
+    use antlr4rust::tree::{ErrorNode, ParseTree, ParseTreeVisitorCompat, TerminalNode, Visitable};
+    use antlr4rust::InputStream;
     use visitorcalcparser::{
         AddContext, AddContextAttrs, MultiplyContext, MultiplyContextAttrs, NumberContext,
         NumberContextAttrs, SContext, SContextAttrs, VisitorCalcParser,
@@ -260,8 +260,8 @@ mod gen {
     // tests zero-copy parsing with non static visitor
     #[test]
     fn test_visitor_retrieve_reference() {
-        use antlr_rust::token_factory::ArenaCommonFactory;
-        use antlr_rust::tree::ParseTreeVisitor;
+        use antlr4rust::token_factory::ArenaCommonFactory;
+        use antlr4rust::tree::ParseTreeVisitor;
         use csvlexer::CSVLexer;
         use csvparser::{CSVParser, CsvFileContext, HdrContext, RowContext, RowContextAttrs};
         use csvvisitor::CSVVisitor;
@@ -312,7 +312,7 @@ mod gen {
 
     #[test]
     fn test_visitor_retrieve_reference_by_return() {
-        use antlr_rust::token_factory::ArenaCommonFactory;
+        use antlr4rust::token_factory::ArenaCommonFactory;
         use csvlexer::CSVLexer;
         use csvparser::{CSVParser, CsvFileContext, HdrContext, RowContext, RowContextAttrs};
         use csvvisitor::CSVVisitorCompat;

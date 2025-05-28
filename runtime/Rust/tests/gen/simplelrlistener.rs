@@ -1,7 +1,7 @@
 #![allow(nonstandard_style)]
 // Generated from SimpleLR.g4 by ANTLR 4.8
 use super::simplelrparser::*;
-use antlr_rust::tree::ParseTreeListener;
+use antlr4rust::tree::ParseTreeListener;
 
 pub trait SimpleLRListener<'input>: ParseTreeListener<'input, SimpleLRParserContextType> {
     /**
@@ -26,4 +26,4 @@ pub trait SimpleLRListener<'input>: ParseTreeListener<'input, SimpleLRParserCont
     fn exit_a(&mut self, _ctx: &AContext<'input>) {}
 }
 
-antlr_rust::coerce_from! { 'input : SimpleLRListener<'input> }
+antlr4rust::coerce_from! { 'input : SimpleLRListener<'input> }

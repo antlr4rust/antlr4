@@ -1,7 +1,7 @@
 #![allow(nonstandard_style)]
 // Generated from ReferenceToATN.g4 by ANTLR 4.8
 use super::referencetoatnparser::*;
-use antlr_rust::tree::ParseTreeListener;
+use antlr4rust::tree::ParseTreeListener;
 
 pub trait ReferenceToATNListener<'input>:
     ParseTreeListener<'input, ReferenceToATNParserContextType>
@@ -18,4 +18,4 @@ pub trait ReferenceToATNListener<'input>:
     fn exit_a(&mut self, _ctx: &AContext<'input>) {}
 }
 
-antlr_rust::coerce_from! { 'input : ReferenceToATNListener<'input> }
+antlr4rust::coerce_from! { 'input : ReferenceToATNListener<'input> }

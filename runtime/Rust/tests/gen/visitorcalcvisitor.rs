@@ -1,7 +1,7 @@
 #![allow(nonstandard_style)]
 // Generated from VisitorCalc.g4 by ANTLR 4.8
 use super::visitorcalcparser::*;
-use antlr_rust::tree::{ParseTreeVisitor, ParseTreeVisitorCompat};
+use antlr4rust::tree::{ParseTreeVisitor, ParseTreeVisitorCompat};
 
 /**
  * This interface defines a complete generic visitor for a parse tree produced

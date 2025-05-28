@@ -12,18 +12,18 @@ mod gen {
     use std::io::Read;
     use std::iter::FromIterator;
 
-    use antlr_rust::common_token_stream::CommonTokenStream;
-    use antlr_rust::int_stream::IntStream;
-    use antlr_rust::lexer::Lexer;
+    use antlr4rust::common_token_stream::CommonTokenStream;
+    use antlr4rust::int_stream::IntStream;
+    use antlr4rust::lexer::Lexer;
 
-    use antlr_rust::token::{Token, TOKEN_EOF};
-    use antlr_rust::token_factory::{ArenaCommonFactory, OwningTokenFactory};
-    use antlr_rust::token_stream::{TokenStream, UnbufferedTokenStream};
-    use antlr_rust::tree::{
+    use antlr4rust::token::{Token, TOKEN_EOF};
+    use antlr4rust::token_factory::{ArenaCommonFactory, OwningTokenFactory};
+    use antlr4rust::token_stream::{TokenStream, UnbufferedTokenStream};
+    use antlr4rust::tree::{
         ParseTree, ParseTreeListener,
         TerminalNode,
     };
-    use antlr_rust::InputStream;
+    use antlr4rust::InputStream;
     use csvlexer::*;
     use csvlistener::*;
     use csvparser::CSVParser;

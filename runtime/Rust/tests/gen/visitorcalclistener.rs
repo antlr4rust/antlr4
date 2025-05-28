@@ -1,7 +1,7 @@
 #![allow(nonstandard_style)]
 // Generated from VisitorCalc.g4 by ANTLR 4.8
 use super::visitorcalcparser::*;
-use antlr_rust::tree::ParseTreeListener;
+use antlr4rust::tree::ParseTreeListener;
 
 pub trait VisitorCalcListener<'input>:
     ParseTreeListener<'input, VisitorCalcParserContextType>
@@ -54,4 +54,4 @@ pub trait VisitorCalcListener<'input>:
     fn exit_multiply(&mut self, _ctx: &MultiplyContext<'input>) {}
 }
 
-antlr_rust::coerce_from! { 'input : VisitorCalcListener<'input> }
+antlr4rust::coerce_from! { 'input : VisitorCalcListener<'input> }

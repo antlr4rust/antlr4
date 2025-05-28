@@ -1,7 +1,7 @@
 #![allow(nonstandard_style)]
 // Generated from Labels.g4 by ANTLR 4.8
 use super::labelsparser::*;
-use antlr_rust::tree::ParseTreeListener;
+use antlr4rust::tree::ParseTreeListener;
 
 pub trait LabelsListener<'input>: ParseTreeListener<'input, LabelsParserContextType> {
     /**
@@ -100,4 +100,4 @@ pub trait LabelsListener<'input>: ParseTreeListener<'input, LabelsParserContextT
     fn exit_inc(&mut self, _ctx: &IncContext<'input>) {}
 }
 
-antlr_rust::coerce_from! { 'input : LabelsListener<'input> }
+antlr4rust::coerce_from! { 'input : LabelsListener<'input> }

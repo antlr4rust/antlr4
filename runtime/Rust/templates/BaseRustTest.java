@@ -650,12 +650,12 @@ public class BaseRustTest implements RuntimeTestSupport {
 				"use <importParser>::*;\n" +
 				"mod <importListener>;\n" +
 				"mod <importVisitor>;\n" +
-				"use antlr_rust::InputStream;\n" +
-				"use antlr_rust::token::OwningToken;\n" +
-				"use antlr_rust::token_stream::{UnbufferedTokenStream, TokenStream};\n" +
-				"use antlr_rust::common_token_stream::CommonTokenStream;\n" +
-				"use antlr_rust::parser::Parser;\n" +
-				"use antlr_rust::error_listener::DiagnosticErrorListener;\n" +
+				"use antlr4rust::InputStream;\n" +
+				"use antlr4rust::token::OwningToken;\n" +
+				"use antlr4rust::token_stream::{UnbufferedTokenStream, TokenStream};\n" +
+				"use antlr4rust::common_token_stream::CommonTokenStream;\n" +
+				"use antlr4rust::parser::Parser;\n" +
+				"use antlr4rust::error_listener::DiagnosticErrorListener;\n" +
 				"\n" +
 				"fn main() -> std::io::Result\\<()>{\n" +
 				"	let input = std::fs::read_to_string(std::env::current_dir()?.join(\"input\"))?;\n" +
@@ -688,13 +688,13 @@ public class BaseRustTest implements RuntimeTestSupport {
 
 
 	protected void writeLexerTestFile(String lexerName, boolean showDFA) {
-		ST outputFileST = new ST("use antlr_rust::*;\n" +
+		ST outputFileST = new ST("use antlr4rust::*;\n" +
 				"mod <importName>;\n" +
 				"use <importName>::*;\n" +
-				"use antlr_rust::InputStream;\n" +
-				"use antlr_rust::lexer::Lexer;\n" +
-				"use antlr_rust::token::OwningToken;\n" +
-				"use antlr_rust::token_stream::{UnbufferedTokenStream, TokenStream};\n" +
+				"use antlr4rust::InputStream;\n" +
+				"use antlr4rust::lexer::Lexer;\n" +
+				"use antlr4rust::token::OwningToken;\n" +
+				"use antlr4rust::token_stream::{UnbufferedTokenStream, TokenStream};\n" +
 				"\n" +
 				"fn main() -> std::io::Result\\<()>{\n" +
 				"	let input = std::fs::read_to_string(std::env::current_dir()?.join(\"input\"))?;\n" +
@@ -708,7 +708,7 @@ public class BaseRustTest implements RuntimeTestSupport {
 				"	}\n" +
 				(showDFA ?
 						"print!(\"{}\",_lexer.get_interpreter().unwrap()" +
-								".get_dfa_for_mode(antlr_rust::lexer::LEXER_DEFAULT_MODE)" +
+								".get_dfa_for_mode(antlr4rust::lexer::LEXER_DEFAULT_MODE)" +
 								".read().to_lexer_string());\n"
 						: "") +
 				"	Ok(())" +

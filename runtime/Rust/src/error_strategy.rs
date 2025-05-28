@@ -551,7 +551,7 @@ impl<'a, T: Parser<'a>> ErrorStrategy<'a, T> for DefaultErrorStrategy<'a, T::Nod
 ///
 /// # Usage
 /// ```ignore
-/// use antlr_rust::error_strategy::BailErrorStrategy;
+/// use antlr4rust::error_strategy::BailErrorStrategy;
 /// myparser.err_handler = BailErrorStrategy::new();
 /// ```
 ///

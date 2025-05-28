@@ -1,7 +1,7 @@
 grammar ReferenceToATN;
 
 @tokenfactory{
-pub type LocalTokenFactory<\'input> = antlr_rust::token_factory::OwningTokenFactory;
+pub type LocalTokenFactory<\'input> = antlr4rust::token_factory::OwningTokenFactory;
 }
 
 a : (ID|ATN)* ATN? {println!("{}",$text);};
