@@ -5,6 +5,14 @@
 ![cargo test](https://github.com/rrevenantt/antlr4rust/workflows/cargo%20test/badge.svg)
 [![](https://tokei.rs/b1/github/rrevenantt/antlr4rust)](https://github.com/rrevenantt/antlr4rust)
 
+
+> [!IMPORTANT]  
+> This is an effort to pick things up where [Konstantin aka @rrevenantt](https://github.com/rrevenantt) left them a few years back.
+> This is work in progress and I'm mostly trying to solve my problem as of now, but I'd be real happy to either contribute this back
+> to the original repo and/or work towards making this a contribution to the antlr4 project.
+>
+> Help, feedback et al are really appreciated!
+
 [ANTLR4](https://github.com/antlr/antlr4) runtime for Rust programming language.
 
 For examples you can see [grammars](grammars), [tests/gen](tests/gen) for corresponding generated code 

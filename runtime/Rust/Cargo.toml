@@ -1,9 +1,9 @@
 [package]
-name = "antlr-rust"
+name = "antlr4rust"
 version = "0.3.0-beta"
 authors = ["Konstantin Anisimov <rrevenantt@gmail.com>", "Alex Snaps <alex@wcgw.dev>"]
-homepage = "https://github.com/antlr4rust/antlr4rust"
-repository = "https://github.com/antlr4rust/antlr4rust"
+homepage = "https://github.com/antlr4rust/antlr4"
+repository = "https://github.com/antlr4rust/antlr4"
 documentation = "https://docs.rs/antlr4rust"
 description = "ANTLR4 runtime for Rust"
 readme = "README.md"
