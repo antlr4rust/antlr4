@@ -3,4 +3,4 @@
 	url = https://github.com/antlr/antlr-php-runtime.git
 [submodule "runtime/Rust"]
 	path = runtime/Rust
-	url = https://github.com/rrevenantt/antlr4rust
+	url = https://github.com/antlr4rust/antlr4rust
