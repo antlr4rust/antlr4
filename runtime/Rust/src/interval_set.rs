@@ -37,37 +37,37 @@ impl Interval {
 
     /** Does self start completely before other? Disjoint */
     pub fn starts_before_disjoint(&self, other: &Interval) -> bool {
-        return self.a < other.a && self.b < other.a;
+        self.a < other.a && self.b < other.a
     }
 
     /** Does self start at or before other? Nondisjoint */
     pub fn starts_before_non_disjoint(&self, other: &Interval) -> bool {
-        return self.a <= other.a && self.b >= other.a;
+        self.a <= other.a && self.b >= other.a
     }
 
     /** Does self.a start after other.b? May or may not be disjoint */
     pub fn starts_after(&self, other: &Interval) -> bool {
-        return self.a > other.a;
+        self.a > other.a
     }
 
     /** Does self start completely after other? Disjoint */
     pub fn starts_after_disjoint(&self, other: &Interval) -> bool {
-        return self.a > other.b;
+        self.a > other.b
     }
 
     /** Does self start after other? NonDisjoint */
     pub fn starts_after_non_disjoint(&self, other: &Interval) -> bool {
-        return self.a > other.a && self.a <= other.b; // self.b>=other.b implied
+        self.a > other.a && self.a <= other.b// self.b>=other.b implied
     }
 
     /** Are both ranges disjoint? I.e., no overlap? */
     pub fn disjoint(&self, other: &Interval) -> bool {
-        return self.starts_before_disjoint(other) || self.starts_after_disjoint(other);
+        self.starts_before_disjoint(other) || self.starts_after_disjoint(other)
     }
 
     /** Are two intervals adjacent such as 0..41 and 42..42? */
     pub fn adjacent(&self, other: &Interval) -> bool {
-        return self.a == other.b + 1 || self.b == other.a - 1;
+        self.a == other.b + 1 || self.b == other.a - 1
     }
 
     //    public boolean properlyContains(Interval other) {
@@ -97,6 +97,12 @@ pub struct IntervalSet {
 }
 
 #[allow(missing_docs)]
+impl Default for IntervalSet {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl IntervalSet {
     pub fn new() -> IntervalSet {
         IntervalSet {
@@ -225,7 +231,7 @@ impl IntervalSet {
         let mut vocablulary_is = IntervalSet::new();
         vocablulary_is.add_range(start, stop);
         vocablulary_is.substract(self);
-        return vocablulary_is;
+        vocablulary_is
     }
 
     pub fn contains(&self, _item: isize) -> bool {
@@ -334,7 +340,7 @@ impl IntervalSet {
             buf += "}";
         }
 
-        return buf;
+        buf
     }
 
     fn element_name<'a>(&self, vocabulary: &'a dyn Vocabulary, a: isize) -> Cow<'a, str> {

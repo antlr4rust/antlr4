@@ -145,12 +145,12 @@ impl DFA {
             return String::new();
         }
 
-        return format!(
+        format!(
             "{}",
             DFASerializer::new(self, &|x| vocabulary
                 .get_display_name(x as isize - 1)
                 .into_owned(),)
-        );
+        )
     }
 
     pub fn to_lexer_string(&self) -> String {

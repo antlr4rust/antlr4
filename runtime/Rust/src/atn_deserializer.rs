@@ -48,7 +48,7 @@ pub struct ATNDeserializer {
 impl ATNDeserializer {
     pub fn new(options: Option<ATNDeserializationOptions>) -> ATNDeserializer {
         ATNDeserializer {
-            deserialization_options: options.unwrap_or(ATNDeserializationOptions::default()),
+            deserialization_options: options.unwrap_or_default(),
         }
     }
 
@@ -125,16 +125,16 @@ impl ATNDeserializer {
     }
 
     fn read_atn(&self, data: &mut dyn Iterator<Item = isize>) -> ATN {
-        let atn = ATN::new_atn(
+        
+
+        ATN::new_atn(
             match data.next() {
                 Some(0) => ATNType::LEXER,
                 Some(1) => ATNType::PARSER,
                 _ => panic!("invalid ATN type"),
             },
             data.next().unwrap(),
-        );
-
-        atn
+        )
     }
 
     fn read_states(&self, atn: &mut ATN, data: &mut dyn Iterator<Item = isize>) {

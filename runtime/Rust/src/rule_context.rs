@@ -11,7 +11,7 @@ use crate::parser::ParserNodeType;
 use crate::parser_rule_context::ParserRuleContext;
 use crate::token_factory::TokenFactory;
 use crate::tree::{ParseTree, Tree};
-use better_any::{Tid, TidAble};
+use better_any::TidAble;
 use std::any::type_name;
 
 //pub trait RuleContext:RuleNode {
@@ -134,7 +134,7 @@ pub trait CustomRuleContext<'input> {
         if alt_number != INVALID_ALT {
             return format!("{}:{}", rule_name, alt_number);
         }
-        return rule_name.to_owned();
+        rule_name.to_owned()
     }
     // fn enter(_ctx: &dyn Tree<'input, Node=Self>, _listener: &mut dyn Any) where Self: Sized {}
     // fn exit(_ctx: &dyn Tree<'input, Node=Self>, _listener: &mut dyn Any) where Self: Sized {}
@@ -220,8 +220,7 @@ impl<'input, ExtCtx: CustomRuleContext<'input>> RuleContext<'input>
         self.parent_ctx
             .borrow()
             .as_ref()
-            .map(Weak::upgrade)
-            .flatten()
+            .and_then(Weak::upgrade)
     }
 
     //    fn get_parent_ctx(&self) -> Option<ParserRuleContextType> {

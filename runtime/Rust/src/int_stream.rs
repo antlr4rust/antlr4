@@ -71,7 +71,7 @@ pub trait IntStream {
 #[derive(Debug)]
 pub struct IterWrapper<'a, T: IntStream>(pub &'a mut T);
 
-impl<'a, T: IntStream> Iterator for IterWrapper<'a, T> {
+impl<T: IntStream> Iterator for IterWrapper<'_, T> {
     type Item = isize;
 
     fn next(&mut self) -> Option<Self::Item> {

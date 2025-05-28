@@ -23,7 +23,7 @@ use crate::tree::{ErrorNode, Listenable, ParseTreeListener, TerminalNode};
 use crate::utils::cell_update;
 use crate::vocabulary::Vocabulary;
 use crate::{CoerceFrom, CoerceTo};
-use better_any::{Tid, TidAble};
+use better_any::TidAble;
 
 /// parser functionality required for `ParserATNSimulator` to work
 #[allow(missing_docs)] // todo rewrite it so downstream crates actually could meaningfully implement it
@@ -443,7 +443,7 @@ where
                     .add_child(self.create_error_node(token.clone()).coerce_rc_to());
             }
         }
-        return Ok(token);
+        Ok(token)
     }
 
     #[inline]
@@ -464,7 +464,7 @@ where
                     .add_child(self.create_error_node(t.clone()).coerce_rc_to());
             }
         }
-        return Ok(t);
+        Ok(t)
     }
 
     /// Adds parse listener for this parser
@@ -628,8 +628,8 @@ where
         let retctx = self.ctx.clone().unwrap();
         retctx.set_stop(self.input.lt(-1).cloned());
         if !self.parse_listeners.is_empty() {
-            while self.ctx.as_ref().map(|x| Rc::as_ptr(x))
-                != parent_ctx.as_ref().map(|x| Rc::as_ptr(x))
+            while self.ctx.as_ref().map(Rc::as_ptr)
+                != parent_ctx.as_ref().map(Rc::as_ptr)
             {
                 self.trigger_exit_rule_event();
                 self.ctx = self.ctx.as_ref().unwrap().get_parent_ctx()

@@ -99,7 +99,7 @@ pub(crate) struct ProxyErrorListener<'b, 'a, T> {
     pub delegates: Ref<'b, Vec<Box<dyn ErrorListener<'a, T>>>>,
 }
 
-impl<'b, 'a, T: Recognizer<'a>> ErrorListener<'a, T> for ProxyErrorListener<'b, 'a, T> {
+impl<'a, T: Recognizer<'a>> ErrorListener<'a, T> for ProxyErrorListener<'_, 'a, T> {
     fn syntax_error(
         &self,
         _recognizer: &T,

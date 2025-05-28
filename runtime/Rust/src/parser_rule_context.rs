@@ -155,24 +155,22 @@ impl<'input, T: ParserRuleContext<'input> + ?Sized + 'input> RuleContextExt<'inp
                     .get(rule_index)
                     .map(|&it| it.to_owned())
                     .unwrap_or_else(|| rule_index.to_string());
-                result.extend(rule_name.chars());
+                result.push_str(&rule_name);
                 result.push(' ');
-            } else {
-                if !p.is_empty() {
-                    result.extend(p.get_invoking_state().to_string().chars());
-                    result.push(' ');
-                }
+            } else if !p.is_empty() {
+                result.push_str(&p.get_invoking_state().to_string());
+                result.push(' ');
             }
 
             next = p.get_parent().clone();
         }
 
-        if result.chars().last() == Some(' ') {
+        if result.ends_with(' ') {
             result.pop();
         }
 
         result.push(']');
-        return result;
+        result
     }
 
     fn accept_children<V>(&self, visitor: &mut V)

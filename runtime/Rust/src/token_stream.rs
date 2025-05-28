@@ -8,7 +8,6 @@ use crate::int_stream::{IntStream, IterWrapper};
 use crate::token::{OwningToken, Token, TOKEN_EOF, TOKEN_INVALID_TYPE};
 use crate::token_factory::TokenFactory;
 use crate::token_source::TokenSource;
-use better_any::{Tid, TidAble};
 use std::fmt::{Debug, Formatter};
 
 /// An `IntSteam` of `Token`s
@@ -133,7 +132,7 @@ impl<'input, T: TokenSource<'input>> UnbufferedTokenStream<'input, T> {
 
     pub(crate) fn fill(&mut self, need: isize) -> isize {
         for i in 0..need {
-            if self.tokens.len() > 0
+            if !self.tokens.is_empty()
                 && self.tokens.last().unwrap().borrow().get_token_type() == TOKEN_EOF
             {
                 return i;
@@ -194,10 +193,10 @@ impl<'input, T: TokenSource<'input>> TokenStream<'input> for UnbufferedTokenStre
             if t.get_token_type() == TOKEN_EOF {
                 break;
             }
-            buf.extend(t.get_text().to_display().chars());
+            buf.push_str(&t.get_text().to_display());
         }
 
-        return buf;
+        buf
     }
 }
 
@@ -238,28 +237,26 @@ impl<'input, T: TokenSource<'input>> IntStream for UnbufferedTokenStream<'input,
         assert_eq!(marker, -self.markers_count);
 
         self.markers_count -= 1;
-        if self.markers_count == 0 {
-            if self.p > 0 {
-                self.tokens.drain(0..self.p as usize);
-                //todo drain assembly is almost 2x longer than
-                // unsafe manual copy but need to bench before using unsafe
-                //let new_len = self.tokens.len() - self.p as usize;
-                // unsafe {
-                //     // drop first p elements
-                //     for i in 0..(self.p as usize) {
-                //         drop_in_place(&mut self.tokens[i]);
-                //     }
-                //     // move len-p elements to beginning
-                //     std::intrinsics::copy(
-                //         &self.tokens[self.p as usize],
-                //         &mut self.tokens[0],
-                //         new_len,
-                //     );
-                //     self.tokens.set_len(new_len);
-                // }
+        if self.markers_count == 0 && self.p > 0 {
+            self.tokens.drain(0..self.p as usize);
+            //todo drain assembly is almost 2x longer than
+            // unsafe manual copy but need to bench before using unsafe
+            //let new_len = self.tokens.len() - self.p as usize;
+            // unsafe {
+            //     // drop first p elements
+            //     for i in 0..(self.p as usize) {
+            //         drop_in_place(&mut self.tokens[i]);
+            //     }
+            //     // move len-p elements to beginning
+            //     std::intrinsics::copy(
+            //         &self.tokens[self.p as usize],
+            //         &mut self.tokens[0],
+            //         new_len,
+            //     );
+            //     self.tokens.set_len(new_len);
+            // }
 
-                self.p = 0;
-            }
+            self.p = 0;
         }
     }
 

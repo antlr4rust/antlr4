@@ -59,7 +59,7 @@ impl LexerAction {
             &LexerAction::LexerPushModeAction(mode) => lexer.push_mode(mode as usize),
             &LexerAction::LexerSkipAction => lexer.skip(),
             &LexerAction::LexerTypeAction(ty) => lexer.set_type(ty),
-            &LexerAction::LexerIndexedCustomAction { ref action, .. } => action.execute(lexer),
+            LexerAction::LexerIndexedCustomAction { action, .. } => action.execute(lexer),
         }
     }
 }

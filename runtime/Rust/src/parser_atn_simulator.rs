@@ -618,7 +618,7 @@ impl ParserATNSimulator {
         }
 
         //        println!("result {:?}",&reach);
-        return Some(reach);
+        Some(reach)
     }
 
     fn has_config_in_rule_stop_state(&self, configs: &ATNConfigSet) -> bool {
@@ -627,7 +627,7 @@ impl ParserATNSimulator {
                 return true;
             }
         }
-        return false;
+        false
     }
 
     fn all_configs_in_rule_stop_state(&self, configs: &ATNConfigSet) -> bool {
@@ -637,7 +637,7 @@ impl ParserATNSimulator {
                 return false;
             }
         }
-        return true;
+        true
     }
 
     fn remove_all_configs_not_in_rule_stop_state(
@@ -810,7 +810,7 @@ impl ParserATNSimulator {
         if npred_alts == 0 {
             return None;
         }
-        return Some(alt_to_pred);
+        Some(alt_to_pred)
     }
 
     fn get_predicate_predictions(
@@ -900,7 +900,7 @@ impl ParserATNSimulator {
             }
         }
 
-        return alts.get_min().unwrap_or(INVALID_ALT);
+        alts.get_min().unwrap_or(INVALID_ALT)
     }
 
     fn eval_semantic_context<'a, T: Parser<'a>>(
@@ -1043,8 +1043,7 @@ impl ParserATNSimulator {
             } else if full_ctx {
                 configs.add_cached(Box::new(config), Some(local.merge_cache));
                 return;
-            } else {
-            }
+            } 
         }
         self.closure_work(
             config,
@@ -1123,10 +1122,8 @@ impl ParserATNSimulator {
                         continue;
                     }
 
-                    if tr.get_serialization_type() == TransitionType::TRANSITION_RULE {
-                        if new_depth >= 0 {
-                            new_depth += 1
-                        }
+                    if tr.get_serialization_type() == TransitionType::TRANSITION_RULE && new_depth >= 0 {
+                        new_depth += 1
                     }
                 }
 
@@ -1222,7 +1219,7 @@ impl ParserATNSimulator {
         }
         //        println!("dropping on state {} ", state.get_state_number());
 
-        return true;
+        true
     }
     //
     //    fn get_rule_name(&self, index: isize) -> String { unimplemented!() }
@@ -1368,13 +1365,13 @@ impl ParserATNSimulator {
 
     //todo can return Cow
     fn get_conflicting_alts_or_unique_alt(&self, configs: &ATNConfigSet) -> BitSet {
-        return if configs.get_unique_alt() != INVALID_ALT {
+        if configs.get_unique_alt() != INVALID_ALT {
             BitSet::new().modify_with(|it| {
                 it.insert(configs.get_unique_alt() as usize);
             })
         } else {
             configs.conflicting_alts.clone()
-        };
+        }
     }
     //
     //    fn get_token_name(&self, t: isize) -> String { unimplemented!() }
@@ -1453,7 +1450,7 @@ impl ParserATNSimulator {
         //        if key != new_hash {
         dfa.states_map
             .entry(key)
-            .or_insert(Vec::new())
+            .or_default()
             .push(state_number);
         //        }
         state_number

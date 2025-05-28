@@ -6,8 +6,8 @@ use std::collections::HashSet;
 use crate::parser::{Parser, ParserNodeType};
 
 //pub trait SemanticContext:Sync + Send {
-////    fn evaluate(&self, parser: &Recognizer, outerContext: &RuleContext) -> bool;
-////    fn eval_precedence(&self, parser: &Recognizer, outerContext: &RuleContext, ) -> Box<dyn SemanticContext>;
+///    fn evaluate(&self, parser: &Recognizer, outerContext: &RuleContext) -> bool;
+///    fn eval_precedence(&self, parser: &Recognizer, outerContext: &RuleContext, ) -> Box<dyn SemanticContext>;
 //}
 
 // fn empty() -> SemanticContext {

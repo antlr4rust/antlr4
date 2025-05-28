@@ -8,18 +8,16 @@ use std::marker::PhantomData;
 use std::ops::Deref;
 use std::rc::Rc;
 
-use crate::atn::INVALID_ALT;
 use crate::char_stream::InputData;
 use crate::int_stream::EOF;
 use crate::interval_set::Interval;
 use crate::parser::ParserNodeType;
-use crate::parser_rule_context::{ParserRuleContext, RuleContextExt};
+use crate::parser_rule_context::ParserRuleContext;
 use crate::recognizer::Recognizer;
 use crate::rule_context::{CustomRuleContext, RuleContext};
 use crate::token::Token;
 use crate::token_factory::TokenFactory;
 use crate::{interval_set, trees, CoerceTo};
-use better_any::{Tid, TidAble};
 use std::mem;
 
 //todo try to make in more generic
@@ -262,7 +260,7 @@ pub trait ParseTreeVisitorCompat<'input>: VisitChildren<'input, Self::Node> {
     fn temp_result(&mut self) -> &mut Self::Return;
 
     fn visit(&mut self, node: &<Self::Node as ParserNodeType<'input>>::Type) -> Self::Return {
-        self.visit_node(&node);
+        self.visit_node(node);
         mem::take(self.temp_result())
     }
 
@@ -288,7 +286,7 @@ pub trait ParseTreeVisitorCompat<'input>: VisitChildren<'input, Self::Node> {
             let child_result = self.visit(&node);
             result = self.aggregate_results(result, child_result);
         }
-        return result;
+        result
     }
 
     fn aggregate_results(&self, aggregate: Self::Return, next: Self::Return) -> Self::Return {

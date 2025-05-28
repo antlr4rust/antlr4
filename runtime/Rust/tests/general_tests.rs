@@ -20,8 +20,8 @@ mod gen {
     use antlr_rust::token_factory::{ArenaCommonFactory, OwningTokenFactory};
     use antlr_rust::token_stream::{TokenStream, UnbufferedTokenStream};
     use antlr_rust::tree::{
-        ParseTree, ParseTreeListener, ParseTreeVisitor, ParseTreeVisitorCompat, ParseTreeWalker,
-        TerminalNode, Tree, VisitChildren, Visitable,
+        ParseTree, ParseTreeListener,
+        TerminalNode,
     };
     use antlr_rust::InputStream;
     use csvlexer::*;
@@ -33,9 +33,9 @@ mod gen {
     use xmllexer::XMLLexer;
 
     use crate::gen::csvparser::{
-        CSVParserContext, CSVParserContextType, CsvFileContext, HdrContext, RowContext,
+        CSVParserContext, CSVParserContextType,
     };
-    use crate::gen::csvvisitor::CSVVisitor;
+    
     use crate::gen::labelslexer::LabelsLexer;
     use crate::gen::labelsparser::{EContextAll, LabelsParser};
     use crate::gen::referencetoatnparser::{
@@ -123,7 +123,7 @@ if (x < x && a > 0) then duh
         println!("test started lexer_test_csv");
         let tf = ArenaCommonFactory::default();
         let mut _lexer = CSVLexer::new_with_token_factory(
-            InputStream::new("V123,V2\nd1,d222".into()),
+            InputStream::new("V123,V2\nd1,d222"),
             // Box::new(UTF16InputStream::from_str("V123,V2\nd1,d222","".into())),
             &tf,
         );
@@ -177,14 +177,14 @@ if (x < x && a > 0) then duh
         }
     }
 
-    impl<'input> CSVListener<'input> for Listener {}
+    impl CSVListener<'_> for Listener {}
 
     #[test]
     fn parser_test_csv() {
         println!("test started");
         let tf = ArenaCommonFactory::default();
         let mut _lexer =
-            CSVLexer::new_with_token_factory(InputStream::new("V123,V2\nd1,d2\n".into()), &tf);
+            CSVLexer::new_with_token_factory(InputStream::new("V123,V2\nd1,d2\n"), &tf);
         let token_source = CommonTokenStream::new(_lexer);
         let mut parser = CSVParser::new(token_source);
         parser.add_parse_listener(Box::new(Listener {}));
@@ -210,7 +210,7 @@ if (x < x && a > 0) then duh
         }
     }
 
-    impl<'input> ReferenceToATNListener<'input> for Listener2 {}
+    impl ReferenceToATNListener<'_> for Listener2 {}
 
     static FACTORY: OwningTokenFactory = OwningTokenFactory;
 
@@ -256,11 +256,11 @@ if (x < x && a > 0) then duh
         }
     }
 
-    impl<'input> SimpleLRListener<'input> for Listener3 {}
+    impl SimpleLRListener<'_> for Listener3 {}
 
     #[test]
     fn test_lr() {
-        let mut _lexer = SimpleLRLexer::new(InputStream::new("x y z".into()));
+        let mut _lexer = SimpleLRLexer::new(InputStream::new("x y z"));
         let token_source = CommonTokenStream::new(_lexer);
         let mut parser = SimpleLRParser::new(token_source);
         parser.add_parse_listener(Box::new(Listener3));
@@ -271,7 +271,7 @@ if (x < x && a > 0) then duh
 
     #[test]
     fn test_immediate_lr() {
-        let mut _lexer = SimpleLRLexer::new(InputStream::new("x y z".into()));
+        let mut _lexer = SimpleLRLexer::new(InputStream::new("x y z"));
         let token_source = CommonTokenStream::new(_lexer);
         let mut parser = SimpleLRParser::new(token_source);
         parser.add_parse_listener(Box::new(Listener3));
@@ -299,11 +299,11 @@ if (x < x && a > 0) then duh
         }
     }
 
-    impl<'input> SimpleLRListener<'input> for Listener4 {}
+    impl SimpleLRListener<'_> for Listener4 {}
 
     #[test]
     fn test_remove_listener() {
-        let mut _lexer = SimpleLRLexer::new(InputStream::new("x y z".into()));
+        let mut _lexer = SimpleLRLexer::new(InputStream::new("x y z"));
         let token_source = CommonTokenStream::new(_lexer);
         let mut parser = SimpleLRParser::new(token_source);
         parser.add_parse_listener(Box::new(Listener3));

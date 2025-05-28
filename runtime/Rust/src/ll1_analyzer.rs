@@ -90,7 +90,7 @@ impl LL1Analyzer<'_> {
                     look.add_one(TOKEN_EOF);
                     return;
                 }
-                Some(ctx) if &ctx != &*EMPTY_PREDICTION_CONTEXT => {
+                Some(ctx) if ctx != *EMPTY_PREDICTION_CONTEXT => {
                     let removed = called_rule_stack.contains(s.get_rule_index());
                     called_rule_stack.remove(s.get_rule_index());
                     for i in 0..ctx.length() {

@@ -6,7 +6,6 @@ use crate::token::{Token, TOKEN_DEFAULT_CHANNEL, TOKEN_INVALID_TYPE};
 use crate::token_factory::TokenFactory;
 use crate::token_source::TokenSource;
 use crate::token_stream::{TokenStream, UnbufferedTokenStream};
-use better_any::{Tid, TidAble};
 
 /// Default token stream that skips token that not correspond to current channel.
 #[derive(Debug)]
@@ -122,7 +121,7 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
             n += 1;
         }
         //		if ( i>range ) range = i;
-        return self.base.tokens.get(i as usize);
+        self.base.tokens.get(i as usize)
     }
 
     /// Restarts this token stream
@@ -176,7 +175,7 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
             token = self.base.tokens[i as usize].borrow();
         }
 
-        return i;
+        i
     }
     //
     //    fn previous_token_on_channel(&self, i: isize, channel: isize) -> int { unimplemented!() }
@@ -221,7 +220,7 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
             return None;
         }
 
-        return self.base.tokens.get(i as usize);
+        self.base.tokens.get(i as usize)
     }
 
     //    fn get_number_of_on_channel_tokens(&self) -> int { unimplemented!() }

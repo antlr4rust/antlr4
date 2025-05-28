@@ -149,7 +149,7 @@ impl ATN {
             return following.clone();
         }
         let mut expected = IntervalSet::new();
-        expected.add_set(&following);
+        expected.add_set(following);
         expected.remove_one(TOKEN_EPSILON);
         // let mut ctx = Some(Rc::clone(_ctx));
 

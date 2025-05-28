@@ -15,8 +15,8 @@ fn full_ctx() -> bool {
 #[test]
 fn test_e_e() {
     let r = PredictionContext::merge(
-        &*EMPTY_PREDICTION_CONTEXT,
-        &*EMPTY_PREDICTION_CONTEXT,
+        &EMPTY_PREDICTION_CONTEXT,
+        &EMPTY_PREDICTION_CONTEXT,
         root_is_wildcard(),
         &mut None,
     );
@@ -30,8 +30,8 @@ rankdir=LR;
 #[test]
 fn test_e_e_fullctx() {
     let r = PredictionContext::merge(
-        &*EMPTY_PREDICTION_CONTEXT,
-        &*EMPTY_PREDICTION_CONTEXT,
+        &EMPTY_PREDICTION_CONTEXT,
+        &EMPTY_PREDICTION_CONTEXT,
         full_ctx(),
         &mut None,
     );
@@ -46,7 +46,7 @@ rankdir=LR;
 fn test_x_e() {
     let r = PredictionContext::merge(
         &x(),
-        &*EMPTY_PREDICTION_CONTEXT,
+        &EMPTY_PREDICTION_CONTEXT,
         root_is_wildcard(),
         &mut None,
     );
@@ -57,7 +57,7 @@ fn test_x_e() {
 
 #[test]
 fn test_x_e_fullctx() {
-    let r = PredictionContext::merge(&x(), &*EMPTY_PREDICTION_CONTEXT, full_ctx(), &mut None);
+    let r = PredictionContext::merge(&x(), &EMPTY_PREDICTION_CONTEXT, full_ctx(), &mut None);
     let expecting = String::new()
         + "digraph G {\n"
         + "rankdir=LR;\n"
@@ -71,7 +71,7 @@ fn test_x_e_fullctx() {
 #[test]
 fn test_e_x() {
     let r = PredictionContext::merge(
-        &*EMPTY_PREDICTION_CONTEXT,
+        &EMPTY_PREDICTION_CONTEXT,
         &x(),
         root_is_wildcard(),
         &mut None,
@@ -83,7 +83,7 @@ fn test_e_x() {
 
 #[test]
 fn test_e_x_fullctx() {
-    let r = PredictionContext::merge(&*EMPTY_PREDICTION_CONTEXT, &x(), full_ctx(), &mut None);
+    let r = PredictionContext::merge(&EMPTY_PREDICTION_CONTEXT, &x(), full_ctx(), &mut None);
     let expecting = String::new()
         + "digraph G {\n"
         + "rankdir=LR;\n"
@@ -756,10 +756,10 @@ fn to_dot_string(context: Arc<PredictionContext>, is_root_wildcard: bool) -> Str
         nodes.extend(format!("  s{}[", context_ids.get(&current_ptr).unwrap()).chars());
 
         if current.length() > 1 {
-            nodes.extend("shape=record, ".chars());
+            nodes.push_str("shape=record, ");
         }
 
-        nodes.extend("label=\"".chars());
+        nodes.push_str("label=\"");
 
         if current.is_empty() {
             nodes.push(if is_root_wildcard { '*' } else { '$' });
@@ -775,10 +775,10 @@ fn to_dot_string(context: Arc<PredictionContext>, is_root_wildcard: bool) -> Str
                 }
             }
         } else {
-            nodes.extend(context_ids.get(&current_ptr).unwrap().to_string().chars());
+            nodes.push_str(&context_ids.get(&current_ptr).unwrap().to_string());
         }
 
-        nodes.extend("\"];\n".chars());
+        nodes.push_str("\"];\n");
 
         if current.is_empty() {
             continue;
@@ -811,5 +811,5 @@ fn to_dot_string(context: Arc<PredictionContext>, is_root_wildcard: bool) -> Str
         }
     }
 
-    return format!("digraph G {{\nrankdir=LR;\n{}{}}}\n", nodes, edges);
+    format!("digraph G {{\nrankdir=LR;\n{}{}}}\n", nodes, edges)
 }

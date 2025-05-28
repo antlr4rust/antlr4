@@ -12,7 +12,7 @@ use typed_arena::Arena;
 use crate::char_stream::{CharStream, InputData};
 use crate::token::Token;
 use crate::token::{CommonToken, OwningToken, TOKEN_INVALID_TYPE};
-use better_any::{Tid, TidAble};
+use better_any::TidAble;
 
 #[allow(non_upper_case_globals)]
 lazy_static! {
@@ -87,7 +87,7 @@ better_any::tid! {CommonTokenFactory}
 
 impl Default for &'_ CommonTokenFactory {
     fn default() -> Self {
-        &**COMMON_TOKEN_FACTORY_DEFAULT
+        &COMMON_TOKEN_FACTORY_DEFAULT
     }
 }
 
@@ -118,7 +118,7 @@ impl<'a> TokenFactory<'a> for CommonTokenFactory {
                 if stop >= x.size() || start >= x.size() {
                     Borrowed("<EOF>")
                 } else {
-                    x.get_text(start, stop).into()
+                    x.get_text(start, stop)
                 }
             }
             _ => Borrowed(""),
@@ -242,7 +242,7 @@ pub struct ArenaFactory<'input, TF, T> {
 
 better_any::tid! {impl<'input,TF,T> TidAble<'input> for ArenaFactory<'input,TF,T>}
 
-impl<'input, TF: Debug, T> Debug for ArenaFactory<'input, TF, T> {
+impl<TF: Debug, T> Debug for ArenaFactory<'_, TF, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ArenaFactory")
             .field("arena", &"Arena")
@@ -251,7 +251,7 @@ impl<'input, TF: Debug, T> Debug for ArenaFactory<'input, TF, T> {
     }
 }
 
-impl<'input, TF, T> Default for ArenaFactory<'input, TF, T>
+impl<TF, T> Default for ArenaFactory<'_, TF, T>
 where
     TF: Default,
 {

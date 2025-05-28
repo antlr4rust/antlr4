@@ -6,10 +6,10 @@ use crate::vocabulary::Vocabulary;
 
 /// Major version of this runtime.
 /// Used by generated parser to verify that it is compatible with current version of runtime
-pub const VERSION_MAJOR: &'static str = env!("CARGO_PKG_VERSION_MAJOR");
+pub const VERSION_MAJOR: &str = env!("CARGO_PKG_VERSION_MAJOR");
 /// Major version of this runtime.
 /// Used by generated parser to verify that it is compatible with current version of runtime
-pub const VERSION_MINOR: &'static str = env!("CARGO_PKG_VERSION_MINOR");
+pub const VERSION_MINOR: &str = env!("CARGO_PKG_VERSION_MINOR");
 
 // todo move to compile time check when it will be possible to compare strings in constants
 /// Used by generated parser to verify that it is compatible with current version of runtime

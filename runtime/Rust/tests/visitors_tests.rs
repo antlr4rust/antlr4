@@ -31,7 +31,7 @@ mod gen {
 
     #[test]
     fn test_visit_terminal_node() {
-        let mut lexer = VisitorBasicLexer::new(InputStream::new("A".into()));
+        let lexer = VisitorBasicLexer::new(InputStream::new("A"));
         let mut parser = VisitorBasicParser::new(CommonTokenStream::new(lexer));
 
         let root = parser.s().unwrap();
@@ -68,7 +68,7 @@ mod gen {
 
     #[test]
     fn test_visit_error_node() {
-        let mut lexer = VisitorBasicLexer::new(InputStream::new("".into()));
+        let lexer = VisitorBasicLexer::new(InputStream::new(""));
         let mut parser = VisitorBasicParser::new(CommonTokenStream::new(lexer));
 
         let root = parser.s().unwrap();
@@ -104,7 +104,7 @@ mod gen {
 
     #[test]
     fn test_should_not_visit_EOF() {
-        let mut lexer = VisitorBasicLexer::new(InputStream::new("A".into()));
+        let lexer = VisitorBasicLexer::new(InputStream::new("A"));
         let mut parser = VisitorBasicParser::new(CommonTokenStream::new(lexer));
 
         let root = parser.s().unwrap();
@@ -155,7 +155,7 @@ mod gen {
 
     #[test]
     fn test_should_not_visit_anything() {
-        let mut lexer = VisitorBasicLexer::new(InputStream::new("A".into()));
+        let lexer = VisitorBasicLexer::new(InputStream::new("A"));
         let mut parser = VisitorBasicParser::new(CommonTokenStream::new(lexer));
 
         let root = parser.s().unwrap();
@@ -240,7 +240,7 @@ mod gen {
             }
         }
 
-        let mut _lexer = VisitorCalcLexer::new(InputStream::new("2 + 8 / 2".into()));
+        let mut _lexer = VisitorCalcLexer::new(InputStream::new("2 + 8 / 2"));
         let token_source = CommonTokenStream::new(_lexer);
         let mut parser = VisitorCalcParser::new(token_source);
 
@@ -293,7 +293,7 @@ mod gen {
 
         fn parse<'a>(tf: &'a ArenaCommonFactory<'a>) -> Rc<CsvFileContext<'a>> {
             let mut _lexer =
-                CSVLexer::new_with_token_factory(InputStream::new("h1,h2\nd1,d2\nd3\n".into()), tf);
+                CSVLexer::new_with_token_factory(InputStream::new("h1,h2\nd1,d2\nd3\n"), tf);
             let token_source = CommonTokenStream::new(_lexer);
             let mut parser = CSVParser::new(token_source);
             let result = parser.csvFile().expect("parsed unsuccessfully");
@@ -367,7 +367,7 @@ mod gen {
 
         fn parse<'a>(tf: &'a ArenaCommonFactory<'a>) -> Rc<CsvFileContext<'a>> {
             let mut _lexer =
-                CSVLexer::new_with_token_factory(InputStream::new("h1,h2\nd1,d2\nd3\n".into()), tf);
+                CSVLexer::new_with_token_factory(InputStream::new("h1,h2\nd1,d2\nd3\n"), tf);
             let token_source = CommonTokenStream::new(_lexer);
             let mut parser = CSVParser::new(token_source);
             let result = parser.csvFile().expect("parsed unsuccessfully");

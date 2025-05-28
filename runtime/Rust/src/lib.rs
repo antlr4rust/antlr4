@@ -1,21 +1,9 @@
 #![crate_type = "lib"]
-// #![feature(try_blocks)]
-//#![feature(nll)]
-// #![feature(raw)]
-// #![feature(is_sorted)]
-// #![feature(cell_update)]
-// #![feature(get_mut_unchecked)]
-// #![feature(specialization)]
-// #![feature(coerce_unsized)]
-// #![feature(associated_type_defaults)]
-// #![feature(generic_associated_types)]
-// #![feature(crate_visibility_modifier)]
-// #![feature(generic_associated_types)]
-#![warn(rust_2018_idioms)]
-#![warn(missing_docs)] // warn if there is missing docs
-#![warn(missing_debug_implementations)]
-#![warn(trivial_numeric_casts)]
-// #![allow(incomplete_features)]
+
+// #![warn(rust_2018_idioms)]
+// #![warn(missing_docs)] // warn if there is missing docs
+// #![warn(missing_debug_implementations)]
+// #![warn(trivial_numeric_casts)]
 
 //! # Antlr4 runtime
 //!
@@ -219,8 +207,8 @@ macro_rules! coerce_from {
 pub trait CoerceTo<T: ?Sized> {
     fn coerce_rc_to(self: Rc<Self>) -> Rc<T>;
     fn coerce_box_to(self: Box<Self>) -> Box<T>;
-    fn coerce_ref_to(self: &Self) -> &T;
-    fn coerce_mut_to(self: &mut Self) -> &mut T;
+    fn coerce_ref_to(&self) -> &T;
+    fn coerce_mut_to(&mut self) -> &mut T;
 }
 
 impl<T: ?Sized, X> CoerceTo<T> for X
@@ -234,11 +222,11 @@ where
         T::coerce_box(self)
     }
 
-    fn coerce_ref_to(self: &Self) -> &T {
+    fn coerce_ref_to(&self) -> &T {
         T::coerce_ref(self)
     }
 
-    fn coerce_mut_to(self: &mut Self) -> &mut T {
+    fn coerce_mut_to(&mut self) -> &mut T {
         T::coerce_mut(self)
     }
 }

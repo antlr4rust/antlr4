@@ -397,10 +397,7 @@ where
     }
 
     fn get_input_stream(&mut self) -> Option<&mut dyn IntStream> {
-        match &mut self.input {
-            None => None,
-            Some(x) => Some(x as _),
-        }
+        self.input.as_mut().map(|x| x as _)
     }
 
     fn get_source_name(&self) -> String {
@@ -473,9 +470,8 @@ where
     }
 
     fn pop_mode(&mut self) -> Option<usize> {
-        self.mode_stack.pop().map(|mode| {
+        self.mode_stack.pop().inspect(|&mode| {
             self.mode = mode;
-            mode
         })
     }
 
