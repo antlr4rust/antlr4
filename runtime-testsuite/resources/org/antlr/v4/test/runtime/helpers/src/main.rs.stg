@@ -1,9 +1,10 @@
 use std::env;
 use antlr4rust::parser::ParserNodeType;
-use antlr4rust::{InputStream, Parser};
+use antlr4rust::{InputStream, Lexer, Parser};
 use antlr4rust::common_token_stream::CommonTokenStream;
 use antlr4rust::error_listener::DiagnosticErrorListener;
 use antlr4rust::int_stream::IntStream;
+use antlr4rust::lexer::LEXER_DEFAULT_MODE;
 use antlr4rust::PredictionMode;
 use antlr4rust::token_stream::TokenStream;
 use antlr4rust::tree::{IsError, LeafNode, NoError, ParseTreeListener, ParseTreeWalker, TerminalNode};
@@ -34,6 +35,10 @@ fn main() {
 	let data = result.unwrap();
 	let input = InputStream::new(data.as_str());
     let lex = <lexerName>::new(input);
+<if(showDFA)>
+	let dfa = lex.get_interpreter().unwrap().get_dfa_for_mode(LEXER_DEFAULT_MODE);
+	let lexer_string = dfa.upgradable_read().to_lexer_string();
+<endif>
   	let mut tokens = CommonTokenStream::new(lex);
 <if(parserName)>
 	let mut parser = <parserName>::new(tokens);
@@ -62,7 +67,7 @@ fn main() {
 		println!("{}", x1);
 	}
 <if(showDFA)>
-  	stdout.write(lex.interpreter!.getDFA(Lexer.DEFAULT_MODE).toLexerString());
+  	println!("{}", lexer_string);
 <endif>
 <endif>
 }
