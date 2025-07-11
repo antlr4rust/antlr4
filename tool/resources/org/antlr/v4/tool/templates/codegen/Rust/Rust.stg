@@ -42,6 +42,7 @@ rustTypeInitMap ::= [
 	"short":"0",
 	"char":"0",
 	"String":<<String::new()>>,
+ 	"Vec<String>":<<Vec::new()>>,
 	default:"null" // anything other than a primitive type is an object
 ]
 
