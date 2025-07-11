@@ -1,8 +1,10 @@
 use std::env;
 use antlr4rust::parser::ParserNodeType;
-use antlr4rust::InputStream;
+use antlr4rust::{InputStream, Parser};
 use antlr4rust::common_token_stream::CommonTokenStream;
+use antlr4rust::error_listener::DiagnosticErrorListener;
 use antlr4rust::int_stream::IntStream;
+use antlr4rust::PredictionMode;
 use antlr4rust::token_stream::TokenStream;
 use antlr4rust::tree::{IsError, LeafNode, NoError, ParseTreeListener, ParseTreeWalker, TerminalNode};
 mod <lexerName; format="lower">;
@@ -36,14 +38,13 @@ fn main() {
 <if(parserName)>
 	let mut parser = <parserName>::new(tokens);
 <if(showDiagnosticErrors)>
-  	parser.addErrorListener(DiagnosticErrorListener::new(true));
+  	parser.add_error_listener(Box::new(DiagnosticErrorListener::new(true)));
 <endif>
 <if(profile)>
   let profiler = ProfilingATNSimulator::new(parser);
   parser.setInterpreter(profiler);
 <endif>
-	// TODO: runtime need public interpreter
-  	// parser.interpreter!.predictionMode = PredictionMode.<predictionMode>;
+	parser.get_interpreter().set_prediction_mode(PredictionMode::<predictionMode>);
 <if(!buildParseTree)>
   	parser.build_parse_trees = false;
 <endif>

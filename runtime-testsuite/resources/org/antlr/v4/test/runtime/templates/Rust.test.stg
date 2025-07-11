@@ -25,7 +25,7 @@ InitBooleanMember(n,v) ::= <<}
 @parser::init   {<n>: <v>,
 >>
 
-IntArg(v) ::= "<v>: isize"
+IntArg(n) ::= "int <n>"
 VarRef(v) ::= "<v>"
 
 GetMember(n) ::= "recog.<n>"
@@ -61,12 +61,14 @@ ImportListener(X) ::= ""
 
 GetExpectedTokenNames() ::= "recog.base.get_expected_tokens().to_token_string(recog.get_vocabulary())"
 
+ImportRuleInvocationStack() ::= ""
+
 RuleInvocationStack() ::= "format!(\"[{}]\",recog.get_rule_invocation_stack().join(\", \"))"
 
 LL_EXACT_AMBIG_DETECTION() ::= <<recog.get_interpreter().set_prediction_mode(antlr4rust::PredictionMode::LL_EXACT_AMBIG_DETECTION);>>
 
 //ParserToken(parser, token) ::= <%<parser>.<token>%>
-ParserToken(parser, token) ::= <%self::<token>%>
+ParserToken(parser, token) ::= <%_<token>%>
 
 Production(p) ::= <%<p>%>
 
@@ -300,4 +302,4 @@ Invoke_pred(v) ::= <<recog.pred(<v>)>>
 ContextRuleFunction(ctx, rule) ::= "<ctx>.<rule>.as_ref().unwrap()"
 StringType() ::= "String"
 SubContextLocal(ctx, subctx, local) ::= "<ctx>.<subctx>.unwrap().get_<local>()"
-ContextMember(ctx, member) ::= "<ctx>.get_<member>()"
+ContextMember(ctx, member) ::= "<ctx>.<member>.as_ref().unwrap()"
