@@ -653,7 +653,7 @@ where
 			recog.base.set_state(32);
 			recog.err_handler.sync(&mut recog.base)?;
 			match recog.base.input.la(1) {
-			 TEXT 
+			CSV_TEXT 
 				=> {
 					//recog.base.enter_outer_alt(_localctx.clone(), 1);
 					recog.base.enter_outer_alt(None, 1);
@@ -664,7 +664,7 @@ where
 					}
 				}
 
-			 STRING 
+			CSV_STRING 
 				=> {
 					//recog.base.enter_outer_alt(_localctx.clone(), 2);
 					recog.base.enter_outer_alt(None, 2);
@@ -675,7 +675,7 @@ where
 					}
 				}
 
-			 T__0 | T__1 | T__2 
+			CSV_T__0 |CSV_T__1 |CSV_T__2 
 				=> {
 					//recog.base.enter_outer_alt(_localctx.clone(), 3);
 					recog.base.enter_outer_alt(None, 3);

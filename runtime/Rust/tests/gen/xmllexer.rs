@@ -48,8 +48,6 @@ use std::ops::{Deref, DerefMut};
 	pub const Name:i32=16; 
 	pub const S:i32=17; 
 	pub const PI:i32=18;
-	pub const INSIDE: usize=1; 
-	pub const PROC_INSTR: usize=2;
 	pub const channelNames: [&'static str;0+2] = [
 		"DEFAULT_TOKEN_CHANNEL", "HIDDEN"
 	];

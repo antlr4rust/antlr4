@@ -863,7 +863,7 @@ where
 			recog.base.set_state(16);
 			recog.err_handler.sync(&mut recog.base)?;
 			match recog.base.input.la(1) {
-			 INT 
+			Labels_INT 
 				=> {
 					{
 					let mut tmp = AnIntContextExt::new(&**_localctx);
@@ -883,7 +883,7 @@ where
 					}
 				}
 
-			 T__2 
+			Labels_T__2 
 				=> {
 					{
 					let mut tmp = ParensContextExt::new(&**_localctx);
@@ -909,7 +909,7 @@ where
 					}
 				}
 
-			 ID 
+			Labels_ID 
 				=> {
 					{
 					let mut tmp = AnIDContextExt::new(&**_localctx);
