@@ -931,7 +931,8 @@ ArgAction(a, chunks) ::= "<chunks>"
 SemPred(p, chunks, failChunks) ::= <<
 <self()>.base.set_state(<p.stateNumber>);
 <! its a hack to handle chunks being same here and in *_sempred() !>
-if !({<chunks>}) {
+if !({let _localctx = Some(_localctx.clone());
+<chunks>}) {
 	Err(FailedPredicateError::new(&mut <self()>.base, Some(<p.predicate>.to_owned())<if(failChunks)>, Some(<failChunks>.to_owned())<elseif(p.msg)>, Some(<p.msg>.to_owned())<else>, None<endif>))?;
 }
 >>
@@ -953,7 +954,7 @@ LexerPushModeCommand(arg, grammar)  ::= "push_mode(<arg>);"
 
 ActionText(t) ::= "<t.text>"
 ActionTemplate(t) ::= "<t.st>"
-ArgRef(a) ::= "*_localctx.get_<a.escapedName>()"
+ArgRef(a) ::= "*_localctx.unwrap().get_<a.escapedName>()"
 LocalRef(a) ::= "*_localctx.get_<a.escapedName>()"
 RetValueRef(a) ::= "*_localctx.get_<a.escapedName>()"
 QRetValueRef(a) ::= "<ctx(a)>.<a.dict>.as_ref().unwrap().get_<a.escapedName>()"
