@@ -273,7 +273,7 @@ mod gen {
 
         impl<'i, T> ParseTreeVisitor<'i, CSVParserContextType> for MyCSVVisitor<'i, T> {
             fn visit_terminal(&mut self, node: &TerminalNode<'i, CSVParserContextType>) {
-                if node.symbol.get_token_type() == csvparser::TEXT {
+                if node.symbol.get_token_type() == csvparser::CSV_TEXT {
                     if let Cow::Borrowed(s) = node.symbol.text {
                         self.0.push(s);
                     }
@@ -333,7 +333,7 @@ mod gen {
                 &mut self,
                 node: &TerminalNode<'i, CSVParserContextType>,
             ) -> Self::Return {
-                if node.symbol.get_token_type() == csvparser::TEXT {
+                if node.symbol.get_token_type() == csvparser::CSV_TEXT {
                     if let Cow::Borrowed(s) = node.symbol.text {
                         return vec![s];
                     }
