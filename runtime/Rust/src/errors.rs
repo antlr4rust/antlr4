@@ -6,7 +6,7 @@ use std::fmt::Formatter;
 use std::fmt::{Debug, Display};
 use std::ops::Deref;
 use std::rc::Rc;
-
+use std::sync::Arc;
 use crate::atn_simulator::IATNSimulator;
 use crate::interval_set::IntervalSet;
 use crate::parser::{Parser, ParserNodeType};
@@ -52,12 +52,12 @@ pub enum ANTLRError {
 
     /// Unrecoverable error. Indicates that error should not be processed by parser/error strategy
     /// and it should abort parsing and immediately return to caller.
-    FallThrough(Rc<dyn Error>),
+    FallThrough(Arc<dyn Error + Send + Sync + 'static>),
 
     /// Potentially recoverable error.
     /// Used to allow user to emit his own errors from parser actions or from custom error strategy.
     /// Parser will try to recover with provided `ErrorStrategy`
-    OtherError(Rc<dyn Error>),
+    OtherError(Arc<dyn Error + Send + Sync + 'static>),
 }
 
 // impl Clone for ANTLRError {

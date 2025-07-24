@@ -5,6 +5,7 @@ use std::fmt;
 use std::fmt::{Display, Formatter};
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
+use std::sync::Arc;
 
 use crate::atn_simulator::IATNSimulator;
 use crate::atn_state::*;
@@ -583,7 +584,7 @@ impl<'input, Ctx: ParserNodeType<'input>> BailErrorStrategy<'input, Ctx> {
             }
             Some(())
         })();
-        ANTLRError::FallThrough(Rc::new(ParseCancelledError(e.clone())))
+        ANTLRError::FallThrough(Arc::new(ParseCancelledError(e.clone())))
     }
 }
 

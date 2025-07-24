@@ -1,6 +1,6 @@
 [package]
 name = "antlr4rust"
-version = "0.3.0-beta2"
+version = "0.3.0-beta3"
 authors = ["Konstantin Anisimov <rrevenantt@gmail.com>", "Alex Snaps <alex@wcgw.dev>"]
 homepage = "https://github.com/antlr4rust/antlr4"
 repository = "https://github.com/antlr4rust/antlr4"
