@@ -707,7 +707,8 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expr);
 							_localctx = tmp;
 							recog.base.set_state(10);
-							if !({recog.precpred(None, 2)}) {
+							if !({let _localctx = Some(_localctx.clone());
+							recog.precpred(None, 2)}) {
 								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 2)".to_owned()), None))?;
 							}
 							recog.base.set_state(11);
@@ -735,7 +736,8 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expr);
 							_localctx = tmp;
 							recog.base.set_state(13);
-							if !({recog.precpred(None, 1)}) {
+							if !({let _localctx = Some(_localctx.clone());
+							recog.precpred(None, 1)}) {
 								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 1)".to_owned()), None))?;
 							}
 							recog.base.set_state(14);

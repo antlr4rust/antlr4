@@ -121,6 +121,10 @@ impl<'input, T: TokenSource<'input>> UnbufferedTokenStream<'input, T> {
         }
     }
 
+    pub fn get_dfa_string(&self) -> String {
+        self.token_source.get_dfa_string()
+    }
+
     fn sync(&mut self, want: i32) {
         let need = (self.p + want - 1) - self.tokens.len() as i32 + 1;
         if need > 0 {

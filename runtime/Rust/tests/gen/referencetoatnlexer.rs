@@ -168,6 +168,10 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for ReferenceT
     fn get_token_factory(&self) -> &'input Self::TF {
         self.base.get_token_factory()
     }
+
+    fn get_dfa_string(&self) -> String {
+        self.base.get_dfa_string()
+    }
 }
 
 

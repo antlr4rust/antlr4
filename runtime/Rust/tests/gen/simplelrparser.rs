@@ -418,7 +418,8 @@ where
 					recog.push_new_recursion_context(tmp.clone(), _startState, RULE_a);
 					_localctx = tmp;
 					recog.base.set_state(9);
-					if !({recog.precpred(None, 2)}) {
+					if !({let _localctx = Some(_localctx.clone());
+					recog.precpred(None, 2)}) {
 						Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 2)".to_owned()), None))?;
 					}
 					recog.base.set_state(10);

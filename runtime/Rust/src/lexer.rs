@@ -414,6 +414,10 @@ where
     fn get_token_factory(&self) -> &'input TF {
         self.factory
     }
+
+    fn get_dfa_string(&self) -> String {
+        self.get_interpreter().unwrap().get_dfa_for_mode(LEXER_DEFAULT_MODE).upgradable_read().to_lexer_string()
+    }
 }
 
 #[cold]

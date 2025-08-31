@@ -114,6 +114,10 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
         r.sync(0);
         r
     }
+    
+    pub fn get_dfa_string(&self) -> String {
+        self.base.get_dfa_string()
+    }
 
     fn lt_inner(&mut self, k: i32) -> Option<&<T::TF as TokenFactory<'input>>::Tok> {
         let mut i = self.base.p;
