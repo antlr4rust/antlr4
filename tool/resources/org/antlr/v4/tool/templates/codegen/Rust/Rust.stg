@@ -1097,6 +1097,10 @@ antlr4rust::tid!{<struct.escapedName>Ext\<'a>}
 
 impl\<'input> <struct.escapedName>Ext\<'input>{
 	fn new(parent: Option\<Rc\<dyn <parser.name>Context\<'input> + 'input > >, invoking_state: i32<ctorAttrs:{a | , <a>}>) -> Rc\<<struct.escapedName>All\<'input>\> {
+		<struct.attributeDecls:{a | let mut _init_<a.escapedName> = <rustTypeInitMap.(a.type)>;
+		 }>
+		 <struct.ctorAttrs:{a | _init_<a.escapedName> = <a.escapedName>;
+		 }>
 		Rc::new(
 		<if(struct.provideCopyFrom)><struct.escapedName>All::Error(<endif>
 			<if(contextSuperClass)><contextSuperClass><else>BaseParserRuleContext<endif>::new_parser_ctx(parent, invoking_state,<struct.escapedName>Ext{
@@ -1105,7 +1109,7 @@ impl\<'input> <struct.escapedName>Ext\<'input>{
 				<struct.tokenTypeDecls:{a | <a.escapedName>: -1, }>
 				<struct.tokenListDecls:{a | <a.escapedName>: Vec::new(), }>
 				<struct.ruleContextDecls:{a | <a.escapedName>: None, }>
-				<struct.attributeDecls:{a | <a.escapedName>: <rustTypeInitMap.(a.type)>, }>
+				<struct.attributeDecls:{a | <a.escapedName>: _init_<a.escapedName>, }>
 				<struct.ruleContextListDecls:{a | <a.escapedName>: Vec::new(), }>
 
 				ph:PhantomData
