@@ -353,14 +353,8 @@ impl ATNDeserializer {
         for _i in 0..nactions {
             let action_type = _data.next().unwrap();
 
-            let mut data1 = _data.next().unwrap();
-            if data1 == 0xFFFF {
-                data1 = -1;
-            }
-            let mut data2 = _data.next().unwrap();
-            if data2 == 0xFFFF {
-                data2 = -1;
-            }
+            let data1 = _data.next().unwrap();
+            let data2 = _data.next().unwrap();
 
             let lexer_action = self.lexer_action_factory(action_type, data1, data2);
 
