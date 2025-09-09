@@ -175,7 +175,7 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for VisitorBas
 
 		lazy_static!{
 	    static ref _ATN: Arc<ATN> =
-	        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.into_iter()));
+	        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
 	    static ref _decision_to_DFA: Arc<Vec<antlr4rust::RwLock<DFA>>> = {
 	        let mut dfa = Vec::new();
 	        let size = _ATN.decision_to_state.len() as i32;
@@ -188,9 +188,9 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for VisitorBas
 	        }
 	        Arc::new(dfa)
 	    };
-	    }
-	const _serializedATN: [i32; 50] = [
-		4, 0, 1, 5, 6, -1, 2, 0, 7, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 4, 
-		0, 1, 1, 0, 0, 0, 1, 3, 1, 0, 0, 0, 3, 4, 5, 65, 0, 0, 4, 2, 1, 0, 0, 
-		0, 1, 0, 0
-	];
+		static ref _serializedATN: Vec<i32> = vec![
+			4, 0, 1, 5, 6, -1, 2, 0, 7, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 4, 
+			0, 1, 1, 0, 0, 0, 1, 3, 1, 0, 0, 0, 3, 4, 5, 65, 0, 0, 4, 2, 1, 0, 0, 
+			0, 1, 0, 0
+		];
+	}
