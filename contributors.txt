@@ -239,3 +239,4 @@ YYYY/MM/DD, github id, Full name, email
 2019/11/18, mlilback, Mark Lilback, mark@lilback.com
 2020/02/02, carocad, Camilo Roca, carocad@unal.edu.co
 2020/02/10, rrevenantt, Konstantin Anisimov, rrevenantt[at]gmail.com
+2025/09/12, torbensen, Torben Magne, torbenmagne@gmail.com
