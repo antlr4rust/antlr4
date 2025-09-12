@@ -9,7 +9,7 @@ use std::fmt::Debug;
 use crate::dfa::ScopeExt;
 use crate::token::TOKEN_EOF;
 
-pub trait Vocabulary: Sync + Debug {
+pub trait Vocabulary: Sync + Send + Debug {
     fn get_max_token_type(&self) -> isize;
     fn get_literal_name(&self, token_type: isize) -> Option<&str>;
     fn get_symbolic_name(&self, token_type: isize) -> Option<&str>;
