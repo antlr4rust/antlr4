@@ -69,28 +69,25 @@ pub type ReferenceToATNTreeWalker<'input,'a> =
 	ParseTreeWalker<'input, 'a, ReferenceToATNParserContextType , dyn ReferenceToATNListener<'input> + 'a>;
 
 /// Parser for ReferenceToATN grammar
-pub struct ReferenceToATNParser<'input,I,H>
+pub struct ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	base:BaseParserType<'input,I>,
 	interpreter:Arc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
-    pub err_handler: H,
+    pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
 
-impl<'input, I, H> ReferenceToATNParser<'input, I, H>
+impl<'input, I> ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-
-    pub fn set_error_strategy(&mut self, strategy: H) {
+    pub fn set_error_strategy(&mut self, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) {
         self.err_handler = strategy
     }
 
-    pub fn with_strategy(input: I, strategy: H) -> Self {
+    pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
 		antlr4rust::recognizer::check_version("0","3");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
@@ -115,7 +112,7 @@ where
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
 
-impl<'input, I> ReferenceToATNParser<'input, I, DynStrategy<'input,I>>
+impl<'input, I> ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -124,12 +121,12 @@ where
     }
 }
 
-impl<'input, I> ReferenceToATNParser<'input, I, DefaultErrorStrategy<'input,ReferenceToATNParserContextType>>
+impl<'input, I> ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
     pub fn new(input: I) -> Self{
-    	Self::with_strategy(input,DefaultErrorStrategy::new())
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
     }
 }
 
@@ -156,10 +153,9 @@ impl<'input> ParserNodeType<'input> for ReferenceToATNParserContextType{
 	type Type = dyn ReferenceToATNParserContext<'input> + 'input;
 }
 
-impl<'input, I, H> Deref for ReferenceToATNParser<'input, I, H>
+impl<'input, I> Deref for ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     type Target = BaseParserType<'input,I>;
 
@@ -168,10 +164,9 @@ where
     }
 }
 
-impl<'input, I, H> DerefMut for ReferenceToATNParser<'input, I, H>
+impl<'input, I> DerefMut for ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
@@ -266,10 +261,9 @@ fn ID(&self, i: usize) -> Option<Rc<TerminalNode<'input,ReferenceToATNParserCont
 
 impl<'input> AContextAttrs<'input> for AContext<'input>{}
 
-impl<'input, I, H> ReferenceToATNParser<'input, I, H>
+impl<'input, I> ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn a(&mut self,)
 	-> Result<Rc<AContextAll<'input>>,ANTLRError> {

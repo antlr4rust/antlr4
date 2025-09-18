@@ -69,28 +69,25 @@ pub type VisitorBasicTreeWalker<'input,'a> =
 	ParseTreeWalker<'input, 'a, VisitorBasicParserContextType , dyn VisitorBasicListener<'input> + 'a>;
 
 /// Parser for VisitorBasic grammar
-pub struct VisitorBasicParser<'input,I,H>
+pub struct VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	base:BaseParserType<'input,I>,
 	interpreter:Arc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
-    pub err_handler: H,
+    pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
 
-impl<'input, I, H> VisitorBasicParser<'input, I, H>
+impl<'input, I> VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-
-    pub fn set_error_strategy(&mut self, strategy: H) {
+    pub fn set_error_strategy(&mut self, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) {
         self.err_handler = strategy
     }
 
-    pub fn with_strategy(input: I, strategy: H) -> Self {
+    pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
 		antlr4rust::recognizer::check_version("0","3");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
@@ -115,7 +112,7 @@ where
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
 
-impl<'input, I> VisitorBasicParser<'input, I, DynStrategy<'input,I>>
+impl<'input, I> VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -124,12 +121,12 @@ where
     }
 }
 
-impl<'input, I> VisitorBasicParser<'input, I, DefaultErrorStrategy<'input,VisitorBasicParserContextType>>
+impl<'input, I> VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
     pub fn new(input: I) -> Self{
-    	Self::with_strategy(input,DefaultErrorStrategy::new())
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
     }
 }
 
@@ -166,10 +163,9 @@ impl<'input> ParserNodeType<'input> for VisitorBasicParserContextType{
 	type Type = dyn VisitorBasicParserContext<'input> + 'input;
 }
 
-impl<'input, I, H> Deref for VisitorBasicParser<'input, I, H>
+impl<'input, I> Deref for VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     type Target = BaseParserType<'input,I>;
 
@@ -178,10 +174,9 @@ where
     }
 }
 
-impl<'input, I, H> DerefMut for VisitorBasicParser<'input, I, H>
+impl<'input, I> DerefMut for VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
@@ -275,10 +270,9 @@ fn EOF(&self) -> Option<Rc<TerminalNode<'input,VisitorBasicParserContextType>>> 
 
 impl<'input> SContextAttrs<'input> for SContext<'input>{}
 
-impl<'input, I, H> VisitorBasicParser<'input, I, H>
+impl<'input, I> VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn s(&mut self,)
 	-> Result<Rc<SContextAll<'input>>,ANTLRError> {

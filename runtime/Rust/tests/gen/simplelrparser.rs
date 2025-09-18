@@ -68,28 +68,25 @@ pub type SimpleLRTreeWalker<'input,'a> =
 	ParseTreeWalker<'input, 'a, SimpleLRParserContextType , dyn SimpleLRListener<'input> + 'a>;
 
 /// Parser for SimpleLR grammar
-pub struct SimpleLRParser<'input,I,H>
+pub struct SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	base:BaseParserType<'input,I>,
 	interpreter:Arc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
-    pub err_handler: H,
+    pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
 
-impl<'input, I, H> SimpleLRParser<'input, I, H>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-
-    pub fn set_error_strategy(&mut self, strategy: H) {
+    pub fn set_error_strategy(&mut self, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) {
         self.err_handler = strategy
     }
 
-    pub fn with_strategy(input: I, strategy: H) -> Self {
+    pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
 		antlr4rust::recognizer::check_version("0","3");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
@@ -114,7 +111,7 @@ where
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
 
-impl<'input, I> SimpleLRParser<'input, I, DynStrategy<'input,I>>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -123,12 +120,12 @@ where
     }
 }
 
-impl<'input, I> SimpleLRParser<'input, I, DefaultErrorStrategy<'input,SimpleLRParserContextType>>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
     pub fn new(input: I) -> Self{
-    	Self::with_strategy(input,DefaultErrorStrategy::new())
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
     }
 }
 
@@ -155,10 +152,9 @@ impl<'input> ParserNodeType<'input> for SimpleLRParserContextType{
 	type Type = dyn SimpleLRParserContext<'input> + 'input;
 }
 
-impl<'input, I, H> Deref for SimpleLRParser<'input, I, H>
+impl<'input, I> Deref for SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     type Target = BaseParserType<'input,I>;
 
@@ -167,10 +163,9 @@ where
     }
 }
 
-impl<'input, I, H> DerefMut for SimpleLRParser<'input, I, H>
+impl<'input, I> DerefMut for SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
@@ -201,13 +196,13 @@ impl<'input,I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'i
 			   recog:&mut BaseParserType<'input,I>
 	)->bool{
 		match rule_index {
-					1 => SimpleLRParser::<'input,I,_>::a_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),
+					1 => SimpleLRParser::<'input,I>::a_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),
 			_ => true
 		}
 	}
 }
 
-impl<'input, I> SimpleLRParser<'input, I, DefaultErrorStrategy<'input,SimpleLRParserContextType>>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -274,10 +269,9 @@ fn a(&self) -> Option<Rc<AContextAll<'input>>> where Self:Sized{
 
 impl<'input> SContextAttrs<'input> for SContext<'input>{}
 
-impl<'input, I, H> SimpleLRParser<'input, I, H>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn s(&mut self,)
 	-> Result<Rc<SContextAll<'input>>,ANTLRError> {
@@ -372,10 +366,9 @@ fn a(&self) -> Option<Rc<AContextAll<'input>>> where Self:Sized{
 
 impl<'input> AContextAttrs<'input> for AContext<'input>{}
 
-impl<'input, I, H> SimpleLRParser<'input, I, H>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn  a(&mut self,)
 	-> Result<Rc<AContextAll<'input>>,ANTLRError> {

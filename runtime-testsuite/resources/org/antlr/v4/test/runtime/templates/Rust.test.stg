@@ -43,7 +43,7 @@ StringList() ::= "Vec\<String>"
 BuildParseTrees() ::= "recog.build_parse_trees = true;"
 BailErrorStrategy() ::=
 <<use antlr4rust::TidExt;
-*recog.err_handler.downcast_mut::\<DynStrategy\<I> >().unwrap() = Box::new(antlr4rust::error_strategy::BailErrorStrategy::new());
+recog.set_error_strategy(Box::new(antlr4rust::error_strategy::BailErrorStrategy::new()));
 >>
 
 ToStringTree(s) ::= "<s>.to_string_tree(&recog.base)"

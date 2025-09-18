@@ -76,28 +76,25 @@ pub type VisitorCalcTreeWalker<'input,'a> =
 	ParseTreeWalker<'input, 'a, VisitorCalcParserContextType , dyn VisitorCalcListener<'input> + 'a>;
 
 /// Parser for VisitorCalc grammar
-pub struct VisitorCalcParser<'input,I,H>
+pub struct VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	base:BaseParserType<'input,I>,
 	interpreter:Arc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
-    pub err_handler: H,
+    pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
 
-impl<'input, I, H> VisitorCalcParser<'input, I, H>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-
-    pub fn set_error_strategy(&mut self, strategy: H) {
+    pub fn set_error_strategy(&mut self, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) {
         self.err_handler = strategy
     }
 
-    pub fn with_strategy(input: I, strategy: H) -> Self {
+    pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
 		antlr4rust::recognizer::check_version("0","3");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
@@ -122,7 +119,7 @@ where
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
 
-impl<'input, I> VisitorCalcParser<'input, I, DynStrategy<'input,I>>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -131,12 +128,12 @@ where
     }
 }
 
-impl<'input, I> VisitorCalcParser<'input, I, DefaultErrorStrategy<'input,VisitorCalcParserContextType>>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
     pub fn new(input: I) -> Self{
-    	Self::with_strategy(input,DefaultErrorStrategy::new())
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
     }
 }
 
@@ -173,10 +170,9 @@ impl<'input> ParserNodeType<'input> for VisitorCalcParserContextType{
 	type Type = dyn VisitorCalcParserContext<'input> + 'input;
 }
 
-impl<'input, I, H> Deref for VisitorCalcParser<'input, I, H>
+impl<'input, I> Deref for VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     type Target = BaseParserType<'input,I>;
 
@@ -185,10 +181,9 @@ where
     }
 }
 
-impl<'input, I, H> DerefMut for VisitorCalcParser<'input, I, H>
+impl<'input, I> DerefMut for VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
@@ -219,13 +214,13 @@ impl<'input,I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'i
 			   recog:&mut BaseParserType<'input,I>
 	)->bool{
 		match rule_index {
-					1 => VisitorCalcParser::<'input,I,_>::expr_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),
+					1 => VisitorCalcParser::<'input,I>::expr_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),
 			_ => true
 		}
 	}
 }
 
-impl<'input, I> VisitorCalcParser<'input, I, DefaultErrorStrategy<'input,VisitorCalcParserContextType>>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -308,10 +303,9 @@ fn EOF(&self) -> Option<Rc<TerminalNode<'input,VisitorCalcParserContextType>>> w
 
 impl<'input> SContextAttrs<'input> for SContext<'input>{}
 
-impl<'input, I, H> VisitorCalcParser<'input, I, H>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn s(&mut self,)
 	-> Result<Rc<SContextAll<'input>>,ANTLRError> {
@@ -651,10 +645,9 @@ impl<'input> MultiplyContextExt<'input>{
 	}
 }
 
-impl<'input, I, H> VisitorCalcParser<'input, I, H>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn  expr(&mut self,)
 	-> Result<Rc<ExprContextAll<'input>>,ANTLRError> {

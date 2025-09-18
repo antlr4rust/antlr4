@@ -78,28 +78,25 @@ pub type CSVTreeWalker<'input,'a> =
 	ParseTreeWalker<'input, 'a, CSVParserContextType , dyn CSVListener<'input> + 'a>;
 
 /// Parser for CSV grammar
-pub struct CSVParser<'input,I,H>
+pub struct CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	base:BaseParserType<'input,I>,
 	interpreter:Arc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
-    pub err_handler: H,
+    pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
 
-impl<'input, I, H> CSVParser<'input, I, H>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-
-    pub fn set_error_strategy(&mut self, strategy: H) {
+    pub fn set_error_strategy(&mut self, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) {
         self.err_handler = strategy
     }
 
-    pub fn with_strategy(input: I, strategy: H) -> Self {
+    pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
 		antlr4rust::recognizer::check_version("0","3");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
@@ -124,7 +121,7 @@ where
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
 
-impl<'input, I> CSVParser<'input, I, DynStrategy<'input,I>>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -133,12 +130,12 @@ where
     }
 }
 
-impl<'input, I> CSVParser<'input, I, DefaultErrorStrategy<'input,CSVParserContextType>>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
     pub fn new(input: I) -> Self{
-    	Self::with_strategy(input,DefaultErrorStrategy::new())
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
     }
 }
 
@@ -175,10 +172,9 @@ impl<'input> ParserNodeType<'input> for CSVParserContextType{
 	type Type = dyn CSVParserContext<'input> + 'input;
 }
 
-impl<'input, I, H> Deref for CSVParser<'input, I, H>
+impl<'input, I> Deref for CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     type Target = BaseParserType<'input,I>;
 
@@ -187,10 +183,9 @@ where
     }
 }
 
-impl<'input, I, H> DerefMut for CSVParser<'input, I, H>
+impl<'input, I> DerefMut for CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
@@ -283,10 +278,9 @@ fn row(&self, i: usize) -> Option<Rc<RowContextAll<'input>>> where Self:Sized{
 
 impl<'input> CsvFileContextAttrs<'input> for CsvFileContext<'input>{}
 
-impl<'input, I, H> CSVParser<'input, I, H>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn csvFile(&mut self,)
 	-> Result<Rc<CsvFileContextAll<'input>>,ANTLRError> {
@@ -398,10 +392,9 @@ fn row(&self) -> Option<Rc<RowContextAll<'input>>> where Self:Sized{
 
 impl<'input> HdrContextAttrs<'input> for HdrContext<'input>{}
 
-impl<'input, I, H> CSVParser<'input, I, H>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn hdr(&mut self,)
 	-> Result<Rc<HdrContextAll<'input>>,ANTLRError> {
@@ -498,10 +491,9 @@ fn field(&self, i: usize) -> Option<Rc<FieldContextAll<'input>>> where Self:Size
 
 impl<'input> RowContextAttrs<'input> for RowContext<'input>{}
 
-impl<'input, I, H> CSVParser<'input, I, H>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn row(&mut self,)
 	-> Result<Rc<RowContextAll<'input>>,ANTLRError> {
@@ -636,10 +628,9 @@ fn STRING(&self) -> Option<Rc<TerminalNode<'input,CSVParserContextType>>> where 
 
 impl<'input> FieldContextAttrs<'input> for FieldContext<'input>{}
 
-impl<'input, I, H> CSVParser<'input, I, H>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn field(&mut self,)
 	-> Result<Rc<FieldContextAll<'input>>,ANTLRError> {
