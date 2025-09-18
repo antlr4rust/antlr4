@@ -120,8 +120,8 @@ PositionAdjustingLexerDef() ::= <<
 //@definitions
    fn handleAcceptPositionForIdentifier\<'input, Input:CharStream\<From\<'input>\>>(this: &mut BaseLexer\<'input,PositionAdjustingLexerActions,Input,LocalTokenFactory\<'input> >) {
      let tokenText = this.get_text();
-     let identifierLength = tokenText.chars().position(|it| !isIdentifierChar(it)).unwrap() as isize;
-//     while (identifierLength \< tokenText.len() as isize && isIdentifierChar(tokenText[identifierLength as usize])) {
+     let identifierLength = tokenText.chars().position(|it| !isIdentifierChar(it)).unwrap() as i32;
+//     while (identifierLength \< tokenText.len() as i32 && isIdentifierChar(tokenText[identifierLength as usize])) {
 //       identifierLength+=1;
 //     }
 
@@ -138,8 +138,8 @@ PositionAdjustingLexerDef() ::= <<
 
    fn handleAcceptPositionForKeyword\<'input, Input:CharStream\<From\<'input>\>>(this: &mut BaseLexer\<'input,PositionAdjustingLexerActions,Input,LocalTokenFactory\<'input> >, keyword: &str) {
    	let mut input = this.input.take().unwrap();
-     if (input.index() > this.token_start_char_index + keyword.len() as isize) {
-       let offset = keyword.len() as isize - 1;
+     if (input.index() > this.token_start_char_index + keyword.len() as i32) {
+       let offset = keyword.len() as i32 - 1;
        this.interpreter.as_mut().unwrap().resetAcceptPosition(&mut input,
          this.token_start_char_index + offset, this.token_start_line, this.token_start_column + offset);
        //return true;
@@ -154,10 +154,10 @@ PositionAdjustingLexerDef() ::= <<
    }
 
 trait PositionAdjustingLexerATNSim {
-    fn resetAcceptPosition(&mut self, input: &mut dyn IntStream, index: isize, line: isize, charPositionInLine: isize);
+    fn resetAcceptPosition(&mut self, input: &mut dyn IntStream, index: i32, line: i32, charPositionInLine: i32);
   }
 impl PositionAdjustingLexerATNSim for antlr4rust::lexer_atn_simulator::LexerATNSimulator{
-    fn resetAcceptPosition(&mut self, input: &mut dyn IntStream, index: isize, line: isize, charPositionInLine: isize) {
+    fn resetAcceptPosition(&mut self, input: &mut dyn IntStream, index: i32, line: i32, charPositionInLine: i32) {
       input.seek(index);
       self.set_line(line);
       self.set_char_position_in_line(charPositionInLine);
