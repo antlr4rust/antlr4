@@ -45,13 +45,7 @@ rutsTypeInitMap ::= [
 
 ParserFile(file, parser, namedActions, contextSuperClass) ::= <<
 <fileHeader(file.grammarFileName, file.ANTLRVersion)>
-#![allow(dead_code)]
-#![allow(non_snake_case)]
-#![allow(non_upper_case_globals)]
-#![allow(nonstandard_style)]
-#![allow(unused_imports)]
-#![allow(unused_mut)]
-#![allow(unused_braces)]
+#![allow(clippy::all)]
 <namedActions.header>
 use antlr4rust::PredictionContextCache;
 use antlr4rust::parser::{Parser, BaseParser, ParserRecog, ParserNodeType};
@@ -94,6 +88,7 @@ use std::any::{Any,TypeId};
 >>
 
 ListenerFile(file, header, namedActions) ::= <<
+#![allow(clippy::all)]
 #![allow(nonstandard_style)]
 <fileHeader(file.grammarFileName, file.ANTLRVersion)>
 <header>
@@ -135,6 +130,7 @@ BaseListenerFile(file, header, namedActions) ::= <<>>
 
 VisitorFile(file, header, namedActions) ::= <<
 #![allow(nonstandard_style)]
+#![allow(clippy::all)]
 <fileHeader(file.grammarFileName, file.ANTLRVersion)>
 <header>
 use antlr4rust::tree::{ParseTreeVisitor,ParseTreeVisitorCompat};
@@ -1230,10 +1226,7 @@ _prevctx = _localctx.clone();
 
 LexerFile(lexerFile, lexer, namedActions) ::= <<
 <fileHeader(lexerFile.grammarFileName, lexerFile.ANTLRVersion)>
-#![allow(dead_code)]
-#![allow(nonstandard_style)]
-#![allow(unused_imports)]
-#![allow(unused_variables)]
+#![allow(clippy::all)]
 <namedActions.header>
 use antlr4rust::atn::ATN;
 use antlr4rust::char_stream::CharStream;

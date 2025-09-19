@@ -12,6 +12,7 @@ pub(crate) const LEXER_ACTION_TYPE_SKIP: isize = 6;
 pub(crate) const LEXER_ACTION_TYPE_TYPE: isize = 7;
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]
+#[allow(clippy::enum_variant_names)] // FIXME!
 pub(crate) enum LexerAction {
     LexerChannelAction(isize),
     LexerCustomAction {
@@ -36,11 +37,10 @@ impl LexerAction {
     ////        unsafe {discriminant_value(self)} as isize
     //    }
     pub fn is_position_dependent(&self) -> bool {
-        match self {
-            LexerAction::LexerCustomAction { .. }
-            | LexerAction::LexerIndexedCustomAction { .. } => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            LexerAction::LexerCustomAction { .. } | LexerAction::LexerIndexedCustomAction { .. }
+        )
     }
     pub(crate) fn execute<'input, T: Lexer<'input>>(&self, lexer: &mut T) {
         match self {

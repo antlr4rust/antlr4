@@ -103,7 +103,7 @@ mod gen {
     }
 
     #[test]
-    fn test_should_not_visit_EOF() {
+    fn test_should_not_visit_eof() {
         let lexer = VisitorBasicLexer::new(InputStream::new("A"));
         let mut parser = VisitorBasicParser::new(CommonTokenStream::new(lexer));
 
@@ -137,6 +137,7 @@ mod gen {
         let expected = "[@0,0:0='A',<1>,1:0]\n";
         assert_eq!(result, expected);
 
+        #[allow(dead_code)]
         struct TestVisitorUnit(String);
         impl ParseTreeVisitorCompat<'_> for TestVisitorUnit {
             type Node = VisitorBasicParserContextType;
@@ -203,8 +204,8 @@ mod gen {
 
             fn aggregate_results(
                 &self,
-                aggregate: Self::Return,
-                next: Self::Return,
+                _aggregate: Self::Return,
+                _next: Self::Return,
             ) -> Self::Return {
                 panic!("Should not be reachable")
             }

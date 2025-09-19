@@ -1,11 +1,4 @@
 // Generated from VisitorCalc.g4 by ANTLR 4.8
-#![allow(dead_code)]
-#![allow(non_snake_case)]
-#![allow(non_upper_case_globals)]
-#![allow(nonstandard_style)]
-#![allow(unused_imports)]
-#![allow(unused_mut)]
-#![allow(unused_braces)]
 use super::visitorcalclistener::*;
 use super::visitorcalcvisitor::*;
 use antlr4rust::atn::{ATN, INVALID_ALT};

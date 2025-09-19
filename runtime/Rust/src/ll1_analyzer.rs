@@ -49,6 +49,7 @@ impl LL1Analyzer<'_> {
         r
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn look_work(
         &self,
         //                 atn:&ATN,

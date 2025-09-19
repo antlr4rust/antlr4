@@ -4,7 +4,6 @@ use std::cell::Cell;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::Arc;
-use std::usize;
 
 use crate::atn::ATN;
 use crate::atn_config::{ATNConfig, ATNConfigType};
@@ -404,7 +403,7 @@ impl LexerATNSimulator {
         }
     }
 
-    fn accept<'input>(&mut self, input: &mut impl IntStream) {
+    fn accept(&mut self, input: &mut impl IntStream) {
         input.seek(self.prev_accept.index);
         self.current_pos.line.set(self.prev_accept.line);
         self.current_pos
@@ -452,12 +451,12 @@ impl LexerATNSimulator {
             //            println!("reached rulestopstate {}",state.get_state_number());
             if config.get_context().map(|x| x.has_empty_path()) != Some(false) {
                 if config.get_context().map(|x| x.is_empty()) != Some(false) {
-                    _configs.add(Box::new(config));
+                    _configs.add(config);
                     return true;
                 } else {
-                    _configs.add(Box::new(
+                    _configs.add(
                         config.cloned_with_new_ctx(state, Some(EMPTY_PREDICTION_CONTEXT.clone())),
-                    ));
+                    );
                     _current_alt_reached_accept_state = true
                 }
             }
@@ -492,7 +491,7 @@ impl LexerATNSimulator {
             } = config.config_type
             {
                 if !_current_alt_reached_accept_state || !passed_through_non_greedy_decision {
-                    _configs.add(Box::new(config.clone()));
+                    _configs.add(config.clone());
                 }
             }
         }

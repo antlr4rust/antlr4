@@ -17,6 +17,7 @@ pub trait CharStream<Data>: IntStream {
 
 /// Trait for input that can be accepted by `InputStream` to be able to provide lexer with data.
 /// Public for implementation reasons.
+#[allow(clippy::len_without_is_empty)]
 pub trait InputData:
     Index<Range<usize>, Output = Self>
     + Index<RangeFrom<usize>, Output = Self>

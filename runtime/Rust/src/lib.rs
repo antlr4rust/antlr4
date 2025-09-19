@@ -139,18 +139,23 @@ pub mod atn;
 #[doc(hidden)]
 pub mod atn_config_set;
 #[doc(hidden)]
+#[allow(clippy::result_large_err)]
 pub mod atn_deserializer;
 pub mod common_token_stream;
 mod dfa_serializer;
 pub mod error_listener;
+#[allow(clippy::result_large_err)]
 pub mod error_strategy;
 pub mod errors;
 pub mod input_stream;
 pub mod lexer;
 #[doc(hidden)]
 pub mod lexer_action_executor;
+#[allow(clippy::result_large_err)]
 pub mod lexer_atn_simulator;
+#[allow(clippy::result_large_err)]
 pub mod parser;
+#[allow(clippy::result_large_err)]
 pub mod parser_atn_simulator;
 mod prediction_mode;
 pub mod token;

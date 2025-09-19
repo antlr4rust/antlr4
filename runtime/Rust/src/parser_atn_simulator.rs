@@ -5,9 +5,9 @@ use std::collections::{HashMap, HashSet};
 
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
+use std::ptr;
 use std::rc::Rc;
 use std::sync::Arc;
-use std::{ptr, usize};
 
 use bit_set::BitSet;
 
@@ -562,7 +562,7 @@ impl ParserATNSimulator {
 
             for tr in state.get_transitions() {
                 self.get_reachable_target(tr.as_ref(), t).map(|target| {
-                    let added = Box::new(c.cloned(self.atn().states[target].as_ref()));
+                    let added = c.cloned(self.atn().states[target].as_ref());
                     intermediate.add_cached(added, Some(local.merge_cache))
                 });
             }
@@ -584,7 +584,7 @@ impl ParserATNSimulator {
             for c in intermediate.configs {
                 let treat_eofas_epsilon = t == TOKEN_EOF;
                 self.closure(
-                    *c,
+                    c,
                     &mut reach,
                     &mut closure_busy,
                     false,
@@ -609,7 +609,7 @@ impl ParserATNSimulator {
             && (!full_ctx || !self.has_config_in_rule_stop_state(&reach))
         {
             for c in skipped_stop_states {
-                reach.add_cached(c.clone().into(), Some(local.merge_cache));
+                reach.add_cached(c.clone(), Some(local.merge_cache));
             }
         }
         //        println!("result?");
@@ -665,8 +665,7 @@ impl ParserATNSimulator {
                 if next_tokens.contains(TOKEN_EPSILON) {
                     let end_of_rule_state = self.atn().rule_to_stop_state[state.get_rule_index()];
                     result.add_cached(
-                        c.cloned(self.atn().states[end_of_rule_state].as_ref())
-                            .into(),
+                        c.cloned(self.atn().states[end_of_rule_state].as_ref()),
                         Some(merge_cache),
                     );
                 }
@@ -735,16 +734,16 @@ impl ParserATNSimulator {
 
                 if *updated_sem_ctx != *config.semantic_context {
                     config_set.add_cached(
-                        Box::new(ATNConfig::new_with_semantic(
+                        ATNConfig::new_with_semantic(
                             config.get_state(),
                             config.get_alt(),
                             config.get_context().cloned(),
                             Box::new(updated_sem_ctx.clone()),
-                        )),
+                        ),
                         Some(local.merge_cache),
                     );
                 } else {
-                    config_set.add_cached(Box::new(config.clone()), Some(local.merge_cache));
+                    config_set.add_cached(config.clone(), Some(local.merge_cache));
                 }
             }
         }
@@ -760,7 +759,7 @@ impl ParserATNSimulator {
                     }
                 }
             }
-            config_set.add(Box::new(config.clone()));
+            config_set.add(config.clone());
         }
 
         config_set
@@ -870,7 +869,7 @@ impl ParserATNSimulator {
         let mut succeeded = ATNConfigSet::new_base_atnconfig_set(configs.full_context());
         let mut failed = ATNConfigSet::new_base_atnconfig_set(configs.full_context());
         for c in configs.get_items() {
-            let clone = Box::new(c.clone());
+            let clone = c.clone();
             if *c.semantic_context != SemanticContext::NONE {
                 let predicate_eval_result = self.eval_predicate(
                     local,
@@ -944,6 +943,7 @@ impl ParserATNSimulator {
         pred.borrow().evaluate(local.parser, &*local.outer_context)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn closure<'a, T: Parser<'a>>(
         &self,
         config: ATNConfig,
@@ -971,6 +971,7 @@ impl ParserATNSimulator {
         assert!(!full_ctx || !configs.get_dips_into_outer_context())
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn closure_checking_stop_state<'a, T: Parser<'a>>(
         &self,
         mut config: ATNConfig,
@@ -994,7 +995,7 @@ impl ParserATNSimulator {
                                 self.atn().states[config.get_state()].as_ref(),
                                 Some(EMPTY_PREDICTION_CONTEXT.clone()),
                             );
-                            configs.add_cached(Box::new(new_config), Some(local.merge_cache));
+                            configs.add_cached(new_config, Some(local.merge_cache));
                         } else {
                             self.closure_work(
                                 config.clone(),
@@ -1027,7 +1028,7 @@ impl ParserATNSimulator {
                         config.semantic_context.clone(),
                     );
                     c.set_reaches_into_outer_context(config.get_reaches_into_outer_context());
-                    assert!(depth > isize::min_value());
+                    assert!(depth > isize::MIN);
                     self.closure_checking_stop_state(
                         c,
                         configs,
@@ -1041,7 +1042,7 @@ impl ParserATNSimulator {
                 }
                 return;
             } else if full_ctx {
-                configs.add_cached(Box::new(config), Some(local.merge_cache));
+                configs.add_cached(config, Some(local.merge_cache));
                 return;
             }
         }
@@ -1057,6 +1058,7 @@ impl ParserATNSimulator {
         )
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn closure_work<'a, T: Parser<'a>>(
         &self,
         config: ATNConfig,
@@ -1072,7 +1074,7 @@ impl ParserATNSimulator {
         //        println!("closure_work started {:?}",config);
         let p = self.atn().states[config.get_state()].as_ref();
         if !p.has_epsilon_only_transitions() {
-            configs.add_cached(Box::new(config.clone()), Some(local.merge_cache));
+            configs.add_cached(config.clone(), Some(local.merge_cache));
         }
 
         for (i, tr) in p.get_transitions().iter().enumerate() {
@@ -1115,7 +1117,7 @@ impl ParserATNSimulator {
                         continue;
                     }
                     configs.set_dips_into_outer_context(true);
-                    assert!(new_depth > isize::min_value());
+                    assert!(new_depth > isize::MIN);
                     new_depth -= 1;
                 } else {
                     if !tr.is_epsilon() && !closure_busy.insert(c.clone()) {
@@ -1226,6 +1228,7 @@ impl ParserATNSimulator {
     //
     //    fn get_rule_name(&self, index: isize) -> String { unimplemented!() }
 
+    #[allow(clippy::too_many_arguments)]
     fn get_epsilon_target<'a, T: Parser<'a>>(
         &self,
         config: &ATNConfig,
@@ -1325,7 +1328,7 @@ impl ParserATNSimulator {
         local: &mut Local<'_, 'a, T>,
     ) -> Option<ATNConfig> {
         let target = self.atn().states[pt.target].deref();
-        if collect_predicates && (!pt.is_ctx_dependent || (pt.is_ctx_dependent && in_context)) {
+        if collect_predicates && !pt.is_ctx_dependent || in_context {
             if full_ctx {
                 let curr_pos = local.input().index();
                 local.input().seek(self.start_index.get());
@@ -1491,6 +1494,7 @@ impl ParserATNSimulator {
             .report_context_sensitivity(parser, dfa, start_index, stop_index, prediction, configs)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn report_ambiguity<'a, T: Parser<'a>>(
         &self,
         dfa: &DFA,

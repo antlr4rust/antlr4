@@ -67,7 +67,7 @@ impl DFA {
 
         // to indicate null
         dfa.states.push(DFAState::new_dfastate(
-            usize::max_value(),
+            usize::MAX,
             Box::new(ATNConfigSet::new_base_atnconfig_set(true)),
         ));
         if let ATNStateType::DecisionState {

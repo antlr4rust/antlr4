@@ -7,9 +7,10 @@
 // #[macro_use]
 // extern crate lazy_static;
 
+#[allow(clippy::all)]
+#[warn(clippy::none)]
 mod gen {
     use std::fmt::Write;
-    use std::io::Read;
     use std::iter::FromIterator;
 
     use antlr4rust::common_token_stream::CommonTokenStream;
@@ -54,6 +55,7 @@ mod gen {
     mod simplelrparser;
     mod visitorcalclexer;
     mod visitorcalclistener;
+    #[allow(clippy::blocks_in_conditions)]
     mod visitorcalcparser;
     mod visitorcalcvisitor;
     mod xmllexer;
