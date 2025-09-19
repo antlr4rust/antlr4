@@ -98,7 +98,9 @@ public class RustRunner extends RuntimeRunner {
 		ProcessorResult result = Processor.run(new String[]{runtimeToolPath,
 			"build", "--target-dir", cachePath, "-v"}, runtimePath);
 		libName = findLibName(cachePath);
-		cargoNativePath = getNativePath(result.errors);
+		if (isWindows()) {
+			cargoNativePath = getNativePath(result.errors);
+		}
 		String tomlPath = cachePath + File.separator + "toml";
 		mkdir(tomlPath);
 		Processor.run(new String[]{runtimeToolPath, "init"}, tomlPath);
@@ -136,7 +138,7 @@ public class RustRunner extends RuntimeRunner {
 		}
 		return null;
 	}
-	
+
 	@Override
 	protected List<String> getTargetToolOptions(RunOptions ro) {
 		ArrayList<String> options = new ArrayList<>();
@@ -152,12 +154,20 @@ public class RustRunner extends RuntimeRunner {
 		String depsPath = getCachePath() +  File.separator + "debug" + File.separator + "deps";
 		Exception ex = null;
 		try {
-			Processor.run(new String[]{"rustc",
-				"--crate-name", "Rust", "--edition=2024", "src" + File.separator + "main.rs", "--out-dir",
-					"target"+ File.separator + "debug",
-				"-L", "dependency=" + depsPath, "--extern", "antlr4rust=" + depsPath + File.separator + libName,
-				"-L", "native=" + cargoNativePath},
-				getTempDirPath(), environment);
+			if (isWindows()) {
+				String[] arguments = {"rustc",
+					"--crate-name", "Rust", "--edition=2024", "src" + File.separator + "main.rs", "--out-dir",
+					"target" + File.separator + "debug",
+					"-L", "dependency=" + depsPath, "--extern", "antlr4rust=" + depsPath + File.separator + libName,
+					"-L", "native=" + cargoNativePath};
+				Processor.run(arguments, getTempDirPath(), environment);
+			} else {
+				String[] arguments = {"rustc",
+					"--crate-name", "Rust", "--edition=2024", "src" + File.separator + "main.rs", "--out-dir",
+					"target" + File.separator + "debug",
+					"-L", "dependency=" + depsPath, "--extern", "antlr4rust=" + depsPath + File.separator + libName};
+				Processor.run(arguments, getTempDirPath(), environment);
+			}
 		} catch (InterruptedException | IOException e) {
 			ex = e;
 		}
@@ -187,7 +197,7 @@ public class RustRunner extends RuntimeRunner {
 
 	@Override
 	protected String getExecFileName() {
-		return Paths.get(getTempDirPath(), "target/debug/Rust" + (isWindows() ? ".exe" : "out")).toString();
+		return Paths.get(getTempDirPath(), "target/debug/Rust").toString();
 	}
 
 }
