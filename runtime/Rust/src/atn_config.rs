@@ -17,12 +17,12 @@ pub struct ATNConfig {
     //todo since ATNState is immutable when we started working with ATNConfigs
     // looks like it is possible to have usual reference here
     state: ATNStateRef,
-    alt: isize,
+    alt: i32,
     //todo maybe option is unnecessary and PredictionContext::EMPTY would be enough
     //another todo check arena alloc
     context: Option<Arc<PredictionContext>>,
     pub semantic_context: Box<SemanticContext>,
-    pub reaches_into_outer_context: isize,
+    pub reaches_into_outer_context: i32,
     pub(crate) config_type: ATNConfigType,
 }
 
@@ -112,7 +112,7 @@ impl ATNConfig {
 
     pub fn new(
         state: ATNStateRef,
-        alt: isize,
+        alt: i32,
         context: Option<Arc<PredictionContext>>,
     ) -> ATNConfig {
         ATNConfig {
@@ -128,7 +128,7 @@ impl ATNConfig {
 
     pub fn new_with_semantic(
         state: ATNStateRef,
-        alt: isize,
+        alt: i32,
         context: Option<Arc<PredictionContext>>,
         semantic_context: Box<SemanticContext>,
     ) -> ATNConfig {
@@ -139,7 +139,7 @@ impl ATNConfig {
 
     pub fn new_lexer_atnconfig6(
         _state: ATNStateRef,
-        _alt: isize,
+        _alt: i32,
         _context: Arc<PredictionContext>,
     ) -> ATNConfig {
         let mut atnconfig = ATNConfig::new(_state, _alt, Some(_context));
@@ -206,7 +206,7 @@ impl ATNConfig {
         self.state
     }
 
-    pub fn get_alt(&self) -> isize {
+    pub fn get_alt(&self) -> i32 {
         self.alt
     }
 
@@ -226,11 +226,11 @@ impl ATNConfig {
         self.context = Some(_v);
     }
 
-    pub fn get_reaches_into_outer_context(&self) -> isize {
+    pub fn get_reaches_into_outer_context(&self) -> i32 {
         self.reaches_into_outer_context
     }
 
-    pub fn set_reaches_into_outer_context(&mut self, _v: isize) {
+    pub fn set_reaches_into_outer_context(&mut self, _v: i32) {
         self.reaches_into_outer_context = _v
     }
 

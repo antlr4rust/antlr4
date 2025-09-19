@@ -17,7 +17,7 @@ use std::ops::Deref;
 pub struct InputStream<Data: Deref> {
     name: String,
     data_raw: Data,
-    index: isize,
+    index: i32,
 }
 
 // #[impl_tid]
@@ -29,14 +29,14 @@ better_any::tid! {impl<'a, T: 'static> TidAble<'a> for InputStream<Box<T>> where
 
 impl<'a, T: From<&'a str>> CharStream<T> for InputStream<&'a str> {
     #[inline]
-    fn get_text(&self, start: isize, stop: isize) -> T {
+    fn get_text(&self, start: i32, stop: i32) -> T {
         self.get_text_inner(start, stop).into()
     }
 }
 
 impl<T: From<D::Owned>, D: ?Sized + InputData> CharStream<T> for InputStream<Box<D>> {
     #[inline]
-    fn get_text(&self, start: isize, stop: isize) -> T {
+    fn get_text(&self, start: i32, stop: i32) -> T {
         self.get_text_owned(start, stop).into()
     }
 }
@@ -54,7 +54,7 @@ where
     [T]: InputData,
 {
     #[inline]
-    fn get_text(&self, a: isize, b: isize) -> Cow<'a, [T]> {
+    fn get_text(&self, a: i32, b: i32) -> Cow<'a, [T]> {
         Cow::Borrowed(self.get_text_inner(a, b))
     }
 }
@@ -63,7 +63,7 @@ impl<T> CharStream<String> for InputStream<&[T]>
 where
     [T]: InputData,
 {
-    fn get_text(&self, a: isize, b: isize) -> String {
+    fn get_text(&self, a: i32, b: i32) -> String {
         self.get_text_inner(a, b).to_display()
     }
 }
@@ -73,7 +73,7 @@ where
     [T]: InputData,
 {
     #[inline]
-    fn get_text(&self, a: isize, b: isize) -> Cow<'b, str> {
+    fn get_text(&self, a: i32, b: i32) -> Cow<'b, str> {
         self.get_text_inner(a, b).to_display().into()
     }
 }
@@ -83,13 +83,13 @@ where
     [T]: InputData,
 {
     #[inline]
-    fn get_text(&self, a: isize, b: isize) -> &'a [T] {
+    fn get_text(&self, a: i32, b: i32) -> &'a [T] {
         self.get_text_inner(a, b)
     }
 }
 
 impl<Data: ?Sized + InputData> InputStream<Box<Data>> {
-    fn get_text_owned(&self, start: isize, stop: isize) -> Data::Owned {
+    fn get_text_owned(&self, start: i32, stop: i32) -> Data::Owned {
         let start = start as usize;
         let stop = self.data_raw.offset(stop, 1).unwrap_or(stop) as usize;
 
@@ -115,7 +115,7 @@ impl<'a, Data> InputStream<&'a Data>
 where
     Data: ?Sized + InputData,
 {
-    fn get_text_inner(&self, start: isize, stop: isize) -> &'a Data {
+    fn get_text_inner(&self, start: i32, stop: i32) -> &'a Data {
         // println!("get text {}..{} of {:?}",start,stop,self.data_raw.to_display());
         let start = start as usize;
         let stop = self.data_raw.offset(stop, 1).unwrap_or(stop) as usize;
@@ -169,7 +169,7 @@ where
     }
 
     #[inline]
-    fn la(&mut self, mut offset: isize) -> isize {
+    fn la(&mut self, mut offset: i32) -> i32 {
         if offset == 1 {
             return self
                 .data_raw
@@ -190,26 +190,26 @@ where
     }
 
     #[inline]
-    fn mark(&mut self) -> isize {
+    fn mark(&mut self) -> i32 {
         -1
     }
 
     #[inline]
-    fn release(&mut self, _marker: isize) {}
+    fn release(&mut self, _marker: i32) {}
 
     #[inline]
-    fn index(&self) -> isize {
+    fn index(&self) -> i32 {
         self.index
     }
 
     #[inline]
-    fn seek(&mut self, index: isize) {
+    fn seek(&mut self, index: i32) {
         self.index = index
     }
 
     #[inline]
-    fn size(&self) -> isize {
-        self.data_raw.len() as isize
+    fn size(&self) -> i32 {
+        self.data_raw.len() as i32
     }
 
     fn get_source_name(&self) -> String {
@@ -230,18 +230,18 @@ mod test {
     fn test_str_input_stream() {
         let mut input = InputStream::new("V1は3");
         let input = &mut input as &mut dyn CharStream<String>;
-        assert_eq!(input.la(1), 'V' as isize);
+        assert_eq!(input.la(1), 'V' as i32);
         assert_eq!(input.index(), 0);
         input.consume();
-        assert_eq!(input.la(1), '1' as isize);
-        assert_eq!(input.la(-1), 'V' as isize);
+        assert_eq!(input.la(1), '1' as i32);
+        assert_eq!(input.la(-1), 'V' as i32);
         assert_eq!(input.index(), 1);
         input.consume();
         assert_eq!(input.la(1), 0x306F);
         assert_eq!(input.index(), 2);
         input.consume();
         assert_eq!(input.index(), 5);
-        assert_eq!(input.la(-2), '1' as isize);
+        assert_eq!(input.la(-2), '1' as i32);
         assert_eq!(input.la(2), EOF);
         assert_eq!(input.get_text(1, 1).deref(), "1");
         assert_eq!(input.get_text(1, 2).deref(), "1は");
@@ -253,7 +253,7 @@ mod test {
     #[test]
     fn test_byte_input_stream() {
         let mut input = InputStream::new(&b"V\xaa\xbb"[..]);
-        assert_eq!(input.la(1), 'V' as isize);
+        assert_eq!(input.la(1), 'V' as i32);
         input.seek(2);
         assert_eq!(input.la(1), 0xBB);
         assert_eq!(input.index(), 2);

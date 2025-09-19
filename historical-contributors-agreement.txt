@@ -329,4 +329,5 @@ YYYY/MM/DD, github id, Full name, email
 2021/12/31, Biswa96, Biswapriyo Nath, nathbappai@gmail.com
 2022/03/07, chenquan, chenquan, chenquan.dev@gmail.com
 2022/03/15, hzeller, Henner Zeller, h.zeller@acm.org
+2025/07/09, cyqw, Chen Yong, cyqw@163.com
 2025/09/12, torbensen, Torben Magne, torbenmagne@gmail.com

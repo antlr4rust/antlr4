@@ -5,7 +5,7 @@ use std::borrow::{Borrow, Cow};
 use std::fmt::{Debug, Formatter};
 use std::marker::PhantomData;
 
-use std::sync::atomic::AtomicIsize;
+use std::sync::atomic::AtomicI32;
 
 use typed_arena::Arena;
 
@@ -23,7 +23,7 @@ lazy_static! {
         channel: 0,
         start: -1,
         stop: -1,
-        token_index: AtomicIsize::new(-1),
+        token_index: AtomicI32::new(-1),
         line: -1,
         column: -1,
         text: "<invalid>".to_owned(),
@@ -34,7 +34,7 @@ lazy_static! {
         channel: 0,
         start: -1,
         stop: -1,
-        token_index: AtomicIsize::new(-1),
+        token_index: AtomicI32::new(-1),
         line: -1,
         column: -1,
         text: Borrowed("<invalid>"),
@@ -59,13 +59,13 @@ pub trait TokenFactory<'a>: TidAble<'a> + Sized {
     fn create<T>(
         &'a self,
         source: Option<&mut T>,
-        ttype: isize,
+        ttype: i32,
         text: Option<<Self::Data as ToOwned>::Owned>,
-        channel: isize,
-        start: isize,
-        stop: isize,
-        line: isize,
-        column: isize,
+        channel: i32,
+        start: i32,
+        stop: i32,
+        line: i32,
+        column: i32,
     ) -> Self::Tok
     where
         T: CharStream<Self::From> + ?Sized;
@@ -101,13 +101,13 @@ impl<'a> TokenFactory<'a> for CommonTokenFactory {
     fn create<T>(
         &'a self,
         source: Option<&mut T>,
-        ttype: isize,
+        ttype: i32,
         text: Option<String>,
-        channel: isize,
-        start: isize,
-        stop: isize,
-        line: isize,
-        column: isize,
+        channel: i32,
+        start: i32,
+        stop: i32,
+        line: i32,
+        column: i32,
     ) -> Self::Tok
     where
         T: CharStream<Self::From> + ?Sized,
@@ -128,7 +128,7 @@ impl<'a> TokenFactory<'a> for CommonTokenFactory {
             channel,
             start,
             stop,
-            token_index: AtomicIsize::new(-1),
+            token_index: AtomicI32::new(-1),
             line,
             column,
             text,
@@ -162,13 +162,13 @@ impl<'a> TokenFactory<'a> for OwningTokenFactory {
     fn create<T>(
         &'a self,
         source: Option<&mut T>,
-        ttype: isize,
+        ttype: i32,
         text: Option<String>,
-        channel: isize,
-        start: isize,
-        stop: isize,
-        line: isize,
-        column: isize,
+        channel: i32,
+        start: i32,
+        stop: i32,
+        line: i32,
+        column: i32,
     ) -> Self::Tok
     where
         T: CharStream<String> + ?Sized,
@@ -189,7 +189,7 @@ impl<'a> TokenFactory<'a> for OwningTokenFactory {
             channel,
             start,
             stop,
-            token_index: AtomicIsize::new(-1),
+            token_index: AtomicI32::new(-1),
             line,
             column,
             text,
@@ -279,13 +279,13 @@ where
     fn create<T>(
         &'input self,
         source: Option<&mut T>,
-        ttype: isize,
+        ttype: i32,
         text: Option<<Self::Data as ToOwned>::Owned>,
-        channel: isize,
-        start: isize,
-        stop: isize,
-        line: isize,
-        column: isize,
+        channel: i32,
+        start: i32,
+        stop: i32,
+        line: i32,
+        column: i32,
     ) -> Self::Tok
     where
         T: CharStream<Self::From> + ?Sized,

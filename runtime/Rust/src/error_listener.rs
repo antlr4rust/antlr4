@@ -28,8 +28,8 @@ pub trait ErrorListener<'a, T: Recognizer<'a>> {
         &self,
         _recognizer: &T,
         _offending_symbol: Option<&<T::TF as TokenFactory<'a>>::Inner>,
-        _line: isize,
-        _column: isize,
+        _line: i32,
+        _column: i32,
         _msg: &str,
         _error: Option<&ANTLRError>,
     ) {
@@ -41,8 +41,8 @@ pub trait ErrorListener<'a, T: Recognizer<'a>> {
         &self,
         _recognizer: &T,
         _dfa: &DFA,
-        _start_index: isize,
-        _stop_index: isize,
+        _start_index: i32,
+        _stop_index: i32,
         _exact: bool,
         _ambig_alts: &BitSet,
         _configs: &ATNConfigSet,
@@ -55,8 +55,8 @@ pub trait ErrorListener<'a, T: Recognizer<'a>> {
         &self,
         _recognizer: &T,
         _dfa: &DFA,
-        _start_index: isize,
-        _stop_index: isize,
+        _start_index: i32,
+        _stop_index: i32,
         _conflicting_alts: &BitSet,
         _configs: &ATNConfigSet,
     ) {
@@ -68,9 +68,9 @@ pub trait ErrorListener<'a, T: Recognizer<'a>> {
         &self,
         _recognizer: &T,
         _dfa: &DFA,
-        _start_index: isize,
-        _stop_index: isize,
-        _prediction: isize,
+        _start_index: i32,
+        _stop_index: i32,
+        _prediction: i32,
         _configs: &ATNConfigSet,
     ) {
     }
@@ -85,8 +85,8 @@ impl<'a, T: Recognizer<'a>> ErrorListener<'a, T> for ConsoleErrorListener {
         &self,
         _recognizer: &T,
         _offending_symbol: Option<&<T::TF as TokenFactory<'a>>::Inner>,
-        line: isize,
-        column: isize,
+        line: i32,
+        column: i32,
         msg: &str,
         _e: Option<&ANTLRError>,
     ) {
@@ -104,8 +104,8 @@ impl<'a, T: Recognizer<'a>> ErrorListener<'a, T> for ProxyErrorListener<'_, 'a, 
         &self,
         _recognizer: &T,
         offending_symbol: Option<&<T::TF as TokenFactory<'a>>::Inner>,
-        line: isize,
-        column: isize,
+        line: i32,
+        column: i32,
         msg: &str,
         e: Option<&ANTLRError>,
     ) {
@@ -118,8 +118,8 @@ impl<'a, T: Recognizer<'a>> ErrorListener<'a, T> for ProxyErrorListener<'_, 'a, 
         &self,
         recognizer: &T,
         dfa: &DFA,
-        start_index: isize,
-        stop_index: isize,
+        start_index: i32,
+        stop_index: i32,
         exact: bool,
         ambig_alts: &BitSet<u32>,
         configs: &ATNConfigSet,
@@ -141,8 +141,8 @@ impl<'a, T: Recognizer<'a>> ErrorListener<'a, T> for ProxyErrorListener<'_, 'a, 
         &self,
         recognizer: &T,
         dfa: &DFA,
-        start_index: isize,
-        stop_index: isize,
+        start_index: i32,
+        stop_index: i32,
         conflicting_alts: &BitSet<u32>,
         configs: &ATNConfigSet,
     ) {
@@ -162,9 +162,9 @@ impl<'a, T: Recognizer<'a>> ErrorListener<'a, T> for ProxyErrorListener<'_, 'a, 
         &self,
         recognizer: &T,
         dfa: &DFA,
-        start_index: isize,
-        stop_index: isize,
-        prediction: isize,
+        start_index: i32,
+        stop_index: i32,
+        prediction: i32,
         configs: &ATNConfigSet,
     ) {
         for listener in self.delegates.deref() {
@@ -208,10 +208,10 @@ impl DiagnosticErrorListener {
 
     fn get_decision_description<'a, T: Parser<'a>>(&self, recog: &T, dfa: &DFA) -> String {
         let decision = dfa.decision;
-        let rule_index = recog.get_atn().states[dfa.atn_start_state].get_rule_index();
+        let rule_index = recog.get_atn().states[dfa.atn_start_state as usize].get_rule_index();
 
         let rule_names = recog.get_rule_names();
-        if let Some(&rule_name) = rule_names.get(rule_index) {
+        if let Some(&rule_name) = rule_names.get(rule_index as usize) {
             format!("{} ({})", decision, rule_name)
         } else {
             decision.to_string()
@@ -243,8 +243,8 @@ impl<'a, T: Parser<'a>> ErrorListener<'a, T> for DiagnosticErrorListener {
         &self,
         recognizer: &T,
         dfa: &DFA,
-        start_index: isize,
-        stop_index: isize,
+        start_index: i32,
+        stop_index: i32,
         exact: bool,
         ambig_alts: &BitSet<u32>,
         _configs: &ATNConfigSet,
@@ -267,8 +267,8 @@ impl<'a, T: Parser<'a>> ErrorListener<'a, T> for DiagnosticErrorListener {
         &self,
         recognizer: &T,
         dfa: &DFA,
-        start_index: isize,
-        stop_index: isize,
+        start_index: i32,
+        stop_index: i32,
         _conflicting_alts: &BitSet<u32>,
         _configs: &ATNConfigSet,
     ) {
@@ -286,9 +286,9 @@ impl<'a, T: Parser<'a>> ErrorListener<'a, T> for DiagnosticErrorListener {
         &self,
         recognizer: &T,
         dfa: &DFA,
-        start_index: isize,
-        stop_index: isize,
-        _prediction: isize,
+        start_index: i32,
+        stop_index: i32,
+        _prediction: i32,
         _configs: &ATNConfigSet,
     ) {
         let msg = format!(
@@ -306,13 +306,13 @@ impl DefaultErrorListener {
     fn new_default_error_listener() -> * DefaultErrorListener { unimplemented!() }
 
     fn syntax_error(&self, recognizer: Recognizer, offendingSymbol: interface {
-    }, line: isize, column: isize, msg: String, e: RecognitionError) { unimplemented!() }
+    }, line: i32, column: i32, msg: String, e: RecognitionError) { unimplemented!() }
 
-    fn report_ambiguity(&self, recognizer: Parser, dfa: * DFA, startIndex: isize, stopIndex: isize, exact: bool, ambigAlts: * BitSet, configs: ATNConfigSet) { unimplemented!() }
+    fn report_ambiguity(&self, recognizer: Parser, dfa: * DFA, startIndex: i32, stopIndex: i32, exact: bool, ambigAlts: * BitSet, configs: ATNConfigSet) { unimplemented!() }
 
-    fn report_attempting_full_context(&self, recognizer: Parser, dfa: * DFA, startIndex: isize, stopIndex: isize, conflictingAlts: * BitSet, configs: ATNConfigSet) { unimplemented!() }
+    fn report_attempting_full_context(&self, recognizer: Parser, dfa: * DFA, startIndex: i32, stopIndex: i32, conflictingAlts: * BitSet, configs: ATNConfigSet) { unimplemented!() }
 
-    fn report_context_sensitivity(&self, recognizer: Parser, dfa: * DFA, startIndex: isize, stopIndex: isize, prediction: isize, configs: ATNConfigSet) { unimplemented!() }
+    fn report_context_sensitivity(&self, recognizer: Parser, dfa: * DFA, startIndex: i32, stopIndex: i32, prediction: i32, configs: ATNConfigSet) { unimplemented!() }
 
     pub struct ConsoleErrorListener {
     base: DefaultErrorListener,
@@ -323,7 +323,7 @@ impl DefaultErrorListener {
     var ConsoleErrorListenerINSTANCE = NewConsoleErrorListener()
 
     fn syntax_error(&self, recognizer: Recognizer, offendingSymbol: interface {
-    }, line: isize, column: isize, msg: String, e: RecognitionError) {
+    }, line: i32, column: i32, msg: String, e: RecognitionError) {
         fmt.Fprintln(os.Stderr, "line " + strconv.Itoa(line) + ":" + strconv.Itoa(column) + " " + msg)
     }
 
@@ -335,16 +335,16 @@ impl DefaultErrorListener {
     fn new_proxy_error_listener(delegates Vec<ErrorListener>) -> * ProxyErrorListener { unimplemented!() }
 
     fn syntax_error(&self, recognizer: Recognizer, offendingSymbol: interface {
-    }, line: isize, column: isize, msg: String, e: RecognitionError) {
+    }, line: i32, column: i32, msg: String, e: RecognitionError) {
         for _, d: = range p.delegates {
             d.SyntaxError(recognizer, offendingSymbol, line, column, msg, e)
         }
     }
 
-    fn report_ambiguity(&self, recognizer: Parser, dfa: * DFA, startIndex: isize, stopIndex: isize, exact: bool, ambigAlts: * BitSet, configs: ATNConfigSet) { unimplemented!() }
+    fn report_ambiguity(&self, recognizer: Parser, dfa: * DFA, startIndex: i32, stopIndex: i32, exact: bool, ambigAlts: * BitSet, configs: ATNConfigSet) { unimplemented!() }
 
-    fn report_attempting_full_context(&self, recognizer: Parser, dfa: * DFA, startIndex: isize, stopIndex: isize, conflictingAlts: * BitSet, configs: ATNConfigSet) { unimplemented!() }
+    fn report_attempting_full_context(&self, recognizer: Parser, dfa: * DFA, startIndex: i32, stopIndex: i32, conflictingAlts: * BitSet, configs: ATNConfigSet) { unimplemented!() }
 
-    fn report_context_sensitivity(&self, recognizer: Parser, dfa: * DFA, startIndex: isize, stopIndex: isize, prediction: isize, configs: ATNConfigSet) { unimplemented!() }
+    fn report_context_sensitivity(&self, recognizer: Parser, dfa: * DFA, startIndex: i32, stopIndex: i32, prediction: i32, configs: ATNConfigSet) { unimplemented!() }
 }
  */

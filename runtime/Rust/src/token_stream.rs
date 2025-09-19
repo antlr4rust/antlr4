@@ -20,9 +20,9 @@ pub trait TokenStream<'input>: IntStream {
     type TF: TokenFactory<'input> + 'input;
 
     /// Lookahead for tokens, same as `IntSteam::la` but return reference to full token
-    fn lt(&mut self, k: isize) -> Option<&<Self::TF as TokenFactory<'input>>::Tok>;
+    fn lt(&mut self, k: i32) -> Option<&<Self::TF as TokenFactory<'input>>::Tok>;
     /// Returns reference to token at `index`
-    fn get(&self, index: isize) -> &<Self::TF as TokenFactory<'input>>::Tok;
+    fn get(&self, index: i32) -> &<Self::TF as TokenFactory<'input>>::Tok;
 
     /// Token source that produced data for tokens for this stream
     fn get_token_source(&self) -> &dyn TokenSource<'input, TF = Self::TF>;
@@ -32,7 +32,7 @@ pub trait TokenStream<'input>: IntStream {
         self.get_text_from_interval(0, self.size() - 1)
     }
     /// Get combined text of tokens in start..=stop interval
-    fn get_text_from_interval(&self, start: isize, stop: isize) -> String;
+    fn get_text_from_interval(&self, start: i32, stop: i32) -> String;
     //    fn get_text_from_rule_context(&self,context: RuleContext) -> String;
     /// Get combined text of tokens in between `a` and `b`
     fn get_text_from_tokens<T: Token + ?Sized>(&self, a: &T, b: &T) -> String
@@ -73,9 +73,10 @@ pub struct UnbufferedTokenStream<'input, T: TokenSource<'input>> {
     token_source: T,
     pub(crate) tokens: Vec<<T::TF as TokenFactory<'input>>::Tok>,
     //todo prev token for lt(-1)
-    pub(crate) current_token_index: isize,
-    markers_count: isize,
-    pub(crate) p: isize,
+    pub(crate) current_token_index: i32,
+    markers_count: i32,
+    pub(crate) p: i32,
+    fetched_eof: bool,
 }
 better_any::tid! { impl<'input,T> TidAble<'input> for UnbufferedTokenStream<'input, T> where T: TokenSource<'input>}
 
@@ -93,7 +94,7 @@ impl<'input, T: TokenSource<'input>> Debug for UnbufferedTokenStream<'input, T> 
 impl<'input, T: TokenSource<'input>> UnbufferedTokenStream<'input, T> {
     /// Creates iterator over this token stream
     pub fn iter(&mut self) -> IterWrapper<'_, Self> {
-        IterWrapper(self)
+        IterWrapper(self, false)
     }
 
     /// Creates iterator over tokens in this token stream
@@ -116,21 +117,22 @@ impl<'input, T: TokenSource<'input>> UnbufferedTokenStream<'input, T> {
             current_token_index: 0,
             markers_count: 0,
             p: 0,
+            fetched_eof: false,
         }
     }
 
-    fn sync(&mut self, want: isize) {
-        let need = (self.p + want - 1) - self.tokens.len() as isize + 1;
+    fn sync(&mut self, want: i32) {
+        let need = (self.p + want - 1) - self.tokens.len() as i32 + 1;
         if need > 0 {
             self.fill(need);
         }
     }
 
-    fn get_buffer_start_index(&self) -> isize {
+    fn get_buffer_start_index(&self) -> i32 {
         self.current_token_index - self.p
     }
 
-    pub(crate) fn fill(&mut self, need: isize) -> isize {
+    pub(crate) fn fill(&mut self, need: i32) -> i32 {
         for i in 0..need {
             if !self.tokens.is_empty()
                 && self.tokens.last().unwrap().borrow().get_token_type() == TOKEN_EOF
@@ -140,7 +142,7 @@ impl<'input, T: TokenSource<'input>> UnbufferedTokenStream<'input, T> {
             let token = self.token_source.next_token();
             token
                 .borrow()
-                .set_token_index(self.get_buffer_start_index() + self.tokens.len() as isize);
+                .set_token_index(self.get_buffer_start_index() + self.tokens.len() as i32);
             self.tokens.push(token);
         }
 
@@ -152,7 +154,7 @@ impl<'input, T: TokenSource<'input>> TokenStream<'input> for UnbufferedTokenStre
     type TF = T::TF;
 
     #[inline]
-    fn lt(&mut self, i: isize) -> Option<&<Self::TF as TokenFactory<'input>>::Tok> {
+    fn lt(&mut self, i: i32) -> Option<&<Self::TF as TokenFactory<'input>>::Tok> {
         if i == -1 {
             return self.tokens.get(self.p as usize - 1);
         }
@@ -163,7 +165,7 @@ impl<'input, T: TokenSource<'input>> TokenStream<'input> for UnbufferedTokenStre
     }
 
     #[inline]
-    fn get(&self, index: isize) -> &<Self::TF as TokenFactory<'input>>::Tok {
+    fn get(&self, index: i32) -> &<Self::TF as TokenFactory<'input>>::Tok {
         &self.tokens[(index - self.get_buffer_start_index()) as usize]
     }
 
@@ -171,12 +173,12 @@ impl<'input, T: TokenSource<'input>> TokenStream<'input> for UnbufferedTokenStre
         &self.token_source
     }
 
-    fn get_text_from_interval(&self, start: isize, stop: isize) -> String {
+    fn get_text_from_interval(&self, start: i32, stop: i32) -> String {
         //        println!("get_text_from_interval {}..{}",start,stop);
         //        println!("all tokens {:?}",self.tokens.iter().map(|x|x.as_ref().to_owned()).collect::<Vec<OwningToken>>());
 
         let buffer_start_index = self.get_buffer_start_index();
-        let buffer_stop_index = buffer_start_index + self.tokens.len() as isize - 1;
+        let buffer_stop_index = buffer_start_index + self.tokens.len() as i32 - 1;
         if start < buffer_start_index || stop > buffer_stop_index {
             panic!(
                 "interval {}..={} not in token buffer window: {}..{}",
@@ -203,11 +205,14 @@ impl<'input, T: TokenSource<'input>> TokenStream<'input> for UnbufferedTokenStre
 impl<'input, T: TokenSource<'input>> IntStream for UnbufferedTokenStream<'input, T> {
     #[inline]
     fn consume(&mut self) {
-        if self.la(1) == TOKEN_EOF {
+        if self.fetched_eof {
             panic!("cannot consume EOF");
         }
+        if self.la(1) == TOKEN_EOF {
+            self.fetched_eof = true;
+        }
 
-        if self.p == self.tokens.len() as isize && self.markers_count == 0 {
+        if self.p == self.tokens.len() as i32 && self.markers_count == 0 {
             self.tokens.clear();
             self.p = -1;
         }
@@ -220,20 +225,20 @@ impl<'input, T: TokenSource<'input>> IntStream for UnbufferedTokenStream<'input,
     }
 
     #[inline]
-    fn la(&mut self, i: isize) -> isize {
+    fn la(&mut self, i: i32) -> i32 {
         self.lt(i)
             .map(|t| t.borrow().get_token_type())
             .unwrap_or(TOKEN_INVALID_TYPE)
     }
 
     #[inline]
-    fn mark(&mut self) -> isize {
+    fn mark(&mut self) -> i32 {
         self.markers_count += 1;
         -self.markers_count
     }
 
     #[inline]
-    fn release(&mut self, marker: isize) {
+    fn release(&mut self, marker: i32) {
         assert_eq!(marker, -self.markers_count);
 
         self.markers_count -= 1;
@@ -261,12 +266,12 @@ impl<'input, T: TokenSource<'input>> IntStream for UnbufferedTokenStream<'input,
     }
 
     #[inline(always)]
-    fn index(&self) -> isize {
+    fn index(&self) -> i32 {
         self.current_token_index
     }
 
     #[inline]
-    fn seek(&mut self, mut index: isize) {
+    fn seek(&mut self, mut index: i32) {
         if self.current_token_index == index {
             return;
         }
@@ -275,7 +280,7 @@ impl<'input, T: TokenSource<'input>> IntStream for UnbufferedTokenStream<'input,
             index = min(index, self.get_buffer_start_index() + self.size() + 1);
         }
         let i = index - self.get_buffer_start_index();
-        if i < 0 || i >= self.tokens.len() as isize {
+        if i < 0 || i >= self.tokens.len() as i32 {
             panic!()
         }
 
@@ -284,8 +289,8 @@ impl<'input, T: TokenSource<'input>> IntStream for UnbufferedTokenStream<'input,
     }
 
     #[inline(always)]
-    fn size(&self) -> isize {
-        self.tokens.len() as isize
+    fn size(&self) -> i32 {
+        self.tokens.len() as i32
     }
 
     fn get_source_name(&self) -> String {

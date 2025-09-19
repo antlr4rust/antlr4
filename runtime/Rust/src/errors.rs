@@ -27,7 +27,7 @@ pub enum ANTLRError {
     /// to prevent lexer from throwing errors and have all error handling in parser.
     LexerNoAltError {
         /// Index at which error has happened
-        start_index: isize,
+        start_index: i32,
     },
 
     /// Indicates that the parser could not decide which of two or more paths
@@ -118,8 +118,8 @@ pub struct BaseRecognitionError {
     pub message: String,
     //    recognizer: Box<Recognizer>,
     pub offending_token: OwningToken,
-    pub offending_state: isize,
-    states_stack: Vec<isize>, // ctx: Rc<dyn ParserRuleContext>
+    pub offending_state: i32,
+    states_stack: Vec<i32>, // ctx: Rc<dyn ParserRuleContext>
                               //    input: Box<IntStream>
 }
 
@@ -203,7 +203,7 @@ impl InputMisMatchError {
 
     pub fn with_state<'a, T: Parser<'a>>(
         recognizer: &mut T,
-        offending_state: isize,
+        offending_state: i32,
         ctx: Rc<<T::Node as ParserNodeType<'a>>::Type>,
     ) -> InputMisMatchError {
         let mut a = Self::new(recognizer);
@@ -221,8 +221,8 @@ impl InputMisMatchError {
 #[allow(missing_docs)]
 pub struct FailedPredicateError {
     pub base: BaseRecognitionError,
-    pub rule_index: isize,
-    predicate_index: isize,
+    pub rule_index: i32,
+    predicate_index: i32,
     pub predicate: String,
 }
 

@@ -18,7 +18,7 @@ pub trait TokenSource<'input> {
      * Returns the line number for the current position in the input stream, or
      * 0 if the current token source does not track line numbers.
      */
-    fn get_line(&self) -> isize {
+    fn get_line(&self) -> i32 {
         0
     }
     /**
@@ -28,7 +28,7 @@ pub trait TokenSource<'input> {
      * Returns the line number for the current position in the input stream, or
      * -1 if the current token source does not track character positions.
      */
-    fn get_char_position_in_line(&self) -> isize {
+    fn get_char_position_in_line(&self) -> i32 {
         -1
     }
 
@@ -57,12 +57,12 @@ where
     }
 
     #[inline(always)]
-    fn get_line(&self) -> isize {
+    fn get_line(&self) -> i32 {
         (**self).get_line()
     }
 
     #[inline(always)]
-    fn get_char_position_in_line(&self) -> isize {
+    fn get_char_position_in_line(&self) -> i32 {
         (**self).get_char_position_in_line()
     }
 
@@ -105,11 +105,11 @@ where
 //         )
 //     }
 //
-//     fn get_line(&self) -> isize {
+//     fn get_line(&self) -> i32 {
 //         0
 //     }
 //
-//     fn get_char_position_in_line(&self) -> isize {
+//     fn get_char_position_in_line(&self) -> i32 {
 //         -1
 //     }
 //

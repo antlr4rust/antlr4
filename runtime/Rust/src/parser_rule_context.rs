@@ -97,7 +97,7 @@ pub trait ParserRuleContext<'input>:
             .collect()
     }
 
-    fn get_token(&self, ttype: isize, pos: usize) -> Option<Rc<TerminalNode<'input, Self::Ctx>>> {
+    fn get_token(&self, ttype: i32, pos: usize) -> Option<Rc<TerminalNode<'input, Self::Ctx>>> {
         self.get_children()
             // .filter(|it| it.deref().self_id() == TerminalNode::<'input, Self::Ctx>::id())
             .filter_map(|it| it.downcast_rc::<TerminalNode<'input, Self::Ctx>>().ok())
@@ -105,7 +105,7 @@ pub trait ParserRuleContext<'input>:
             .nth(pos)
     }
 
-    fn get_tokens(&self, ttype: isize) -> Vec<Rc<TerminalNode<'input, Self::Ctx>>> {
+    fn get_tokens(&self, ttype: i32) -> Vec<Rc<TerminalNode<'input, Self::Ctx>>> {
         self.get_children()
             // .iter()
             .filter_map(|it| it.downcast_rc::<TerminalNode<'input, Self::Ctx>>().ok())
@@ -253,11 +253,11 @@ impl<'input, Ctx: CustomRuleContext<'input>> Debug for BaseParserRuleContext<'in
 impl<'input, Ctx: CustomRuleContext<'input>> RuleContext<'input>
     for BaseParserRuleContext<'input, Ctx>
 {
-    fn get_invoking_state(&self) -> isize {
+    fn get_invoking_state(&self) -> i32 {
         self.base.get_invoking_state()
     }
 
-    fn set_invoking_state(&self, t: isize) {
+    fn set_invoking_state(&self, t: i32) {
         self.base.set_invoking_state(t)
     }
 
@@ -453,7 +453,7 @@ impl<'input, Ctx: CustomRuleContext<'input> + TidAble<'input>> ParseTree<'input>
 impl<'input, Ctx: CustomRuleContext<'input> + 'input> BaseParserRuleContext<'input, Ctx> {
     pub fn new_parser_ctx(
         parent_ctx: Option<Rc<<Ctx::Ctx as ParserNodeType<'input>>::Type>>,
-        invoking_state: isize,
+        invoking_state: i32,
         ext: Ctx,
     ) -> Self {
         Self {
@@ -560,11 +560,11 @@ where
     T: DerefSeal<Target = I> + 'input + Debug + Tid<'input>,
     I: ParserRuleContext<'input> + 'input + ?Sized,
 {
-    fn get_invoking_state(&self) -> isize {
+    fn get_invoking_state(&self) -> i32 {
         self.deref().get_invoking_state()
     }
 
-    fn set_invoking_state(&self, t: isize) {
+    fn set_invoking_state(&self, t: i32) {
         self.deref().set_invoking_state(t)
     }
 
@@ -646,11 +646,11 @@ where
 
     // fn type_rule_index() -> usize where Self: Sized { unimplemented!() }
 
-    fn get_alt_number(&self) -> isize {
+    fn get_alt_number(&self) -> i32 {
         self.deref().get_alt_number()
     }
 
-    fn set_alt_number(&self, _alt_number: isize) {
+    fn set_alt_number(&self, _alt_number: i32) {
         self.deref().set_alt_number(_alt_number)
     }
 }
@@ -660,7 +660,7 @@ where
 //
 //    fn add_terminal_node_child(&self, child: TerminalNode) -> TerminalNode { unimplemented!() }
 //
-//    fn get_child_of_type(&self, i: isize, childType: reflect.Type) -> RuleContext { unimplemented!() }
+//    fn get_child_of_type(&self, i: i32, childType: reflect.Type) -> RuleContext { unimplemented!() }
 //
 //    fn to_string_tree(&self, ruleNames Vec<String>, recog: Recognizer) -> String { unimplemented!() }
 //
@@ -670,18 +670,18 @@ where
 //    return visitor.VisitChildren(prc)
 //    }
 //
-//    fn get_token(&self, ttype: isize, i: isize) -> TerminalNode { unimplemented!() }
+//    fn get_token(&self, ttype: i32, i: i32) -> TerminalNode { unimplemented!() }
 //
-//    fn get_tokens(&self, ttype: isize) -> Vec<TerminalNode> { unimplemented!() }
+//    fn get_tokens(&self, ttype: i32) -> Vec<TerminalNode> { unimplemented!() }
 //
 //    fn get_payload(&self) -> interface { unimplemented!() } {
 //    return: prc,
 //    }
 //
-//    fn get_child(&self, ctxType: reflect.Type, i: isize) -> RuleContext { unimplemented!() }
+//    fn get_child(&self, ctxType: reflect.Type, i: i32) -> RuleContext { unimplemented!() }
 //
 //
-//    fn get_typed_rule_context(&self, ctxType: reflect.Type, i: isize) -> RuleContext { unimplemented!() }
+//    fn get_typed_rule_context(&self, ctxType: reflect.Type, i: i32) -> RuleContext { unimplemented!() }
 //
 //    fn get_typed_rule_contexts(&self, ctxType: reflect.Type) -> Vec<RuleContext> { unimplemented!() }
 //
@@ -702,4 +702,4 @@ where
 //    base: BaseParserRuleContext,
 //    }
 //
-//    fn new_base_interpreter_rule_context(parent BaseInterpreterRuleContext, invokingStateNumber: isize, ruleIndex: isize) -> * BaseInterpreterRuleContext { unimplemented!() }
+//    fn new_base_interpreter_rule_context(parent BaseInterpreterRuleContext, invokingStateNumber: i32, ruleIndex: i32) -> * BaseInterpreterRuleContext { unimplemented!() }

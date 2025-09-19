@@ -2,38 +2,38 @@ use std::hash::Hash;
 
 use crate::lexer::Lexer;
 
-pub(crate) const LEXER_ACTION_TYPE_CHANNEL: isize = 0;
-pub(crate) const LEXER_ACTION_TYPE_CUSTOM: isize = 1;
-pub(crate) const LEXER_ACTION_TYPE_MODE: isize = 2;
-pub(crate) const LEXER_ACTION_TYPE_MORE: isize = 3;
-pub(crate) const LEXER_ACTION_TYPE_POP_MODE: isize = 4;
-pub(crate) const LEXER_ACTION_TYPE_PUSH_MODE: isize = 5;
-pub(crate) const LEXER_ACTION_TYPE_SKIP: isize = 6;
-pub(crate) const LEXER_ACTION_TYPE_TYPE: isize = 7;
+pub(crate) const LEXER_ACTION_TYPE_CHANNEL: i32 = 0;
+pub(crate) const LEXER_ACTION_TYPE_CUSTOM: i32 = 1;
+pub(crate) const LEXER_ACTION_TYPE_MODE: i32 = 2;
+pub(crate) const LEXER_ACTION_TYPE_MORE: i32 = 3;
+pub(crate) const LEXER_ACTION_TYPE_POP_MODE: i32 = 4;
+pub(crate) const LEXER_ACTION_TYPE_PUSH_MODE: i32 = 5;
+pub(crate) const LEXER_ACTION_TYPE_SKIP: i32 = 6;
+pub(crate) const LEXER_ACTION_TYPE_TYPE: i32 = 7;
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]
 pub(crate) enum LexerAction {
-    LexerChannelAction(isize),
+    LexerChannelAction(i32),
     LexerCustomAction {
-        rule_index: isize,
-        action_index: isize,
+        rule_index: i32,
+        action_index: i32,
     },
-    LexerModeAction(isize),
+    LexerModeAction(i32),
     LexerMoreAction,
     LexerPopModeAction,
-    LexerPushModeAction(isize),
+    LexerPushModeAction(i32),
     LexerSkipAction,
-    LexerTypeAction(isize),
+    LexerTypeAction(i32),
     LexerIndexedCustomAction {
-        offset: isize,
+        offset: i32,
         action: Box<LexerAction>,
     },
 }
 
 impl LexerAction {
-    //    fn get_action_type(&self) -> isize {
+    //    fn get_action_type(&self) -> i32 {
     //        unimplemented!()
-    ////        unsafe {discriminant_value(self)} as isize
+    ////        unsafe {discriminant_value(self)} as i32
     //    }
     pub fn is_position_dependent(&self) -> bool {
         match self {

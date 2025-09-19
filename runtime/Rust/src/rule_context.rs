@@ -18,12 +18,12 @@ use std::any::type_name;
 /// Minimal rule context functionality required for parser to work properly
 pub trait RuleContext<'input>: CustomRuleContext<'input> {
     /// Internal parser state
-    fn get_invoking_state(&self) -> isize {
+    fn get_invoking_state(&self) -> i32 {
         -1
     }
 
     /// Sets internal parser state
-    fn set_invoking_state(&self, _t: isize) {}
+    fn set_invoking_state(&self, _t: i32) {}
 
     /// A context is empty if there is no invoking state; meaning nobody called
     /// current context. Which is usually true for the root of the syntax tree
@@ -42,7 +42,7 @@ pub trait RuleContext<'input>: CustomRuleContext<'input> {
 
 pub(crate) fn states_stack<'input, T: ParserRuleContext<'input> + ?Sized + 'input>(
     mut ctx: Rc<T>,
-) -> impl Iterator<Item = isize>
+) -> impl Iterator<Item = i32>
 where
     T::Ctx: ParserNodeType<'input, Type = T>,
 {
@@ -120,10 +120,10 @@ pub trait CustomRuleContext<'input> {
     /// Rule index that corresponds to this context type
     fn get_rule_index(&self) -> usize;
 
-    fn get_alt_number(&self) -> isize {
+    fn get_alt_number(&self) -> i32 {
         INVALID_ALT
     }
-    fn set_alt_number(&self, _alt_number: isize) {}
+    fn set_alt_number(&self, _alt_number: i32) {}
 
     /// Returns text representation of current node type,
     /// rule name for context nodes and token text for terminal nodes
@@ -143,7 +143,7 @@ pub trait CustomRuleContext<'input> {
 /// Minimal parse tree node implementation, that stores only data required for correct parsing
 pub struct BaseRuleContext<'input, ExtCtx: CustomRuleContext<'input>> {
     pub(crate) parent_ctx: RefCell<Option<Weak<<ExtCtx::Ctx as ParserNodeType<'input>>::Type>>>,
-    invoking_state: Cell<isize>,
+    invoking_state: Cell<i32>,
     pub(crate) ext: ExtCtx,
 }
 
@@ -153,7 +153,7 @@ better_any::tid! { impl <'input,Ctx> TidAble<'input> for BaseRuleContext<'input,
 impl<'input, ExtCtx: CustomRuleContext<'input>> BaseRuleContext<'input, ExtCtx> {
     pub fn new_parser_ctx(
         parent_ctx: Option<Rc<<ExtCtx::Ctx as ParserNodeType<'input>>::Type>>,
-        invoking_state: isize,
+        invoking_state: i32,
         ext: ExtCtx,
     ) -> Self {
         Self {
@@ -208,11 +208,11 @@ impl<'input, ExtCtx: CustomRuleContext<'input>> CustomRuleContext<'input>
 impl<'input, ExtCtx: CustomRuleContext<'input>> RuleContext<'input>
     for BaseRuleContext<'input, ExtCtx>
 {
-    fn get_invoking_state(&self) -> isize {
+    fn get_invoking_state(&self) -> i32 {
         self.invoking_state.get()
     }
 
-    fn set_invoking_state(&self, t: isize) {
+    fn set_invoking_state(&self, t: i32) {
         self.invoking_state.set(t)
     }
 

@@ -1,17 +1,23 @@
 //! Channel based `TokenStream`
 use std::borrow::Borrow;
-
+use std::slice::Iter;
 use crate::int_stream::{IntStream, IterWrapper, EOF};
 use crate::token::{Token, TOKEN_DEFAULT_CHANNEL, TOKEN_INVALID_TYPE};
 use crate::token_factory::TokenFactory;
 use crate::token_source::TokenSource;
-use crate::token_stream::{TokenStream, UnbufferedTokenStream};
+use crate::token_stream::{TokenIter, TokenStream, UnbufferedTokenStream};
 
 /// Default token stream that skips token that not correspond to current channel.
 #[derive(Debug)]
 pub struct CommonTokenStream<'input, T: TokenSource<'input>> {
     base: UnbufferedTokenStream<'input, T>,
-    channel: isize,
+    channel: i32,
+}
+
+impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
+    pub fn base(&self) -> &UnbufferedTokenStream<'input, T> {
+        &self.base
+    }
 }
 
 better_any::tid! { impl<'input,T> TidAble<'input> for CommonTokenStream<'input, T> where T: TokenSource<'input>}
@@ -28,32 +34,32 @@ impl<'input, T: TokenSource<'input>> IntStream for CommonTokenStream<'input, T> 
     }
 
     #[inline]
-    fn la(&mut self, i: isize) -> isize {
+    fn la(&mut self, i: i32) -> i32 {
         self.lt(i)
             .map(|t| t.borrow().get_token_type())
             .unwrap_or(TOKEN_INVALID_TYPE)
     }
 
     #[inline(always)]
-    fn mark(&mut self) -> isize {
+    fn mark(&mut self) -> i32 {
         0
     }
 
     #[inline(always)]
-    fn release(&mut self, _marker: isize) {}
+    fn release(&mut self, _marker: i32) {}
 
     #[inline(always)]
-    fn index(&self) -> isize {
+    fn index(&self) -> i32 {
         self.base.index()
     }
 
     #[inline(always)]
-    fn seek(&mut self, index: isize) {
+    fn seek(&mut self, index: i32) {
         self.base.seek(index);
     }
 
     #[inline(always)]
-    fn size(&self) -> isize {
+    fn size(&self) -> i32 {
         self.base.size()
     }
 
@@ -66,7 +72,7 @@ impl<'input, T: TokenSource<'input>> TokenStream<'input> for CommonTokenStream<'
     type TF = T::TF;
 
     #[inline(always)]
-    fn lt(&mut self, k: isize) -> Option<&<Self::TF as TokenFactory<'input>>::Tok> {
+    fn lt(&mut self, k: i32) -> Option<&<Self::TF as TokenFactory<'input>>::Tok> {
         if k == 1 {
             return self.base.tokens.get(self.base.p as usize);
         }
@@ -80,7 +86,7 @@ impl<'input, T: TokenSource<'input>> TokenStream<'input> for CommonTokenStream<'
     }
 
     #[inline]
-    fn get(&self, index: isize) -> &<Self::TF as TokenFactory<'input>>::Tok {
+    fn get(&self, index: i32) -> &<Self::TF as TokenFactory<'input>>::Tok {
         self.base.get(index)
     }
 
@@ -88,7 +94,7 @@ impl<'input, T: TokenSource<'input>> TokenStream<'input> for CommonTokenStream<'
         self.base.get_token_source()
     }
 
-    fn get_text_from_interval(&self, start: isize, stop: isize) -> String {
+    fn get_text_from_interval(&self, start: i32, stop: i32) -> String {
         self.base.get_text_from_interval(start, stop)
     }
 }
@@ -100,7 +106,7 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
     }
 
     /// Creates CommonTokenStream that produces tokens from `channel`
-    pub fn with_channel(lexer: T, channel: isize) -> CommonTokenStream<'input, T> {
+    pub fn with_channel(lexer: T, channel: i32) -> CommonTokenStream<'input, T> {
         let mut r = CommonTokenStream {
             base: UnbufferedTokenStream::new_buffered(lexer),
             channel,
@@ -109,7 +115,7 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
         r
     }
 
-    fn lt_inner(&mut self, k: isize) -> Option<&<T::TF as TokenFactory<'input>>::Tok> {
+    fn lt_inner(&mut self, k: i32) -> Option<&<T::TF as TokenFactory<'input>>::Tok> {
         let mut i = self.base.p;
         let mut n = 1; // we know tokens[p] is a good one
                        // find k good tokens
@@ -132,10 +138,10 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
 
     /// Creates iterator over this token stream
     pub fn iter(&mut self) -> IterWrapper<'_, Self> {
-        IterWrapper(self)
+        IterWrapper(self, false)
     }
 
-    fn sync(&mut self, i: isize) -> bool {
+    fn sync(&mut self, i: i32) -> bool {
         let need = i - self.size() + 1;
         if need > 0 {
             let fetched = self.base.fill(need);
@@ -145,9 +151,9 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
         true
     }
     //
-    //    fn fetch(&self, n: isize) -> int { unimplemented!() }
+    //    fn fetch(&self, n: i32) -> int { unimplemented!() }
     //
-    //    fn get_tokens(&self, start: isize, stop: isize, types: &IntervalSet) -> Vec<Token> { unimplemented!() }
+    //    fn get_tokens(&self, start: i32, stop: i32, types: &IntervalSet) -> Vec<Token> { unimplemented!() }
     //
     //    fn lazy_init(&self) { unimplemented!() }
     //
@@ -158,7 +164,7 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
     //    fn set_token_source(&self, tokenSource: TokenSource) { unimplemented!() }
 
     //todo make this const generic over direction
-    fn next_token_on_channel(&mut self, mut i: isize, channel: isize, direction: isize) -> isize {
+    fn next_token_on_channel(&mut self, mut i: i32, channel: i32, direction: i32) -> i32 {
         self.sync(i);
         if i >= self.size() {
             return self.size() - 1;
@@ -178,13 +184,13 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
         i
     }
     //
-    //    fn previous_token_on_channel(&self, i: isize, channel: isize) -> int { unimplemented!() }
+    //    fn previous_token_on_channel(&self, i: i32, channel: i32) -> int { unimplemented!() }
     //
-    //    fn get_hidden_tokens_to_right(&self, tokenIndex: isize, channel: isize) -> Vec<Token> { unimplemented!() }
+    //    fn get_hidden_tokens_to_right(&self, tokenIndex: i32, channel: i32) -> Vec<Token> { unimplemented!() }
     //
-    //    fn get_hidden_tokens_to_left(&self, tokenIndex: isize, channel: isize) -> Vec<Token> { unimplemented!() }
+    //    fn get_hidden_tokens_to_left(&self, tokenIndex: i32, channel: i32) -> Vec<Token> { unimplemented!() }
     //
-    //    fn filter_for_channel(&self, left: isize, right: isize, channel: isize) -> Vec<Token> { unimplemented!() }
+    //    fn filter_for_channel(&self, left: i32, right: i32, channel: i32) -> Vec<Token> { unimplemented!() }
     //
     //    fn get_source_name(&self) -> String { unimplemented!() }
     //
@@ -198,11 +204,11 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
     //
     //    fn fill(&self) { unimplemented!() }
     //
-    //    fn adjust_seek_index(&self, i: isize) -> int { unimplemented!() }
+    //    fn adjust_seek_index(&self, i: i32) -> int { unimplemented!() }
 
     fn lb(
         &mut self,
-        k: isize,
+        k: i32,
     ) -> Option<&<<Self as TokenStream<'input>>::TF as TokenFactory<'input>>::Tok> {
         if k == 0 || (self.base.p - k) < 0 {
             return None;
@@ -224,4 +230,5 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
     }
 
     //    fn get_number_of_on_channel_tokens(&self) -> int { unimplemented!() }
+    
 }

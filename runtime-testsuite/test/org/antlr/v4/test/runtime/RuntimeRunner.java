@@ -10,7 +10,10 @@ import org.antlr.v4.test.runtime.states.CompiledState;
 import org.antlr.v4.test.runtime.states.ExecutedState;
 import org.antlr.v4.test.runtime.states.GeneratedState;
 import org.antlr.v4.test.runtime.states.State;
+import org.stringtemplate.v4.NumberRenderer;
 import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroup;
+import org.stringtemplate.v4.StringRenderer;
 
 import java.io.File;
 import java.io.IOException;
@@ -238,6 +241,9 @@ public abstract class RuntimeRunner implements AutoCloseable {
 	protected void writeRecognizerFile(RunOptions runOptions) {
 		String text = RuntimeTestUtils.getTextFromResource("org/antlr/v4/test/runtime/helpers/" + getTestFileWithExt() + ".stg");
 		ST outputFileST = new ST(text);
+		STGroup nativeGroup = outputFileST.impl.nativeGroup;
+		nativeGroup.registerRenderer(Integer.class, new NumberRenderer());
+		nativeGroup.registerRenderer(String.class, new StringRenderer());
 		outputFileST.add("grammarName", runOptions.grammarName);
 		outputFileST.add("lexerName", runOptions.lexerName);
 		outputFileST.add("parserName", runOptions.parserName);

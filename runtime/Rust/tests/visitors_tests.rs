@@ -191,11 +191,11 @@ mod gen {
 
     #[test]
     fn test_visitor_with_return() {
-        struct CalcVisitor(isize);
+        struct CalcVisitor(i32);
 
         impl ParseTreeVisitorCompat<'_> for CalcVisitor {
             type Node = VisitorCalcParserContextType;
-            type Return = isize;
+            type Return = i32;
 
             fn temp_result(&mut self) -> &mut Self::Return {
                 &mut self.0

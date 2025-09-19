@@ -18,7 +18,7 @@ use crate::rule_context::RuleContext;
 
 use crate::transition::RuleTransition;
 
-pub const PREDICTION_CONTEXT_EMPTY_RETURN_STATE: isize = 0x7FFFFFFF;
+pub const PREDICTION_CONTEXT_EMPTY_RETURN_STATE: i32 = 0x7FFFFFFF;
 
 #[cfg(test)]
 mod test;
@@ -43,7 +43,7 @@ impl PartialEq for PredictionContext {
 #[derive(Eq, Clone, Debug)]
 pub struct ArrayPredictionContext {
     cached_hash: i32,
-    return_states: Vec<isize>,
+    return_states: Vec<i32>,
     parents: Vec<Option<Arc<PredictionContext>>>,
 }
 
@@ -73,7 +73,7 @@ fn opt_eq(
 #[derive(Eq, Clone, Debug)]
 pub struct SingletonPredictionContext {
     cached_hash: i32,
-    return_state: isize,
+    return_state: i32,
     parent_ctx: Option<Arc<PredictionContext>>,
 }
 
@@ -148,7 +148,7 @@ lazy_static! {
 impl PredictionContext {
     pub fn new_array(
         parents: Vec<Option<Arc<PredictionContext>>>,
-        return_states: Vec<isize>,
+        return_states: Vec<i32>,
     ) -> PredictionContext {
         PredictionContext::Array(ArrayPredictionContext {
             cached_hash: 0,
@@ -159,7 +159,7 @@ impl PredictionContext {
 
     pub fn new_singleton(
         parent_ctx: Option<Arc<PredictionContext>>,
-        return_state: isize,
+        return_state: i32,
     ) -> PredictionContext {
         PredictionContext::Singleton(SingletonPredictionContext {
             cached_hash: 0,
@@ -230,7 +230,7 @@ impl PredictionContext {
         }
     }
 
-    pub fn get_return_state(&self, index: usize) -> isize {
+    pub fn get_return_state(&self, index: usize) -> i32 {
         match self {
             PredictionContext::Singleton(SingletonPredictionContext { return_state, .. }) => {
                 *return_state
@@ -537,7 +537,7 @@ impl PredictionContext {
             .deref()
             .cast::<RuleTransition>();
 
-        PredictionContext::new_singleton(Some(parent), transition.follow_state as isize).alloc()
+        PredictionContext::new_singleton(Some(parent), transition.follow_state as i32).alloc()
     }
 
     fn combine_common_parents(array: &mut ArrayPredictionContext) {

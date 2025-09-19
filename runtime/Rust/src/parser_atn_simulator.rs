@@ -83,7 +83,7 @@ use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
 pub struct ParserATNSimulator {
     base: BaseATNSimulator,
     prediction_mode: Cell<PredictionMode>,
-    start_index: Cell<isize>,
+    start_index: Cell<i32>,
     // pd:PhantomData<P>
 }
 
@@ -93,7 +93,7 @@ struct Local<'a, 'input, T: Parser<'input>> {
     dfa: Option<RwLockUpgradableReadGuard<'a, DFA>>,
     dfa_mut: Option<RwLockWriteGuard<'a, DFA>>,
     merge_cache: &'a mut MergeCache,
-    precedence: isize,
+    precedence: i32,
     parser: &'a mut T,
     pd: PhantomData<Box<dyn TokenStream<'input, TF = T::TF>>>,
 }
@@ -116,7 +116,7 @@ impl<'a, 'input, T: Parser<'input> + 'a> Local<'a, 'input, T> {
     fn input(&mut self) -> &mut dyn TokenStream<'input, TF = T::TF> {
         self.parser.get_input_stream_mut()
     }
-    // fn seek(&mut self, i: isize) { self.input().seek(i) }
+    // fn seek(&mut self, i: i32) { self.input().seek(i) }
     fn outer_context(&self) -> &<T::Node as ParserNodeType<'input>>::Type {
         self.outer_context.deref()
     }
@@ -161,9 +161,9 @@ impl ParserATNSimulator {
     /// Called by generated parser to choose an alternative when LL(1) parsing is not enough
     pub fn adaptive_predict<'a, T: Parser<'a>>(
         &self,
-        decision: isize,
+        decision: i32,
         parser: &mut T,
-    ) -> Result<isize, ANTLRError> {
+    ) -> Result<i32, ANTLRError> {
         self.start_index.set(parser.get_input_stream_mut().index());
         let mut merge_cache: MergeCache = HashMap::with_hasher(MurmurHasherBuilder {});
         let mut local = Local {
@@ -240,13 +240,13 @@ impl ParserATNSimulator {
         &self,
         local: &mut Local<'_, 'a, T>,
         s0: DFAStateRef,
-    ) -> Result<isize, ANTLRError> {
+    ) -> Result<i32, ANTLRError> {
         let mut previousD = s0;
 
         let mut token = local.input().la(1);
 
         loop {
-            //            println!("exec atn loop previous D {}",previousD as isize -1);
+            //            println!("exec atn loop previous D {}",previousD as i32 -1);
             let D = Self::get_existing_target_state(local.dfa(), previousD, token)
                 .unwrap_or_else(|| self.compute_target_state(previousD, token, local));
             debug_assert!(D > 0);
@@ -283,7 +283,7 @@ impl ParserATNSimulator {
                     conflicting_alts = self.eval_semantic_context(local, &Dstate.predicates, true);
                     //                    println!("conflicting_alts {:?}",&conflicting_alts);
                     if conflicting_alts.len() == 1 {
-                        return Ok(conflicting_alts.iter().next().unwrap() as isize);
+                        return Ok(conflicting_alts.iter().next().unwrap() as i32);
                     }
 
                     if conflict_index != self.start_index.get() {
@@ -332,7 +332,7 @@ impl ParserATNSimulator {
                             self.start_index.get(),
                         ))
                     }
-                    1 => return Ok(alts.iter().next().unwrap() as isize),
+                    1 => return Ok(alts.iter().next().unwrap() as i32),
                     _ => {
                         self.report_ambiguity(
                             &dfa,
@@ -343,7 +343,7 @@ impl ParserATNSimulator {
                             Dstate.configs.as_ref(),
                             local.parser,
                         );
-                        return Ok(alts.iter().next().unwrap() as isize);
+                        return Ok(alts.iter().next().unwrap() as i32);
                     }
                 }
             }
@@ -361,7 +361,7 @@ impl ParserATNSimulator {
     fn get_existing_target_state(
         dfa: &DFA,
         previousD: DFAStateRef,
-        t: isize,
+        t: i32,
     ) -> Option<DFAStateRef> {
         dfa.states[previousD]
             .edges
@@ -377,7 +377,7 @@ impl ParserATNSimulator {
         &self,
         // dfa: &mut DFA,
         previousD: DFAStateRef,
-        t: isize,
+        t: i32,
         local: &mut Local<'_, 'a, T>,
     ) -> DFAStateRef {
         //        println!("source config {:?}",dfa.states.read()[previousD].configs.as_ref());
@@ -411,7 +411,7 @@ impl ParserATNSimulator {
             || has_sll_conflict_terminating_prediction(self.prediction_mode.get(), reach)
         {
             let alts = self.get_conflicting_alts(reach);
-            D.prediction = alts.iter().next().unwrap() as isize;
+            D.prediction = alts.iter().next().unwrap() as i32;
             D.configs.conflicting_alts = alts;
             D.requires_full_context = true;
             D.is_accept_state = true;
@@ -420,7 +420,7 @@ impl ParserATNSimulator {
         //        println!("target config {:?}",&D.configs);
         if D.is_accept_state && D.configs.has_semantic_context() {
             let decision_state = self.atn().decision_to_state[dfa.decision as usize];
-            self.predicate_dfa_state(&mut D, self.atn().states[decision_state].deref());
+            self.predicate_dfa_state(&mut D, self.atn().states[decision_state as usize].deref());
             //            println!("predicates compute target {:?}",&D.predicates);
             if !D.predicates.is_empty() {
                 D.prediction = INVALID_ALT
@@ -451,7 +451,7 @@ impl ParserATNSimulator {
                 .iter()
                 .next()
                 .unwrap_or(0 /*in java it is -1 but looks like 0 is good enough*/)
-                as isize;
+                as i32;
         }
     }
 
@@ -460,7 +460,7 @@ impl ParserATNSimulator {
         local: &mut Local<'_, 'a, T>,
         // _D: &DFAState,
         s0: ATNConfigSet,
-    ) -> Result<isize, ANTLRError> {
+    ) -> Result<i32, ANTLRError> {
         //println!("exec_atn_with_full_context");
         let full_ctx = true;
         let mut found_exact_ambig = false;
@@ -541,7 +541,7 @@ impl ParserATNSimulator {
     fn compute_reach_set<'a, T: Parser<'a>>(
         &self,
         closure: &ATNConfigSet,
-        t: isize,
+        t: i32,
         full_ctx: bool,
         local: &mut Local<'_, 'a, T>,
     ) -> Option<ATNConfigSet> {
@@ -551,7 +551,7 @@ impl ParserATNSimulator {
         let mut skipped_stop_states = Vec::<&ATNConfig>::new();
 
         for c in closure.get_items() {
-            let state = self.atn().states[c.get_state()].as_ref();
+            let state = self.atn().states[c.get_state() as usize].as_ref();
             if let RuleStopState = state.get_state_type() {
                 assert!(c.get_context().unwrap().is_empty());
                 if full_ctx || t == TOKEN_EOF {
@@ -562,7 +562,7 @@ impl ParserATNSimulator {
 
             for tr in state.get_transitions() {
                 self.get_reachable_target(tr.as_ref(), t).map(|target| {
-                    let added = Box::new(c.cloned(self.atn().states[target].as_ref()));
+                    let added = Box::new(c.cloned(self.atn().states[target as usize].as_ref()));
                     intermediate.add_cached(added, Some(local.merge_cache))
                 });
             }
@@ -623,7 +623,7 @@ impl ParserATNSimulator {
 
     fn has_config_in_rule_stop_state(&self, configs: &ATNConfigSet) -> bool {
         for c in configs.get_items() {
-            if let RuleStopState = self.atn().states[c.get_state()].get_state_type() {
+            if let RuleStopState = self.atn().states[c.get_state() as usize].get_state_type() {
                 return true;
             }
         }
@@ -632,7 +632,7 @@ impl ParserATNSimulator {
 
     fn all_configs_in_rule_stop_state(&self, configs: &ATNConfigSet) -> bool {
         for c in configs.get_items() {
-            if let RuleStopState = self.atn().states[c.get_state()].get_state_type() {
+            if let RuleStopState = self.atn().states[c.get_state() as usize].get_state_type() {
             } else {
                 return false;
             }
@@ -654,7 +654,7 @@ impl ParserATNSimulator {
         // it significantly differs from java version though
         let mut result = ATNConfigSet::new_base_atnconfig_set(configs.full_context());
         for c in configs.configs {
-            let state = self.atn().states[c.get_state()].as_ref();
+            let state = self.atn().states[c.get_state() as usize].as_ref();
             if let RuleStopState = state.get_state_type() {
                 result.add_cached(c, Some(merge_cache));
                 continue;
@@ -663,9 +663,9 @@ impl ParserATNSimulator {
             if look_to_end_of_rule && state.has_epsilon_only_transitions() {
                 let next_tokens = self.atn().next_tokens(state);
                 if next_tokens.contains(TOKEN_EPSILON) {
-                    let end_of_rule_state = self.atn().rule_to_stop_state[state.get_rule_index()];
+                    let end_of_rule_state = self.atn().rule_to_stop_state[state.get_rule_index() as usize];
                     result.add_cached(
-                        c.cloned(self.atn().states[end_of_rule_state].as_ref())
+                        c.cloned(self.atn().states[end_of_rule_state as usize].as_ref())
                             .into(),
                         Some(merge_cache),
                     );
@@ -689,11 +689,11 @@ impl ParserATNSimulator {
         //        println!("initial state {:?}",a);
 
         let atn_states = &self.atn().states;
-        for (i, tr) in atn_states[a].get_transitions().iter().enumerate() {
-            let target = &atn_states[tr.get_target()];
+        for (i, tr) in atn_states[a as usize].get_transitions().iter().enumerate() {
+            let target = &atn_states[tr.get_target() as usize];
             let c = ATNConfig::new(
                 target.get_state_number(),
-                (i + 1) as isize,
+                (i + 1) as i32,
                 Some(initial_ctx.clone()),
             );
             let mut closure_busy = HashSet::new();
@@ -766,7 +766,7 @@ impl ParserATNSimulator {
         config_set
     }
 
-    fn get_reachable_target(&self, trans: &dyn Transition, ttype: isize) -> Option<ATNStateRef> {
+    fn get_reachable_target(&self, trans: &dyn Transition, ttype: i32) -> Option<ATNStateRef> {
         if trans.matches(ttype, 0, self.atn().max_token_type) {
             return Some(trans.get_target());
         }
@@ -827,7 +827,7 @@ impl ParserATNSimulator {
 
             if ambig_alts.contains(i) {
                 pairs.push(PredPrediction {
-                    alt: i as isize,
+                    alt: i as i32,
                     pred,
                 })
             }
@@ -843,7 +843,7 @@ impl ParserATNSimulator {
         &self,
         configs: &ATNConfigSet,
         local: &mut Local<'_, 'a, T>,
-    ) -> isize {
+    ) -> i32 {
         let (sem_valid_configs, sem_invalid_configs) =
             self.split_according_to_semantic_validity(configs, local);
 
@@ -890,11 +890,11 @@ impl ParserATNSimulator {
         (succeeded, failed)
     }
 
-    fn get_alt_that_finished_decision_entry_rule(&self, configs: &ATNConfigSet) -> isize {
+    fn get_alt_that_finished_decision_entry_rule(&self, configs: &ATNConfigSet) -> i32 {
         let mut alts = IntervalSet::new();
         for c in configs.get_items() {
             let has_empty_path = c.get_context().map(|x| x.has_empty_path()) == Some(true);
-            let is_stop = self.atn().states[c.get_state()].get_state_type() == &RuleStopState;
+            let is_stop = self.atn().states[c.get_state() as usize].get_state_type() == &RuleStopState;
             if c.get_reaches_into_outer_context() > 0 || (is_stop && has_empty_path) {
                 alts.add_one(c.get_alt())
             }
@@ -938,7 +938,7 @@ impl ParserATNSimulator {
         &self,
         local: &mut Local<'_, 'a, T>,
         pred: impl Borrow<SemanticContext>,
-        _alt: isize,
+        _alt: i32,
         _full_ctx: bool,
     ) -> bool {
         pred.borrow().evaluate(local.parser, &*local.outer_context)
@@ -978,12 +978,12 @@ impl ParserATNSimulator {
         closure_busy: &mut HashSet<ATNConfig>,
         collect_predicates: bool,
         full_ctx: bool,
-        depth: isize,
+        depth: i32,
         treat_eofas_epsilon: bool,
         local: &mut Local<'_, 'a, T>,
     ) {
         //        println!("closure({:?})",config);
-        if let RuleStopState = self.atn().states[config.get_state()].get_state_type() {
+        if let RuleStopState = self.atn().states[config.get_state() as usize].get_state_type() {
             if !config.get_context().unwrap().is_empty() {
                 config.get_context().unwrap().run(|temp| {
                     if temp.get_return_state(temp.length() - 1)
@@ -991,7 +991,7 @@ impl ParserATNSimulator {
                     {
                         if full_ctx {
                             let new_config = config.cloned_with_new_ctx(
-                                self.atn().states[config.get_state()].as_ref(),
+                                self.atn().states[config.get_state() as usize].as_ref(),
                                 Some(EMPTY_PREDICTION_CONTEXT.clone()),
                             );
                             configs.add_cached(Box::new(new_config), Some(local.merge_cache));
@@ -1027,7 +1027,7 @@ impl ParserATNSimulator {
                         config.semantic_context.clone(),
                     );
                     c.set_reaches_into_outer_context(config.get_reaches_into_outer_context());
-                    assert!(depth > isize::min_value());
+                    assert!(depth > i32::min_value());
                     self.closure_checking_stop_state(
                         c,
                         configs,
@@ -1064,13 +1064,13 @@ impl ParserATNSimulator {
         closure_busy: &mut HashSet<ATNConfig>,
         collect_predicates: bool,
         full_ctx: bool,
-        depth: isize,
+        depth: i32,
         treat_eofas_epsilon: bool,
         local: &mut Local<'_, 'a, T>,
     ) {
         //println!("depth {}",depth);
         //        println!("closure_work started {:?}",config);
-        let p = self.atn().states[config.get_state()].as_ref();
+        let p = self.atn().states[config.get_state() as usize].as_ref();
         if !p.has_epsilon_only_transitions() {
             configs.add_cached(Box::new(config.clone()), Some(local.merge_cache));
         }
@@ -1094,7 +1094,7 @@ impl ParserATNSimulator {
             );
             if let Some(mut c) = c {
                 let mut new_depth = depth;
-                if let RuleStopState = self.atn().states[config.get_state()].get_state_type() {
+                if let RuleStopState = self.atn().states[config.get_state() as usize].get_state_type() {
                     assert!(!full_ctx);
 
                     if local.dfa().is_precedence_dfa() {
@@ -1103,8 +1103,8 @@ impl ParserATNSimulator {
                             .cast::<EpsilonTransition>()
                             .outermost_precedence_return;
                         let atn_start_state =
-                            self.atn().states[local.dfa().atn_start_state].as_ref();
-                        if outermost_precedence_return == atn_start_state.get_rule_index() as isize
+                            self.atn().states[local.dfa().atn_start_state as usize].as_ref();
+                        if outermost_precedence_return == atn_start_state.get_rule_index() as i32
                         {
                             c.set_precedence_filter_suppressed(true);
                         }
@@ -1115,7 +1115,7 @@ impl ParserATNSimulator {
                         continue;
                     }
                     configs.set_dips_into_outer_context(true);
-                    assert!(new_depth > isize::min_value());
+                    assert!(new_depth > i32::min_value());
                     new_depth -= 1;
                 } else {
                     if !tr.is_epsilon() && !closure_busy.insert(c.clone()) {
@@ -1147,7 +1147,7 @@ impl ParserATNSimulator {
         //            .and_then(|it|str::parse::<bool>(&it).ok()) == Some(true)
         //        { return false }
 
-        let state = self.atn().states[_config.get_state()].as_ref();
+        let state = self.atn().states[_config.get_state() as usize].as_ref();
 
         if let ATNStateType::DecisionState {
             state: ATNDecisionState::StarLoopEntry { is_precedence, .. },
@@ -1174,7 +1174,7 @@ impl ParserATNSimulator {
         }
 
         let decision_start_state = state.get_transitions()[0].get_target();
-        let decision_start_state = self.atn().states[decision_start_state].as_ref();
+        let decision_start_state = self.atn().states[decision_start_state as usize].as_ref();
         let block_end_state_num = if let ATNStateType::DecisionState {
             state: ATNDecisionState::BlockStartState { end_state, .. },
             ..
@@ -1194,7 +1194,7 @@ impl ParserATNSimulator {
                 return false;
             }
             let return_state_target =
-                self.atn().states[return_state.get_transitions()[0].get_target()].as_ref();
+                self.atn().states[return_state.get_transitions()[0].get_target() as usize].as_ref();
             if return_state.get_state_type_id() == ATNSTATE_BLOCK_END
                 && ptr::eq(return_state_target, state)
             {
@@ -1222,7 +1222,7 @@ impl ParserATNSimulator {
         true
     }
     //
-    //    fn get_rule_name(&self, index: isize) -> String { unimplemented!() }
+    //    fn get_rule_name(&self, index: i32) -> String { unimplemented!() }
 
     fn get_epsilon_target<'a, T: Parser<'a>>(
         &self,
@@ -1236,7 +1236,7 @@ impl ParserATNSimulator {
     ) -> Option<ATNConfig> {
         match t.get_serialization_type() {
             TransitionType::TRANSITION_EPSILON => {
-                Some(config.cloned(self.atn().states[t.get_target()].as_ref()))
+                Some(config.cloned(self.atn().states[t.get_target() as usize].as_ref()))
             }
             TransitionType::TRANSITION_RULE => {
                 Some(self.rule_transition(config, t.cast::<RuleTransition>()))
@@ -1264,7 +1264,7 @@ impl ParserATNSimulator {
             | TransitionType::TRANSITION_SET
             | TransitionType::TRANSITION_RANGE => {
                 if treat_eofas_epsilon && t.matches(TOKEN_EOF, 0, 1) {
-                    Some(config.cloned(self.atn().states[t.get_target()].as_ref()))
+                    Some(config.cloned(self.atn().states[t.get_target() as usize].as_ref()))
                 } else {
                     None
                 }
@@ -1274,7 +1274,7 @@ impl ParserATNSimulator {
     }
 
     fn action_transition(&self, config: &ATNConfig, t: &ActionTransition) -> ATNConfig {
-        config.cloned(self.atn().states[t.target].as_ref())
+        config.cloned(self.atn().states[t.target as usize].as_ref())
     }
 
     fn precedence_transition<'a, T: Parser<'a>>(
@@ -1286,7 +1286,7 @@ impl ParserATNSimulator {
         full_ctx: bool,
         local: &mut Local<'_, 'a, T>,
     ) -> Option<ATNConfig> {
-        let target = self.atn().states[pt.target].deref();
+        let target = self.atn().states[pt.target as usize].deref();
         if collect_predicates && in_context {
             if full_ctx {
                 let curr_pos = local.input().index();
@@ -1322,7 +1322,7 @@ impl ParserATNSimulator {
         full_ctx: bool,
         local: &mut Local<'_, 'a, T>,
     ) -> Option<ATNConfig> {
-        let target = self.atn().states[pt.target].deref();
+        let target = self.atn().states[pt.target as usize].deref();
         if collect_predicates && (!pt.is_ctx_dependent || (pt.is_ctx_dependent && in_context)) {
             if full_ctx {
                 let curr_pos = local.input().index();
@@ -1353,9 +1353,9 @@ impl ParserATNSimulator {
         assert!(config.get_context().is_some());
         let new_ctx = PredictionContext::new_singleton(
             config.get_context().cloned(),
-            t.follow_state as isize,
+            t.follow_state as i32,
         );
-        config.cloned_with_new_ctx(self.atn().states[t.target].as_ref(), Some(new_ctx.into()))
+        config.cloned_with_new_ctx(self.atn().states[t.target as usize].as_ref(), Some(new_ctx.into()))
     }
 
     fn get_conflicting_alts(&self, configs: &ATNConfigSet) -> BitSet {
@@ -1374,7 +1374,7 @@ impl ParserATNSimulator {
         }
     }
     //
-    //    fn get_token_name(&self, t: isize) -> String { unimplemented!() }
+    //    fn get_token_name(&self, t: i32) -> String { unimplemented!() }
     //
     //    fn get_lookahead_name(&self, input: TokenStream) -> String { unimplemented!() }
     //
@@ -1384,7 +1384,7 @@ impl ParserATNSimulator {
         &self,
         local: &mut Local<'_, 'a, T>,
         _configs: &ATNConfigSet,
-        start_index: isize,
+        start_index: i32,
     ) -> ANTLRError {
         let start_token = local.parser.get_input_stream().get(start_index).borrow();
         let start_token = Token::to_owned(start_token);
@@ -1397,7 +1397,7 @@ impl ParserATNSimulator {
         ))
     }
 
-    fn get_unique_alt(&self, configs: &ATNConfigSet) -> isize {
+    fn get_unique_alt(&self, configs: &ATNConfigSet) -> i32 {
         let mut alt = INVALID_ALT;
         for c in configs.get_items() {
             if alt == INVALID_ALT {
@@ -1410,7 +1410,7 @@ impl ParserATNSimulator {
         alt
     }
 
-    fn add_dfaedge(&self, from: &mut DFAState, t: isize, to: DFAStateRef) -> DFAStateRef {
+    fn add_dfaedge(&self, from: &mut DFAState, t: i32, to: DFAStateRef) -> DFAStateRef {
         if t < -1 || t > self.atn().max_token_type {
             return to;
         }
@@ -1461,8 +1461,8 @@ impl ParserATNSimulator {
         dfa: &DFA,
         conflicting_alts: &BitSet,
         configs: &ATNConfigSet,
-        start_index: isize,
-        stop_index: isize,
+        start_index: i32,
+        stop_index: i32,
         parser: &mut T,
     ) {
         //        let ambig_index = parser.get_current_token().get_token_index();
@@ -1481,10 +1481,10 @@ impl ParserATNSimulator {
     fn report_context_sensitivity<'a, T: Parser<'a>>(
         &self,
         dfa: &DFA,
-        prediction: isize,
+        prediction: i32,
         configs: &ATNConfigSet,
-        start_index: isize,
-        stop_index: isize,
+        start_index: i32,
+        stop_index: i32,
         parser: &mut T,
     ) {
         parser
@@ -1495,8 +1495,8 @@ impl ParserATNSimulator {
     fn report_ambiguity<'a, T: Parser<'a>>(
         &self,
         dfa: &DFA,
-        start_index: isize,
-        stop_index: isize,
+        start_index: i32,
+        stop_index: i32,
         exact: bool,
         ambig_alts: &BitSet,
         configs: &ATNConfigSet,

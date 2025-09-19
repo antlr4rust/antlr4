@@ -37,3 +37,4 @@ xyz
 
 [skip]
 Go
+Rust

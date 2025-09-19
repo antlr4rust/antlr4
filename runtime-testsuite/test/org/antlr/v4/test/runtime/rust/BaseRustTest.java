@@ -1,1 +1,0 @@
-../../../../../../../../runtime/Rust/templates/BaseRustTest.java
