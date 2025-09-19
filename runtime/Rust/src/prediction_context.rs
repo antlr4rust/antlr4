@@ -314,7 +314,6 @@ impl PredictionContext {
 
         let r = match (a.deref(), b.deref()) {
             (PredictionContext::Singleton(sa), PredictionContext::Singleton(sb)) => {
-                
                 //                println!("single result = {}",result);
                 Self::merge_singletons(sa, sb, root_is_wildcard, merge_cache)
             }
@@ -332,7 +331,6 @@ impl PredictionContext {
                     Self::merge_arrays(sa.to_array(), sb.to_array(), root_is_wildcard, merge_cache)
                         .alloc();
 
-                
                 //                println!("array result = {}",result);
 
                 if &*result == sa {
@@ -506,8 +504,6 @@ impl PredictionContext {
         }
 
         PredictionContext::combine_common_parents(&mut merged);
-
-        
 
         //        if &m == a.deref(){ return ; }
         //        if &m == b.deref(){ return ; }

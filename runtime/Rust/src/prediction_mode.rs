@@ -106,7 +106,7 @@ pub(crate) fn has_sll_conflict_terminating_prediction(
     }
 
     let altsets = get_conflicting_alt_subsets(configs);
-    
+
     has_conflicting_alt_set(&altsets) && !has_state_associated_with_one_alt(configs)
 }
 

@@ -125,7 +125,7 @@ mod gen {
 
             fn should_visit_next_child(
                 &self,
-                node: &<Self::Node as ParserNodeType<'_>>::Type,
+                _node: &<Self::Node as ParserNodeType<'_>>::Type,
                 current: &Self::Return,
             ) -> bool {
                 current.is_empty()
@@ -176,8 +176,8 @@ mod gen {
 
             fn should_visit_next_child(
                 &self,
-                node: &<Self::Node as ParserNodeType<'_>>::Type,
-                current: &Self::Return,
+                _node: &<Self::Node as ParserNodeType<'_>>::Type,
+                _current: &Self::Return,
             ) -> bool {
                 false
             }

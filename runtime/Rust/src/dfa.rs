@@ -29,8 +29,6 @@ pub(crate) trait ScopeExt: Sized {
         f(self);
         self
     }
-
-    fn drop(self) {}
 }
 
 impl<Any: Sized> ScopeExt for Any {}

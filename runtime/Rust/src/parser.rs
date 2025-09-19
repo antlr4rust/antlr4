@@ -628,9 +628,7 @@ where
         let retctx = self.ctx.clone().unwrap();
         retctx.set_stop(self.input.lt(-1).cloned());
         if !self.parse_listeners.is_empty() {
-            while self.ctx.as_ref().map(Rc::as_ptr)
-                != parent_ctx.as_ref().map(Rc::as_ptr)
-            {
+            while self.ctx.as_ref().map(Rc::as_ptr) != parent_ctx.as_ref().map(Rc::as_ptr) {
                 self.trigger_exit_rule_event();
                 self.ctx = self.ctx.as_ref().unwrap().get_parent_ctx()
             }
