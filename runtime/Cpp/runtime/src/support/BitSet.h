@@ -5,6 +5,10 @@
 
 #pragma once
 
+#include <sstream>
+#include <vector>
+#include <string>
+#include <cstddef>
 #include "antlr4-common.h"
 
 namespace antlrcpp {
@@ -54,7 +58,7 @@ namespace antlrcpp {
       return result;
     }
 
-    std::string toString(){
+    std::string toString() const {
       std::stringstream stream;
       stream << "{";
       bool valueAdded = false;

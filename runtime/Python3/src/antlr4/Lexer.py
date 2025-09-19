@@ -9,14 +9,18 @@
 #  of speed.
 #/
 from io import StringIO
-from typing.io import TextIO
+
 import sys
-from antlr4.CommonTokenFactory import CommonTokenFactory
-from antlr4.atn.LexerATNSimulator import LexerATNSimulator
-from antlr4.InputStream import InputStream
-from antlr4.Recognizer import Recognizer
-from antlr4.Token import Token
-from antlr4.error.Errors import IllegalStateException, LexerNoViableAltException, RecognitionException
+if sys.version_info >= (3, 6):
+    from typing import TextIO
+else:
+    from typing.io import TextIO
+from .CommonTokenFactory import CommonTokenFactory
+from .atn.LexerATNSimulator import LexerATNSimulator
+from .InputStream import InputStream
+from .Recognizer import Recognizer
+from .Token import Token
+from .error.Errors import IllegalStateException, LexerNoViableAltException, RecognitionException
 
 class TokenSource(object):
 
@@ -24,6 +28,11 @@ class TokenSource(object):
 
 
 class Lexer(Recognizer, TokenSource):
+    __slots__ = (
+        '_input', '_output', '_factory', '_tokenFactorySourcePair', '_token',
+        '_tokenStartCharIndex', '_tokenStartLine', '_tokenStartColumn',
+        '_hitEOF', '_channel', '_type', '_modeStack', '_mode', '_text'
+    )
 
     DEFAULT_MODE = 0
     MORE = -2
@@ -318,4 +327,3 @@ class Lexer(Recognizer, TokenSource):
             else:
                 # TODO: Do we lose character or line position information?
                 self._input.consume()
-

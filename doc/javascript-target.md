@@ -11,11 +11,18 @@ In practice, this target has been extensively tested against:
 * Chrome 39.0.2171
 * Explorer 11.0.3
  
-The tests were conducted using Selenium. No issue was found, so you should find that the runtime works pretty much against any recent JavaScript engine.
+The above tests were conducted using Selenium. No issue was found, so you should find that the runtime works pretty much against any recent JavaScript engine.
 
 ## Is NodeJS supported?
 
-The runtime has also been extensively tested against Node.js 10 LTS. No issue was found.
+The runtime has also been extensively tested against Node.js 14 LTS. No issue was found.
+NodeJS together with a packaging tool is now the preferred development path, developers are encouraged to follow it.
+
+## What about modules?
+
+Starting with version 8.1, Antlr4 JavaScript runtime follows esm semantics (see https://tc39.es/ecma262/#sec-modules for details)
+Generated lexers, parsers, listeners and visitors also follow this new standard.
+If you have used previous versions of the runtime, you will need to migrate and make your parser a module.
 
 ## How to create a JavaScript lexer or parser?
 
@@ -32,8 +39,6 @@ For a full list of antlr4 tool options, please visit the [tool documentation pag
 Once you've generated the lexer and/or parser code, you need to download the runtime.
 
 The JavaScript runtime is [available from npm](https://www.npmjs.com/package/antlr4).
-
-If you can't use npm, the JavaScript runtime is also available from the ANTLR web site [download section](http://www.antlr.org/download/index.html). The runtime is provided in the form of source code, so no additional installation is required.
 
 We will not document here how to refer to the runtime from your project, since this would differ a lot depending on your project type and IDE. 
 
@@ -61,14 +66,17 @@ The steps to create your parsing code are the following:
  
 You are now ready to bundle your parsing code as follows:
  - following webpack specs, create a webpack.config file
- - in the `webpack.config` file, exclude node.js only modules using: `node: { module: "empty", net: "empty", fs: "empty" }`
+ - For Webpack version 5,
+   - in the `webpack.config` file, exclude node.js only modules using: `resolve: { fallback: { fs: false } }`
+ - For older versions of Webpack,
+   - in the `webpack.config` file, exclude node.js only modules using: `node: { module: "empty", net: "empty", fs: "empty" }`
  - from the cmd line, navigate to the directory containing webpack.config and type: webpack
  
 This will produce a single js file containing all your parsing code. Easy to include in your web pages!
 
 ## How do I run the generated lexer and/or parser?
 
-Let's suppose that your grammar is named, as above, "MyGrammar". Let's suppose this parser comprises a rule named "StartRule". The tool will have generated for you the following files:
+Let's suppose that your grammar is named, as above, "MyGrammar". Let's suppose this parser comprises a rule named "MyStartRule". The tool will have generated for you the following files:
 
 *   MyGrammarLexer.js
 *   MyGrammarParser.js
@@ -80,18 +88,17 @@ Let's suppose that your grammar is named, as above, "MyGrammar". Let's suppose t
 Now a fully functioning script might look like the following:
 
 ```javascript
-   var antlr4 = require('antlr4');
-   var MyGrammarLexer = require('./MyGrammarLexer').MyGrammarLexer;
-   var MyGrammarParser = require('./MyGrammarParser').MyGrammarParser;
-   var MyGrammarListener = require('./MyGrammarListener').MyGrammarListener;
+import antlr4 from 'antlr4';
+import MyGrammarLexer from './MyGrammarLexer.js';
+import MyGrammarParser from './MyGrammarParser.js';
+import MyGrammarListener from './MyGrammarListener.js';
 
-   var input = "your text to parse here"
-   var chars = new antlr4.InputStream(input);
-   var lexer = new MyGrammarLexer(chars);
-   var tokens  = new antlr4.CommonTokenStream(lexer);
-   var parser = new MyGrammarParser(tokens);
-   parser.buildParseTrees = true;
-   var tree = parser.MyStartRule();
+const input = "your text to parse here"
+const chars = new antlr4.InputStream(input);
+const lexer = new MyGrammarLexer(chars);
+const tokens = new antlr4.CommonTokenStream(lexer);
+const parser = new MyGrammarParser(tokens);
+const tree = parser.MyStartRule();
 ```
 
 This program will work. But it won't be useful unless you do one of the following:
@@ -103,21 +110,26 @@ This program will work. But it won't be useful unless you do one of the followin
 (please note that production code is target specific, so you can't have multi target grammars that include production code)
  
 ## How do I create and run a visitor?
+
+Suppose your grammar is named "Query", the parser comprises a rule named "MyQuery", and the tool has generated the following files for you:
+
+*   QueryLexer.js
+*   QueryParser.js
+*   QueryListener.js (if you have not activated the -no-listener option)
+
 ```javascript
 // test.js
-var antlr4 = require('antlr4');
-var MyGrammarLexer = require('./QueryLexer').QueryLexer;
-var MyGrammarParser = require('./QueryParser').QueryParser;
-var MyGrammarListener = require('./QueryListener').QueryListener;
+import antlr4 from 'antlr4';
+import MyGrammarLexer from './QueryLexer.js';
+import MyGrammarParser from './QueryParser.js';
+import MyGrammarListener from './QueryListener.js';
 
-
-var input = "field = 123 AND items in (1,2,3)"
-var chars = new antlr4.InputStream(input);
-var lexer = new MyGrammarLexer(chars);
-var tokens = new antlr4.CommonTokenStream(lexer);
-var parser = new MyGrammarParser(tokens);
-parser.buildParseTrees = true;
-var tree = parser.query();
+const input = "field = 123 AND items in (1,2,3)"
+const chars = new antlr4.InputStream(input);
+const lexer = new MyGrammarLexer(chars);
+const tokens = new antlr4.CommonTokenStream(lexer);
+const parser = new MyGrammarParser(tokens);
+const tree = parser.MyQuery();
 
 class Visitor {
   visitChildren(ctx) {
@@ -145,53 +157,47 @@ tree.accept(new Visitor());
 Let's suppose your MyGrammar grammar comprises 2 rules: "key" and "value". The antlr4 tool will have generated the following listener: 
 
 ```javascript
-   MyGrammarListener = function(ParseTreeListener) {
-       // some code here
-   }
-   // some code here
-   MyGrammarListener.prototype.enterKey = function(ctx) {};
-   MyGrammarListener.prototype.exitKey = function(ctx) {};
-   MyGrammarListener.prototype.enterValue = function(ctx) {};
-   MyGrammarListener.prototype.exitValue = function(ctx) {};
+class MyGrammarListener extends ParseTreeListener {
+    constructor() {
+        super();
+    }
+   
+    enterKey(ctx) {}
+    exitKey(ctx) {}
+    enterValue(ctx) {}
+    exitValue(ctx) {}
+}
 ```
 
 In order to provide custom behavior, you might want to create the following class:
 
 ```javascript
-var KeyPrinter = function() {
-    MyGrammarListener.call(this); // inherit default listener
-    return this;
-};
-
-// continue inheriting default listener
-KeyPrinter.prototype = Object.create(MyGrammarListener.prototype);
-KeyPrinter.prototype.constructor = KeyPrinter;
-
-// override default listener behavior
-KeyPrinter.prototype.exitKey = function(ctx) {
-    console.log("Oh, a key!");
-};
+class KeyPrinter extends MyGrammarListener {
+    // override default listener behavior
+    exitKey(ctx) {
+        console.log("Oh, a key!");
+    }
+}
 ```
 
 In order to execute this listener, you would simply add the following lines to the above code:
 
 ```javascript
-    ...
-    tree = parser.StartRule() // only repeated here for reference
-var printer = new KeyPrinter();
+...
+tree = parser.MyStartRule() // assumes grammar "MyGrammar" has rule "MyStartRule"
+const printer = new KeyPrinter();
 antlr4.tree.ParseTreeWalker.DEFAULT.walk(printer, tree);
 ```
 
 ## What about TypeScript?
 
-We currently do not have a TypeScript target, but Sam Harwell is [working on a port](https://github.com/tunnelvisionlabs/antlr4ts). [Here](https://github.com/ChuckJonas/extract-interface-ts) is Section 4.3 of [ANTLR 4 book](http://a.co/5jUJYmh) converted to typescript.
+We have a [TypeScript target](typescript-target.md), based on the JavaScript target.
 
 ## How do I integrate my parser with ACE editor?
 
 This specific task is described in this [dedicated page](ace-javascript-target.md).
  
 ## How can I learn more about ANTLR?
- 
 
 Further information can be found from  "The definitive ANTLR 4 reference" book.
 

@@ -9,6 +9,7 @@ package org.antlr.v4.test.tool;
 import org.antlr.v4.automata.ParserATNFactory;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.NoViableAltException;
+import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.atn.ATN;
 import org.antlr.v4.runtime.atn.ATNState;
 import org.antlr.v4.runtime.atn.BlockStartState;
@@ -19,22 +20,18 @@ import org.antlr.v4.tool.DOTGenerator;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.LexerGrammar;
 import org.antlr.v4.tool.Rule;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.antlr.v4.test.tool.ToolTestUtils.createATN;
+import static org.antlr.v4.test.tool.ToolTestUtils.getTokenTypesViaATN;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 	// NOTICE: TOKENS IN LEXER, PARSER MUST BE SAME OR TOKEN TYPE MISMATCH
 	// NOTICE: TOKENS IN LEXER, PARSER MUST BE SAME OR TOKEN TYPE MISMATCH
 	// NOTICE: TOKENS IN LEXER, PARSER MUST BE SAME OR TOKEN TYPE MISMATCH
 
-public class TestATNInterpreter extends BaseJavaToolTest {
-	@Before
-	@Override
-	public void testSetUp() throws Exception {
-		super.testSetUp();
-	}
-
+public class TestATNInterpreter {
 	@Test public void testSimpleNoBlock() throws Exception {
 		LexerGrammar lg = new LexerGrammar(
 			"lexer grammar L;\n" +
@@ -91,7 +88,7 @@ public class TestATNInterpreter extends BaseJavaToolTest {
 		checkMatchedAlt(lg, g, "abc", 2);
 	}
 
-	@Test(expected = NoViableAltException.class)
+	@Test
 	public void testMustTrackPreviousGoodAltWithEOF() throws Exception {
 		LexerGrammar lg = new LexerGrammar(
 			"lexer grammar L;\n" +
@@ -107,11 +104,11 @@ public class TestATNInterpreter extends BaseJavaToolTest {
 
 		try {
 			checkMatchedAlt(lg, g, "ac", 1);
+			fail();
 		}
 		catch (NoViableAltException re) {
 			assertEquals(1, re.getOffendingToken().getTokenIndex());
 			assertEquals(3, re.getOffendingToken().getType());
-			throw re;
 		}
 	}
 
@@ -135,7 +132,7 @@ public class TestATNInterpreter extends BaseJavaToolTest {
 		checkMatchedAlt(lg, g, "abcd", 3);
 	}
 
-	@Test(expected = NoViableAltException.class)
+	@Test
 	public void testMustTrackPreviousGoodAlt2WithEOF() throws Exception {
 		LexerGrammar lg = new LexerGrammar(
 			"lexer grammar L;\n" +
@@ -153,11 +150,11 @@ public class TestATNInterpreter extends BaseJavaToolTest {
 
 		try {
 			checkMatchedAlt(lg, g, "abd", 1);
+			fail();
 		}
 		catch (NoViableAltException re) {
 			assertEquals(2, re.getOffendingToken().getTokenIndex());
 			assertEquals(4, re.getOffendingToken().getType());
-			throw re;
 		}
 	}
 
@@ -181,7 +178,7 @@ public class TestATNInterpreter extends BaseJavaToolTest {
 		checkMatchedAlt(lg, g, "abcd", 3);
 	}
 
-	@Test(expected = NoViableAltException.class)
+	@Test
 	public void testMustTrackPreviousGoodAlt3WithEOF() throws Exception {
 		LexerGrammar lg = new LexerGrammar(
 			"lexer grammar L;\n" +
@@ -199,11 +196,11 @@ public class TestATNInterpreter extends BaseJavaToolTest {
 
 		try {
 			checkMatchedAlt(lg, g, "abd", 1);
+			fail();
 		}
 		catch (NoViableAltException re) {
 			assertEquals(2, re.getOffendingToken().getTokenIndex());
 			assertEquals(4, re.getOffendingToken().getType());
-			throw re;
 		}
 	}
 
@@ -268,7 +265,7 @@ public class TestATNInterpreter extends BaseJavaToolTest {
 		checkMatchedAlt(lg, g, "abcd", 3);
 	}
 
-	@Test(expected = NoViableAltException.class)
+	@Test
 	public void testAmbigAltChooseFirst2WithEOF() throws Exception {
 		LexerGrammar lg = new LexerGrammar(
 			"lexer grammar L;\n" +
@@ -285,11 +282,11 @@ public class TestATNInterpreter extends BaseJavaToolTest {
 
 		try {
 			checkMatchedAlt(lg, g, "abd", 1);
+			fail();
 		}
 		catch (NoViableAltException re) {
 			assertEquals(2, re.getOffendingToken().getTokenIndex());
 			assertEquals(4, re.getOffendingToken().getType());
-			throw re;
 		}
 	}
 
@@ -373,7 +370,7 @@ public class TestATNInterpreter extends BaseJavaToolTest {
 		ParserATNFactory f = new ParserATNFactory(g);
 		ATN atn = f.createATN();
 
-		IntTokenStream input = new IntTokenStream(types);
+		TokenStream input = new MockIntTokenStream(types);
 //		System.out.println("input="+input.types);
 		ParserInterpreterForTesting interp = new ParserInterpreterForTesting(g, input);
 		ATNState startState = atn.ruleToStartState[g.getRule("a").index];

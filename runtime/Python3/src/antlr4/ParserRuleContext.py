@@ -25,16 +25,16 @@
 #  group values such as this aggregate.  The getters/setters are there to
 #  satisfy the superclass interface.
 
-from antlr4.RuleContext import RuleContext
-from antlr4.Token import Token
-from antlr4.tree.Tree import ParseTreeListener, ParseTree, TerminalNodeImpl, ErrorNodeImpl, TerminalNode, \
+from .RuleContext import RuleContext
+from .Token import Token
+from .tree.Tree import ParseTreeListener, ParseTree, TerminalNodeImpl, ErrorNodeImpl, TerminalNode, \
     INVALID_INTERVAL
 
 # need forward declaration
 ParserRuleContext = None
 
 class ParserRuleContext(RuleContext):
-
+    __slots__ = ('children', 'start', 'stop', 'exception')
     def __init__(self, parent:ParserRuleContext = None, invokingStateNumber:int = None ):
         super().__init__(parent, invokingStateNumber)
         #* If we are debugging or building a parse tree for a visitor,

@@ -5,7 +5,11 @@
 
 #pragma once
 
+#include <vector>
+#include <string>
+#include <cstddef>
 #include "atn/ContextSensitivityInfo.h"
+#include "antlr4-common.h"
 #include "atn/AmbiguityInfo.h"
 #include "atn/PredicateEvalInfo.h"
 #include "atn/ErrorInfo.h"
@@ -218,7 +222,7 @@ namespace atn {
     /// statistics for a particular decision.
     /// </summary>
     /// <param name="decision"> The decision number </param>
-    DecisionInfo(size_t decision);
+    explicit DecisionInfo(size_t decision);
 
     std::string toString() const;
   };

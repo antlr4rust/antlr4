@@ -5,6 +5,12 @@
 
 #pragma once
 
+#include <vector>
+#include <string>
+#include <cstddef>
+#include "antlr4-common.h"
+#include "tree/ParseTreeType.h"
+#include "misc/Interval.h"
 #include "tree/ParseTree.h"
 
 namespace antlr4 {
@@ -61,6 +67,10 @@ namespace antlr4 {
    */
   class ANTLR4CPP_PUBLIC RuleContext : public tree::ParseTree {
   public:
+    static bool is(const tree::ParseTree &parseTree) { return parseTree.getTreeType() == tree::ParseTreeType::RULE; }
+
+    static bool is(const tree::ParseTree *parseTree) { return parseTree != nullptr && is(*parseTree); }
+
     /// What state invoked the rule associated with this context?
     /// The "return address" is the followState of invokingState
     /// If parent is null, this should be -1 and this context object represents the start rule.
@@ -76,9 +86,9 @@ namespace antlr4 {
 
     // satisfy the ParseTree / SyntaxTree interface
 
-    virtual misc::Interval getSourceInterval() override;
+    misc::Interval getSourceInterval() override;
 
-    virtual std::string getText() override;
+    std::string getText() override;
 
     virtual size_t getRuleIndex() const;
 
@@ -103,14 +113,14 @@ namespace antlr4 {
      */
     virtual void setAltNumber(size_t altNumber);
 
-    virtual antlrcpp::Any accept(tree::ParseTreeVisitor *visitor) override;
+    std::any accept(tree::ParseTreeVisitor *visitor) override;
 
     /// <summary>
     /// Print out a whole tree, not just a node, in LISP format
     ///  (root child1 .. childN). Print just a node if this is a leaf.
     ///  We have to know the recognizer so we can get rule names.
     /// </summary>
-    virtual std::string toStringTree(Parser *recog, bool pretty = false) override;
+    std::string toStringTree(Parser *recog, bool pretty = false) override;
 
     /// <summary>
     /// Print out a whole tree, not just a node, in LISP format
@@ -118,8 +128,8 @@ namespace antlr4 {
     /// </summary>
     virtual std::string toStringTree(std::vector<std::string> &ruleNames, bool pretty = false);
 
-    virtual std::string toStringTree(bool pretty = false) override;
-    virtual std::string toString() override;
+    std::string toStringTree(bool pretty = false) override;
+    std::string toString() override;
     std::string toString(Recognizer *recog);
     std::string toString(const std::vector<std::string> &ruleNames);
 
@@ -127,8 +137,6 @@ namespace antlr4 {
     std::string toString(Recognizer *recog, RuleContext *stop);
 
     virtual std::string toString(const std::vector<std::string> &ruleNames, RuleContext *stop);
-
-    bool operator == (const RuleContext &other) { return this == &other; } // Simple address comparison.
 
   private:
     void InitializeInstanceFields();

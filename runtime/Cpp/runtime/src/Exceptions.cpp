@@ -3,6 +3,8 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <exception>
+#include <string>
 #include "Exceptions.h"
 
 using namespace antlr4;
@@ -10,7 +12,7 @@ using namespace antlr4;
 RuntimeException::RuntimeException(const std::string &msg) : std::exception(), _message(msg) {
 }
 
-const char* RuntimeException::what() const NOEXCEPT {
+const char* RuntimeException::what() const noexcept {
   return _message.c_str();
 }
 
@@ -19,7 +21,7 @@ const char* RuntimeException::what() const NOEXCEPT {
 IOException::IOException(const std::string &msg) : std::exception(), _message(msg) {
 }
 
-const char* IOException::what() const NOEXCEPT {
+const char* IOException::what() const noexcept {
   return _message.c_str();
 }
 

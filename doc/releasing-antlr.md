@@ -2,90 +2,112 @@
 
 ## Github
 
-Create a pre-release or full release at github; [Example 4.5-rc-1](https://github.com/antlr/antlr4/releases/tag/4.5-rc-1).
+### Get dev merged into master
+
+Do this or make a PR:
+
+```bash
+cd ~/antlr/code/antlr4
+git checkout master
+git merge dev
+```
+
+### Turn on DCO Enforcement
+
+As of 4.10.1, we will be using the Linux DCO not the previous contributors license agreement that required signing the file. Now, we use the DCO and contributors must use `-s` on each commit to the branch associated with a pull request.
+
+See [GitHub App DCO](https://github.com/apps/dco).
+
+Make sure this feature is turned on for the `antlr4` repo upon release.
 
 ### Delete existing release tag
 
 Wack any existing tag as mvn will create one and it fails if already there.
 
 ```
-$ git tag -d 4.8
-$ git push origin :refs/tags/4.8
-$ git push upstream :refs/tags/4.8
+$ git tag -d 4.13.2
+$ git push origin :refs/tags/4.13.2
+$ git push upstream :refs/tags/4.13.2
 ```
 
-### Create release candidate tag
+### Go release tags
 
-```bash
-$ git tag -a 4.8-rc1 -m 'heading towards 4.8'
-$ git push origin 4.8-rc1
-$ git push upstream 4.8-rc1
+*I don't think this is necessary anymore as we have moved it release branch to https://github.com/antlr4-go/antlr*
+
+It seems that [Go needs a `v` in the release git tag](https://go.dev/ref/mod#glos-version) so make sure that we double up with 4.13.2 and v4.13.2.
+
+```
+$ git tag -a runtime/Go/antlr/v4/v4.13.2 -m "Go runtime module only" 
+$ git push upstream runtime/Go/antlr/v4/v4.13.2
+$ git push origin runtime/Go/antlr/v4/v4.13.2
 ```
 
-## Update submodules
 
-Make sure you tell git to pull in the submodule (for every clone you do of antlr4):
+## Bump version in code and other files
+
+There are a number of files that require inversion number be updated.
+
+
+Here is a simple script to display any line from the critical files with, say, `4.11.1` in it.  Here's an example run of the script:
 
 ```bash
-git submodule init
+~/antlr/code/antlr4 $ python scripts/update_antlr_version.py 4.13.1 4.13.2
+Updating ANTLR version from 4.13.1 to 4.13.2
+Set ANTLR repo root (default ~/antlr/code/antlr4): 
+Perform antlr4 `mvn clean` and wipe build dirs Y/N? (default no): 
+Ok, not cleaning antlr4 dir
+4.13.1 appears on 2 lines so _not_ updating /tmp/antlr4/runtime/JavaScript/package-lock.json
+4.13.1 not in /tmp/antlr4/doc/releasing-antlr.md
 ```
 
-Also bump version to 4.8 in `runtime/PHP/src/RuntimeMetaData.php`.
+Make sure this file doesn't have `-SNAPSHOT` when releasing!
 
-Update the runtime submodules by running the following command:
-
-```bash
-git submodule update --recursive
-git submodule update --remote --merge # might only need this last one but do both
+```
+runtime/Java/src/org/antlr/v4/runtime/RuntimeMetaData.java
 ```
 
-Make sure these changes go back to antlr4 repo:
+It's also worth doing a quick check to see if you find any other references to a version:
 
 ```bash
-git add runtime/PHP
-git commit -m "Update PHP Runtime to latest version"
-```
-
-## Bump version
-
-Edit the repository looking for 4.5 or whatever and update it. Bump version in the following files:
-
- * runtime/Java/src/org/antlr/v4/runtime/RuntimeMetaData.java
- * runtime/Python2/setup.py
- * runtime/Python2/src/antlr4/Recognizer.py
- * runtime/Python3/setup.py
- * runtime/Python3/src/antlr4/Recognizer.py
- * runtime/CSharp/runtime/CSharp/Antlr4.Runtime/Properties/AssemblyInfo.cs
- * runtime/CSharp/runtime/CSharp/Antlr4.Runtime/Antlr4.Runtime.dotnet.csproj
- * runtime/JavaScript/package.json
- * runtime/JavaScript/src/antlr4/Recognizer.js
- * runtime/Cpp/VERSION
- * runtime/Cpp/runtime/src/RuntimeMetaData.cpp
- * runtime/Cpp/cmake/ExternalAntlr4Cpp.cmake
- * runtime/Cpp/demo/generate.cmd
- * runtime/Go/antlr/recognizer.go
- * runtime/Swift/Antlr4/org/antlr/v4/runtime/RuntimeMetaData.swift
- * tool/src/org/antlr/v4/codegen/target/GoTarget.java
- * tool/src/org/antlr/v4/codegen/target/CppTarget.java
- * tool/src/org/antlr/v4/codegen/target/CSharpTarget.java
- * tool/src/org/antlr/v4/codegen/target/JavaScriptTarget.java
- * tool/src/org/antlr/v4/codegen/target/Python2Target.java
- * tool/src/org/antlr/v4/codegen/target/Python3Target.java
- * tool/src/org/antlr/v4/codegen/target/SwiftTarget.java
- * tool/src/org/antlr/v4/codegen/Target.java
- * tool/resources/org/antlr/v4/tool/templates/codegen/Swift/Swift.stg
- 
-Here is a simple script to display any line from the critical files with, say, `4.5` in it:
-
-```bash
-find tool runtime -type f -exec grep -l '4\.6' {} \;
+mvn clean
+find . -type f -exec grep -l '4\.12.0' {} \; | grep -v -E '\.o|\.a|\.jar|\.dylib|node_modules/|\.class|tests/|CHANGELOG|\.zip|\.gz|.iml|.svg'
 ```
 
 Commit to repository.
 
-## Building
+### PHP runtime
 
-ugh. apparently you have to `mvn install` and then `mvn compile` or some such or subdir pom.xml's won't see the latest runtime build.
+We only have to copy the PHP runtime into the ANTLR repository to run the unittests. But, we still need to bump the version to 4.13.2 in `~/antlr/code/antlr-php-runtime/src/RuntimeMetaData.php` in the separate repository, commit, and push.
+
+```
+cd ~/antlr/code/antlr-php-runtime/src
+git checkout dev # Should be the default
+git pull origin dev
+... vi RuntimeMetaData.php ...
+git commit -a -m "Update PHP Runtime to latest version"
+git push origin dev
+git checkout master
+git pull origin master
+git merge dev
+git push origin master
+```
+
+## Build XPath parsers
+
+This section addresses a [circular dependency regarding XPath](https://github.com/antlr/antlr4/issues/3600). In the java target I avoided a circular dependency (gen 4.13.2 parser for XPath using 4.13.2 which needs it to build) by hand building the parser: runtime/Java/src/org/antlr/v4/runtime/tree/xpath/XPath.java.  Probably we won't have to rerun this for the patch releases, just major ones that alter the ATN serialization.
+
+```bash
+cd ~/antlr/code/antlr4/runtime/Cpp/runtime/src/tree/xpath
+java -cp ":/Users/parrt/.m2/repository/org/antlr/antlr4/4.13.2-SNAPSHOT/antlr4-4.13.2-SNAPSHOT-complete.jar:$CLASSPATH" org.antlr.v4.Tool -Dlanguage=Cpp XPathLexer.g4
+
+cd ~/antlr/code/antlr4/runtime/CSharp/src/Tree/Xpath
+java -cp ":/Users/parrt/.m2/repository/org/antlr/antlr4/4.13.2-SNAPSHOT/antlr4-4.13.2-SNAPSHOT-complete.jar:$CLASSPATH" org.antlr.v4.Tool -Dlanguage=CSharp XPathLexer.g4
+
+cd ~/antlr/code/antlr4/runtime/Python3/tests/expr
+java -cp ":/Users/parrt/.m2/repository/org/antlr/antlr4/4.13.2-SNAPSHOT/antlr4-4.13.2-SNAPSHOT-complete.jar:$CLASSPATH" org.antlr.v4.Tool -Dlanguage=Python3 Expr.g4
+cd ~/antlr/code/antlr4/runtime/Python3/src/antlr4/xpath
+java -cp ":/Users/parrt/.m2/repository/org/antlr/antlr4/4.13.2-SNAPSHOT/antlr4-4.13.2-SNAPSHOT-complete.jar:$CLASSPATH" org.antlr.v4.Tool -Dlanguage=Python3 XPathLexer.g4
+```
 
 ## Maven Repository Settings
 
@@ -134,23 +156,14 @@ Here is the file template
 
 ## Maven deploy snapshot
 
-The goal is to get a snapshot, such as `4.8-SNAPSHOT`, to the staging server: [antlr4 tool](https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4) and [antlr4 java runtime](https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-runtime).
+The goal is to get a snapshot, such as `4.13.2-SNAPSHOT`, to the staging server: [antlr4 tool](https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4/4.13.2-SNAPSHOT/) and [antlr4 java runtime](https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-runtime/4.13.2-SNAPSHOT/).
 
 Do this:
 
 ```bash
+$ mvn install -DskipTests  # seems required to get the jar files visible to maven
 $ mvn deploy -DskipTests
 ...
-[INFO] --- maven-deploy-plugin:2.7:deploy (default-deploy) @ antlr4-tool-testsuite ---
-Downloading: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-tool-testsuite/4.8-SNAPSHOT/maven-metadata.xml
-Uploading: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-tool-testsuite/4.8-SNAPSHOT/antlr4-tool-testsuite-4.8-20161211.173752-1.jar
-Uploaded: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-tool-testsuite/4.8-SNAPSHOT/antlr4-tool-testsuite-4.8-20161211.173752-1.jar (3 KB at 3.4 KB/sec)
-Uploading: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-tool-testsuite/4.8-SNAPSHOT/antlr4-tool-testsuite-4.8-20161211.173752-1.pom
-Uploaded: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-tool-testsuite/4.8-SNAPSHOT/antlr4-tool-testsuite-4.8-20161211.173752-1.pom (3 KB at 6.5 KB/sec)
-Downloading: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-tool-testsuite/maven-metadata.xml
-Downloaded: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-tool-testsuite/maven-metadata.xml (371 B at 1.4 KB/sec)
-Uploading: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-tool-testsuite/4.8-SNAPSHOT/maven-metadata.xml
-Uploaded: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-tool-testsuite/4.8-SNAPSHOT/maven-metadata.xml (774 B at 1.8 KB/sec)
 Uploading: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-tool-testsuite/maven-metadata.xml
 Uploaded: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antlr4-tool-testsuite/maven-metadata.xml (388 B at 0.9 KB/sec)
 [INFO] ------------------------------------------------------------------------
@@ -162,7 +175,7 @@ Uploaded: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antl
 [INFO] ANTLR 4 Maven plugin ............................... SUCCESS [  6.547 s]
 [INFO] ANTLR 4 Runtime Test Annotations ................... SUCCESS [  2.519 s]
 [INFO] ANTLR 4 Runtime Test Processors .................... SUCCESS [  2.385 s]
-[INFO] ANTLR 4 Runtime Tests (2nd generation) ............. SUCCESS [ 15.276 s]
+[INFO] ANTLR 4 Runtime Tests (4th generation) ............. SUCCESS [ 15.276 s]
 [INFO] ANTLR 4 Tool Tests ................................. SUCCESS [  2.233 s]
 [INFO] ------------------------------------------------------------------------
 [INFO] BUILD SUCCESS
@@ -178,60 +191,54 @@ Uploaded: https://oss.sonatype.org/content/repositories/snapshots/org/antlr/antl
 The maven deploy lifecycle phased deploys the artifacts and the poms for the ANTLR project to the [sonatype remote staging server](https://oss.sonatype.org/content/repositories/snapshots/).
 
 ```bash
-export JAVA_HOME=`/usr/libexec/java_home -v 1.7`; mvn deploy -DskipTests
+mvn deploy -DskipTests
 ```
 
-With JDK 1.7 (not 6 or 8), do this:
+Make sure `gpg` is installed (`brew install gpg` on mac). Also must [create a key and publish it](https://blog.sonatype.com/2010/01/how-to-generate-pgp-signatures-with-maven/) then update `.m2/settings` to use that public key.
+
+Then:
 
 ```bash
-export JAVA_HOME=`/usr/libexec/java_home -v 1.7`; mvn release:prepare -Darguments="-DskipTests"
+mvn release:prepare -Darguments="-DskipTests"
 ```
 
-Hm...per https://github.com/keybase/keybase-issues/issues/1712 we need this to make gpg work:
+Hmm...per https://github.com/keybase/keybase-issues/issues/1712 we need this to make gpg work:
 
 ```bash
 export GPG_TTY=$(tty)
 ```
 
-Side note to set jdk 1.7 on os x:
+You should see 0x37 in generated .class files after 0xCAFEBABE; see [Java SE 11 = 55 (0x37 hex)](https://en.wikipedia.org/wiki/Java_class_file):
 
 ```bash
-alias java='/Library/Java/JavaVirtualMachines/jdk1.7.0_21.jdk/Contents/Home/bin/java'
-alias javac='/Library/Java/JavaVirtualMachines/jdk1.7.0_21.jdk/Contents/Home/bin/javac'
-alias javadoc='/Library/Java/JavaVirtualMachines/jdk1.7.0_21.jdk/Contents/Home/bin/javadoc'
-alias jar='/Library/Java/JavaVirtualMachines/jdk1.7.0_21.jdk/Contents/Home/bin/jar'
-export JAVA_HOME=`/usr/libexec/java_home -v 1.7`
+~/antlr/code/antlr4 $ od -h tool/target/classes/org/antlr/v4/Tool.class |head -1
+0000000      feca    beba    0000    3700    ed04    0207    0a9d    0100
+                                     ^^
 ```
 
-But I think just this on front of mvn works:
-
-```
-export JAVA_HOME=`/usr/libexec/java_home -v 1.7`; mvn ...
-```
-
-You should see 0x33 in generated .class files after 0xCAFEBABE; see [Java SE 7 = 51 (0x33 hex)](https://en.wikipedia.org/wiki/Java_class_file):
+Also verify run time is 1.8:
 
 ```bash
-beast:/tmp/org/antlr/v4 $ od -h Tool.class |head -1
-0000000      feca    beba    0000    3300    fa04    0207    0ab8    0100
+od -h runtime/Java/target/classes/org/antlr/v4/runtime/Token.class | head -1
+0000000      feca    beba    0000    3400    2500    0007    0722    2300
 ```
 
 It will start out by asking you the version number:
 
 ```
 ...
-What is the release version for "ANTLR 4"? (org.antlr:antlr4-master) 4.8: : 4.8
-What is the release version for "ANTLR 4 Runtime"? (org.antlr:antlr4-runtime) 4.8: : 
-What is the release version for "ANTLR 4 Tool"? (org.antlr:antlr4) 4.8: : 
-What is the release version for "ANTLR 4 Maven plugin"? (org.antlr:antlr4-maven-plugin) 4.8: : 
-What is the release version for "ANTLR 4 Runtime Test Generator"? (org.antlr:antlr4-runtime-testsuite) 4.8: : 
-What is the release version for "ANTLR 4 Tool Tests"? (org.antlr:antlr4-tool-testsuite) 4.8: : 
-What is SCM release tag or label for "ANTLR 4"? (org.antlr:antlr4-master) antlr4-master-4.8: : 4.8
-What is the new development version for "ANTLR 4"? (org.antlr:antlr4-master) 4.8.1-SNAPSHOT:
+What is the release version for "ANTLR 4"? (org.antlr:antlr4-master) 4.13.2: : 4.13.2
+What is the release version for "ANTLR 4 Runtime"? (org.antlr:antlr4-runtime) 4.13.2: : 
+What is the release version for "ANTLR 4 Tool"? (org.antlr:antlr4) 4.13.2: : 
+What is the release version for "ANTLR 4 Maven plugin"? (org.antlr:antlr4-maven-plugin) 4.13.2: : 
+What is the release version for "ANTLR 4 Runtime Test Generator"? (org.antlr:antlr4-runtime-testsuite) 4.13.2: : 
+What is the release version for "ANTLR 4 Tool Tests"? (org.antlr:antlr4-tool-testsuite) 4.13.2: : 
+What is SCM release tag or label for "ANTLR 4"? (org.antlr:antlr4-master) antlr4-master-4.13.2: : 4.13.2
+What is the new development version for "ANTLR 4"? (org.antlr:antlr4-master) 4.13.3-SNAPSHOT:
 ...
 ```
 
-Maven will go through your pom.xml files to update versions from 4.8-SNAPSHOT to 4.8 for release and then to 4.8.1-SNAPSHOT after release, which is done with:
+Maven will go through your pom.xml files to update versions from 4.13.2-SNAPSHOT to 4.13.2 for release and then to 4.13.2-SNAPSHOT after release, which is done with:
 
 ```bash
 mvn release:perform -Darguments="-DskipTests"
@@ -245,97 +252,55 @@ Now, go here:
 
 and on the left click "Staging Repositories". You click the staging repo and close it, then you refresh, click it and release it. It's done when you see it here:
 
-&nbsp;&nbsp;&nbsp;&nbsp;[https://oss.sonatype.org/service/local/repositories/releases/content/org/antlr/antlr4-runtime/4.8-1/antlr4-runtime-4.8-1.jar](https://oss.sonatype.org/service/local/repositories/releases/content/org/antlr/antlr4-runtime/4.8-1/antlr4-runtime-4.8-1.jar)
+&nbsp;&nbsp;&nbsp;&nbsp;[https://oss.sonatype.org/service/local/repositories/releases/content/org/antlr/antlr4-runtime/4.13.2/antlr4-runtime-4.13.2.jar](https://oss.sonatype.org/service/local/repositories/releases/content/org/antlr/antlr4-runtime/4.13.2/antlr4-runtime-4.13.2.jar)
 
-All releases should be here: https://repo1.maven.org/maven2/org/antlr/antlr4-runtime/
-
-Copy the jars to antlr.org site and update download/index.html
-
-```bash
-cp ~/.m2/repository/org/antlr/antlr4-runtime/4.8/antlr4-runtime-4.8.jar ~/antlr/sites/website-antlr4/download/antlr-runtime-4.8.jar
-cp ~/.m2/repository/org/antlr/antlr4/4.8/antlr4-4.8-complete.jar ~/antlr/sites/website-antlr4/download/antlr-4.8-complete.jar
-cd ~/antlr/sites/website-antlr4/download
-git add antlr-4.8-complete.jar
-git add antlr-runtime-4.8.jar 
-```
-
-Update on site:
-
-*   download.html
-*   index.html
-*   api/index.html
-*   download/index.html
-*   scripts/topnav.js
-
-```
-git commit -a -m 'add 4.8 jars'
-git push origin gh-pages
-```
+All releases should be here: [https://repo1.maven.org/maven2/org/antlr/antlr4-runtime](https://repo1.maven.org/maven2/org/antlr/antlr4-runtime).
 
 ## Deploying Targets
 
 ### JavaScript
 
-```bash
-cd runtime/JavaScript
-# git add, commit, push
-```
-
 **Push to npm**
 
+(I think this has to be run before the unit test can run locally as it installs the global lib)
+
 ```bash
-cd runtime/JavaScript
-npm login
-npm publish antlr4
+cd ~/antlr/code/antlr4/runtime/JavaScript
+rm -rf node_modules # seems we might need this later but try it here
+npm update
+npm install
+npm run build 
+npm login     # asks for username/password/2FA (npmjs.com)
+npm publish   # don't put antlr4 on there or it will try to push the old version for some reason
 ```
 
-Move target to website
+Move (and zip) target to website:
 
 ```bash
-npm run build
-cp /dist/antlr4.js ~/antlr/sites/website-antlr4/download
+cd src
+zip -r ~/antlr/sites/website-antlr4/download/antlr-javascript-runtime-4.13.2.zip .
 ```
 
 ### CSharp
 
-Now we have [appveyor create artifact](https://ci.appveyor.com/project/parrt/antlr4/build/artifacts). Go to [nuget](https://www.nuget.org/packages/manage/upload) to upload the `.nupkg`.
-
-### Publishing to Nuget from Windows
+As of writing, you can only release from a Windows box, because Visual Studio for Mac can only build the netstandard2.0 version
 
 **Install the pre-requisites**
 
-Of course you need Mono and `nuget` to be installed. On mac:
+You need 'msbuild' and `nuget` to be installed. 
 
-- .NET build tools - can be loaded from [here](https://www.visualstudio.com/downloads/)
-- nuget - download [nuget.exe](https://www.nuget.org/downloads)
-- dotnet - follow [the instructions here](https://www.microsoft.com/net/core)
+**Creating the signed assembly**
 
-Alternatively, you can install Visual Studio 2017 and make sure to check boxes with .NET Core SDK.
+cd ~/antlr/code/antlr4/runtime/CSharp/src
+dotnet build -c Release Antlr4.csproj
 
-You also need to enable .NET Framework 3.5 support in Windows "Programs and Features".
+check that the bin/Release folder contains both the netstandard2.0 and the net45 builds
+the binaries are already signed, but it's worth double checking
 
-If everything is ok, the following command will restore nuget packages, build Antlr for .NET Standard and .NET 3.5 and create nuget package:
+sn -v bin/Release/netstandard2.0/Antlr4.Runtime.Standard.dll
+sn -v bin/Release/net45/Antlr4.Runtime.Standard.dll
 
-```PS
-msbuild /target:restore /target:rebuild /target:pack /property:Configuration=Release .\Antlr4.dotnet.sln /verbosity:minimal
-```
-
-This should display something like this: 
-
-**Creating and packaging the assembly**
-
-```
-Microsoft (R) Build Engine version 15.4.8.50001 for .NET Framework
-Copyright (C) Microsoft Corporation. All rights reserved.
-
-  Restoring packages for C:\Code\antlr4-fork\runtime\CSharp\runtime\CSharp\Antlr4.Runtime\Antlr4.Runtime.dotnet.csproj...
-  Generating MSBuild file C:\Code\antlr4-fork\runtime\CSharp\runtime\CSharp\Antlr4.Runtime\obj\Antlr4.Runtime.dotnet.csproj.nuget.g.props.
-  Generating MSBuild file C:\Code\antlr4-fork\runtime\CSharp\runtime\CSharp\Antlr4.Runtime\obj\Antlr4.Runtime.dotnet.csproj.nuget.g.targets.
-  Restore completed in 427.62 ms for C:\Code\antlr4-fork\runtime\CSharp\runtime\CSharp\Antlr4.Runtime\Antlr4.Runtime.dotnet.csproj.
-  Antlr4.Runtime.dotnet -> C:\Code\antlr4-fork\runtime\CSharp\runtime\CSharp\Antlr4.Runtime\lib\Release\netstandard1.3\Antlr4.Runtime.Standard.dll
-  Antlr4.Runtime.dotnet -> C:\Code\antlr4-fork\runtime\CSharp\runtime\CSharp\Antlr4.Runtime\lib\Release\net35\Antlr4.Runtime.Standard.dll
-  Successfully created package 'C:\Code\antlr4-fork\runtime\CSharp\runtime\CSharp\Antlr4.Runtime\lib\Release\Antlr4.Runtime.Standard.4.8.2.nupkg'.
-```
+both should say the dll is valid
 
 **Publishing to NuGet**
 
@@ -345,14 +310,15 @@ As a registered NuGet user, you can then manually upload the package here: [http
 Alternately, you can publish from the cmd line. You need to get your NuGet key from [https://www.nuget.org/account#](https://www.nuget.org/account#) and then from the cmd line, you can then type:
 
 ```cmd
+cd bin/Release
 nuget push Antlr4.Runtime.Standard.<version>.nupkg <your-key> -Source https://www.nuget.org/api/v2/package
 ```
 
-Nuget packages are also accessible as artifacts of [AppVeyor builds](https://ci.appveyor.com/project/parrt/antlr4/build/artifacts). 
-
 ### Python
 
-The Python targets get deployed with `setup.py`. First, set up `~/.pypirc` with tight privileges:
+The Python target gets deployed with `twine` for Python 3.
+
+First, set up `~/.pypirc` with tight privileges:
 
 ```bash
 beast:~ $ ls -l ~/.pypirc
@@ -374,20 +340,13 @@ username: parrt
 password: xxx
 ```
 
-Then run the usual python set up stuff:
-
-```bash
-cd ~/antlr/code/antlr4/runtime/Python2
-# assume you have ~/.pypirc set up
-python2 setup.py sdist upload
-```
-
-and do again for Python 3 target
+Then run the python build and upload:
 
 ```bash
 cd ~/antlr/code/antlr4/runtime/Python3
+python -m build
 # assume you have ~/.pypirc set up
-python3 setup.py sdist upload
+twine upload dist/antlr4_python3_runtime-4.13.2.tar.gz dist/antlr4_python3_runtime-4.13.2-py3-none-any.whl
 ```
 
 There are links to the artifacts in [download.html](http://www.antlr.org/download.html) already.
@@ -408,49 +367,112 @@ For each platform there's a deployment script which generates zip archives and c
 On a Mac (with XCode 7+ installed):
 
 ```bash
-cd runtime/Cpp
+cd ~/antlr/code/antlr4/runtime/Cpp
+rm CMakeCache.txt  # otherwise can't find some include files
 ./deploy-macos.sh
-cp antlr4-cpp-runtime-macos.zip ~/antlr/sites/website-antlr4/download/antlr4-cpp-runtime-4.8-macos.zip
+cp antlr4-cpp-runtime-macos.zip ~/antlr/sites/website-antlr4/download/antlr4-cpp-runtime-4.13.2-macos.zip
 ```
 
 On any Mac or Linux machine:
 
 ```bash
-cd runtime/Cpp
+cd ~/antlr/code/antlr4/runtime/Cpp
 ./deploy-source.sh
-cp antlr4-cpp-runtime-source.zip ~/antlr/sites/website-antlr4/download/antlr4-cpp-runtime-4.8-source.zip
+cp antlr4-cpp-runtime-source.zip ~/antlr/sites/website-antlr4/download/antlr4-cpp-runtime-4.13.2-source.zip
 ```
 
 On a Windows machine the build scripts checks if VS 2017 and/or VS 2019 are installed and builds binaries for each, if found. This script requires 7z to be installed (http://7-zip.org then do `set PATH=%PATH%;C:\Program Files\7-Zip\` from DOS not powershell).
 
 ```bash
-cd runtime/Cpp
+cd ~/antlr/code/antlr4/runtime/Cpp
 deploy-windows.cmd Community
-cp antlr4-cpp-runtime-vs2019.zip ~/antlr/sites/website-antlr4/download/antlr4-cpp-runtime-4.8-vs2019.zip
+cp antlr4-cpp-runtime-vs2019.zip ~/antlr/sites/website-antlr4/download/antlr4-cpp-runtime-4.13.2-vs2019.zip
 ```
 
 Move target to website (**_rename to a specific ANTLR version first if needed_**):
 
 ```bash
 pushd ~/antlr/sites/website-antlr4/download
-# vi index.html
-git add antlr4cpp-runtime-4.8-macos.zip
-git add antlr4cpp-runtime-4.8-windows.zip
-git add antlr4cpp-runtime-4.8-source.zip
+git add antlr4-cpp-runtime-4.13.2-macos.zip
+git add antlr4-cpp-runtime-4.13.2-windows.zip
+git add antlr4-cpp-runtime-4.13.2-source.zip
 git commit -a -m 'update C++ runtime'
 git push origin gh-pages
 popd
 ```
 
-## Update javadoc for runtime and tool
+### Dart
 
-First, gen javadoc:
+Install Dart SDK from https://dart.dev/get-dart
+
+Push to pub.dev
 
 ```bash
-$ cd antlr4
-$ mvn -DskipTests javadoc:jar install
+cd ~/antlr/code/antlr4/runtime/Dart
+dart pub publish
 ```
 
+It will warn that no change log found for the new version.
+Otherwise enter `N` to ignore the warning.
+
+## Update website
+
+### javadoc for runtime and tool
+
+Jars are in:
+
+```
+~/.m2/repository/org/antlr/antlr4-runtime/4.13.2/antlr4-runtime-4.13.2
+```
+
+### Update version and copy jars / api
+
+Copy javadoc and java jars to website using this script:
+
+```bash
+cd ~/antlr/code/antlr4
+python scripts/deploy_to_website.py 4.13.1 4.13.2
+```
+
+Output:
+
+```bash
+Updating ANTLR version from 4.13.1 to 4.13.2
+Set ANTLR website root (default /Users/parrt/antlr/sites/website-antlr4): 
+Version string updated. Please commit/push:
+Javadoc copied:
+	api/Java updated from antlr4-runtime-4.13.2-javadoc.jar
+	api/JavaTool updated from antlr4-4.13.2-javadoc.jar
+Jars copied:
+	antlr-4.13.2-complete.jar
+	antlr-runtime-4.13.2.jar
+
+Please look for and add new api files!!
+Then MANUALLY commit/push:
+
+git commit -a -m 'Update website, javadoc, jars to 4.13.2'
+git push origin gh-pages
+```
+
+<!--
+```bash
+cp ~/.m2/repository/org/antlr/antlr4-runtime/4.13.2/antlr4-runtime-4.13.2.jar ~/antlr/sites/website-antlr4/download/antlr-runtime-4.13.2.jar
+cp ~/.m2/repository/org/antlr/antlr4/4.13.2/antlr4-4.13.2-complete.jar ~/antlr/sites/website-antlr4/download/antlr-4.13.2-complete.jar
+cd ~/antlr/sites/website-antlr4/download
+git add antlr-4.13.2-complete.jar
+git add antlr-runtime-4.13.2.jar 
+```
+-->
+
+Once it's done, you must do the following manually:
+
+```
+cd ~/antlr/sites/website-antlr4
+git commit -a -m 'Update website, javadoc, jars to 4.13.2'
+git push origin gh-pages
+```
+
+<!--
 Then copy to website:
 
 ```bash
@@ -458,13 +480,28 @@ cd ~/antlr/sites/website-antlr4/api
 git checkout gh-pages
 git pull origin gh-pages
 cd Java
-jar xvf ~/.m2/repository/org/antlr/antlr4-runtime/4.8/antlr4-runtime-4.8-javadoc.jar
+jar xvf ~/.m2/repository/org/antlr/antlr4-runtime/4.13.2/antlr4-runtime-4.13.2-javadoc.jar
 cd ../JavaTool
-jar xvf ~/.m2/repository/org/antlr/antlr4/4.8/antlr4-4.8-javadoc.jar
+jar xvf ~/.m2/repository/org/antlr/antlr4/4.13.2/antlr4-4.13.2-javadoc.jar
 git commit -a -m 'freshen api doc'
 git push origin gh-pages
 ```
+-->
 
-## Update Intellij plug-in
+## Get fresh dev branch
 
-Rebuild antlr plugin with new antlr jar.
+```bash
+git checkout master
+git pull upstream master
+git checkout dev
+git pull upstream dev
+git merge master
+git push origin dev
+git push upstream dev
+```
+
+## Other updates 
+
+* Rebuild antlr Intellij plug-in with new antlr jar.
+* Cut release notes in github
+* Update lab.antlr.org

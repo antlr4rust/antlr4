@@ -14,8 +14,8 @@
 # {@link Token#HIDDEN_CHANNEL}, use a filtering token stream such a
 # {@link CommonTokenStream}.</p>
 from io import StringIO
-from antlr4.Token import Token
-from antlr4.error.Errors import IllegalStateException
+from .Token import Token
+from .error.Errors import IllegalStateException
 
 # need forward declaration
 Lexer = None
@@ -27,6 +27,7 @@ class TokenStream(object):
 
 
 class BufferedTokenStream(TokenStream):
+    __slots__ = ('tokenSource', 'tokens', 'index', 'fetchedEOF')
 
     def __init__(self, tokenSource:Lexer):
         # The {@link TokenSource} from which tokens for this stream are fetched.
@@ -198,17 +199,17 @@ class BufferedTokenStream(TokenStream):
 
 
     # Given a starting index, return the index of the next token on channel.
-    #  Return i if tokens[i] is on channel.  Return -1 if there are no tokens
-    #  on channel between i and EOF.
+    #  Return i if tokens[i] is on channel.  Return the index of the EOF token
+    # if there are no tokens on channel between i and EOF.
     #/
     def nextTokenOnChannel(self, i:int, channel:int):
         self.sync(i)
         if i>=len(self.tokens):
-            return -1
+            return len(self.tokens) - 1
         token = self.tokens[i]
         while token.channel!=channel:
             if token.type==Token.EOF:
-                return -1
+                return i
             i += 1
             self.sync(i)
             token = self.tokens[i]
@@ -229,7 +230,7 @@ class BufferedTokenStream(TokenStream):
         self.lazyInit()
         if tokenIndex<0 or tokenIndex>=len(self.tokens):
             raise Exception(str(tokenIndex) + " not in 0.." + str(len(self.tokens)-1))
-        from antlr4.Lexer import Lexer
+        from .Lexer import Lexer
         nextOnChannel = self.nextTokenOnChannel(tokenIndex + 1, Lexer.DEFAULT_TOKEN_CHANNEL)
         from_ = tokenIndex+1
         # if none onchannel to right, nextOnChannel=-1 so set to = last token
@@ -244,7 +245,7 @@ class BufferedTokenStream(TokenStream):
         self.lazyInit()
         if tokenIndex<0 or tokenIndex>=len(self.tokens):
             raise Exception(str(tokenIndex) + " not in 0.." + str(len(self.tokens)-1))
-        from antlr4.Lexer import Lexer
+        from .Lexer import Lexer
         prevOnChannel = self.previousTokenOnChannel(tokenIndex - 1, Lexer.DEFAULT_TOKEN_CHANNEL)
         if prevOnChannel == tokenIndex - 1:
             return None
@@ -259,7 +260,7 @@ class BufferedTokenStream(TokenStream):
         for i in range(left, right+1):
             t = self.tokens[i]
             if channel==-1:
-                from antlr4.Lexer import Lexer
+                from .Lexer import Lexer
                 if t.channel!= Lexer.DEFAULT_TOKEN_CHANNEL:
                     hidden.append(t)
             elif t.channel==channel:

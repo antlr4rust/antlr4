@@ -3,15 +3,21 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <sstream>
+#include <utility>
+#include <string>
+#include <cstddef>
 #include "TokenSource.h"
+#include "Token.h"
+#include "antlr4-common.h"
 #include "CharStream.h"
 #include "Recognizer.h"
 #include "Vocabulary.h"
 
 #include "misc/Interval.h"
 
-#include "support/StringUtils.h"
 #include "support/CPPUtils.h"
+#include "support/StringUtils.h"
 
 #include "CommonToken.h"
 
@@ -165,9 +171,7 @@ std::string CommonToken::toString(Recognizer *r) const {
   }
   std::string txt = getText();
   if (!txt.empty()) {
-    antlrcpp::replaceAll(txt, "\n", "\\n");
-    antlrcpp::replaceAll(txt, "\r", "\\r");
-    antlrcpp::replaceAll(txt, "\t", "\\t");
+    txt = antlrcpp::escapeWhitespace(txt);
   } else {
     txt = "<no text>";
   }

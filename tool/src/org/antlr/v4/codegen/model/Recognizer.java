@@ -9,6 +9,7 @@ import org.antlr.v4.codegen.CodeGenerator;
 import org.antlr.v4.codegen.OutputModelFactory;
 import org.antlr.v4.codegen.model.chunk.ActionChunk;
 import org.antlr.v4.codegen.model.chunk.ActionText;
+import org.antlr.v4.codegen.target.JavaTarget;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.Rule;
 
@@ -49,6 +50,7 @@ public abstract class Recognizer extends OutputModelObject {
 		super(factory);
 
 		Grammar g = factory.getGrammar();
+		CodeGenerator gen = factory.getGenerator();
 		grammarFileName = new File(g.fileName).getName();
 		grammarName = g.name;
 		name = g.getRecognizerName();
@@ -57,13 +59,18 @@ public abstract class Recognizer extends OutputModelObject {
 		for (Map.Entry<String, Integer> entry : g.tokenNameToTypeMap.entrySet()) {
 			Integer ttype = entry.getValue();
 			if ( ttype>0 ) {
-				tokens.put(entry.getKey(), ttype);
+			    tokens.put(gen.getTarget().escapeIfNeeded(entry.getKey()), ttype);
 			}
 		}
 
 		ruleNames = g.rules.keySet();
 		rules = g.rules.values();
-		atn = new SerializedATN(factory, g.atn);
+		if ( gen.getTarget() instanceof JavaTarget ) {
+			atn = new SerializedJavaATN(factory, g.atn);
+		}
+		else {
+			atn = new SerializedATN(factory, g.atn);
+		}
 		if (g.getOptionString("superClass") != null) {
 			superClass = new ActionText(null, g.getOptionString("superClass"));
 		}
@@ -71,7 +78,6 @@ public abstract class Recognizer extends OutputModelObject {
 			superClass = null;
 		}
 
-		CodeGenerator gen = factory.getGenerator();
 		tokenNames = translateTokenStringsToTarget(g.getTokenDisplayNames(), gen);
 		literalNames = translateTokenStringsToTarget(g.getTokenLiteralNames(), gen);
 		symbolicNames = translateTokenStringsToTarget(g.getTokenSymbolicNames(), gen);
@@ -101,9 +107,8 @@ public abstract class Recognizer extends OutputModelObject {
 		}
 
 		if (tokenName.charAt(0) == '\'') {
-			boolean addQuotes = false;
 			String targetString =
-				gen.getTarget().getTargetStringLiteralFromANTLRStringLiteral(gen, tokenName, addQuotes);
+				gen.getTarget().getTargetStringLiteralFromANTLRStringLiteral(gen, tokenName, false, true);
 			return "\"'" + targetString + "'\"";
 		}
 		else {

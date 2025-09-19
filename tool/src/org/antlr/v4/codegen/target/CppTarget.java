@@ -7,24 +7,32 @@
 package org.antlr.v4.codegen.target;
 
 import org.antlr.v4.codegen.CodeGenerator;
+import org.antlr.v4.codegen.SourceType;
 import org.antlr.v4.codegen.Target;
-import org.antlr.v4.codegen.UnicodeEscapes;
-import org.antlr.v4.tool.ErrorType;
-import org.antlr.v4.tool.ast.GrammarAST;
-import org.stringtemplate.v4.NumberRenderer;
 import org.stringtemplate.v4.ST;
-import org.stringtemplate.v4.STErrorListener;
-import org.stringtemplate.v4.STGroup;
-import org.stringtemplate.v4.StringRenderer;
-import org.stringtemplate.v4.misc.STMessage;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class CppTarget extends Target {
+	protected static final Map<Character, String> targetCharValueEscape;
+	static {
+		// https://stackoverflow.com/a/10220539/1046374
+		HashMap<Character, String> map = new HashMap<>();
+		addEscapedChar(map, (char)0x0007, 'a');
+		addEscapedChar(map, (char)0x0008, 'b');
+		addEscapedChar(map, '\t', 't');
+		addEscapedChar(map, '\n', 'n');
+		addEscapedChar(map, (char)0x000B, 'v');
+		addEscapedChar(map, '\f', 'f');
+		addEscapedChar(map, '\r', 'r');
+		addEscapedChar(map, (char)0x001B, 'e');
+		addEscapedChar(map, '\"');
+		addEscapedChar(map, '\'');
+		addEscapedChar(map, '?');
+		addEscapedChar(map, '\\');
+		targetCharValueEscape = map;
+	}
 
-	protected static final String[] cppKeywords = {
+	protected static final HashSet<String> reservedWords =  new HashSet<>(Arrays.asList(
 		"alignas", "alignof", "and", "and_eq", "asm", "auto", "bitand",
 		"bitor", "bool", "break", "case", "catch", "char", "char16_t",
 		"char32_t", "class", "compl", "concept", "const", "constexpr",
@@ -32,136 +40,82 @@ public class CppTarget extends Target {
 		"double", "dynamic_cast", "else", "enum", "explicit", "export",
 		"extern", "false", "float", "for", "friend", "goto", "if",
 		"inline", "int", "long", "mutable", "namespace", "new",
-		"noexcept", "not", "not_eq", "nullptr", "operator", "or",
+		"noexcept", "not", "not_eq", "nullptr", "NULL", "operator", "or",
 		"or_eq", "private", "protected", "public", "register",
 		"reinterpret_cast", "requires", "return", "short", "signed",
 		"sizeof", "static", "static_assert", "static_cast", "struct",
 		"switch", "template", "this", "thread_local", "throw", "true",
 		"try", "typedef", "typeid", "typename", "union", "unsigned",
 		"using", "virtual", "void", "volatile", "wchar_t", "while",
-		"xor", "xor_eq"
-	};
+		"xor", "xor_eq",
 
-	/** Avoid grammar symbols in this set to prevent conflicts in gen'd code. */
-	protected final Set<String> badWords = new HashSet<String>();
+		"rule", "parserRule", "reset"
+	));
 
 	public CppTarget(CodeGenerator gen) {
-		super(gen, "Cpp");
+		super(gen);
 	}
 
-	public String getVersion() {
-		return "4.8";
+	@Override
+	public Map<Character, String> getTargetCharValueEscape() {
+		return targetCharValueEscape;
 	}
 
-    public boolean needsHeader() { return true; }
+	@Override
+	protected Set<String> getReservedWords() {
+		return reservedWords;
+	}
 
-	public Set<String> getBadWords() {
-		if (badWords.isEmpty()) {
-			addBadWords();
+	public boolean needsHeader() { return true; }
+
+    @Override
+	protected boolean shouldUseUnicodeEscapeForCodePointInDoubleQuotedString(int codePoint) {
+		if (codePoint == '?') {
+			// in addition to the default escaped code points, also escape ? to prevent trigraphs
+			// ideally, we would escape ? with \?, but escaping as unicode \u003F works as well
+			return true;
 		}
-
-		return badWords;
-	}
-
-	protected void addBadWords() {
-		badWords.addAll(Arrays.asList(cppKeywords));
-		badWords.add("rule");
-		badWords.add("parserRule");
+		else {
+			return super.shouldUseUnicodeEscapeForCodePointInDoubleQuotedString(codePoint);
+		}
 	}
 
 	@Override
-	public String encodeIntAsCharEscape(int v) {
-		return "0x" + Integer.toHexString(v) + ", ";
-	}
-
-	@Override
-	public int getSerializedATNSegmentLimit() {
-		// 65535 is the class file format byte limit for a UTF-8 encoded string literal
-		// 3 is the maximum number of bytes it takes to encode a value in the range 0-0xFFFF
-		return 65535 / 3;
-	}
-
-	@Override
-	public String getRecognizerFileName(boolean header) {
-		ST extST = getTemplates().getInstanceOf(header ? "headerFileExtension" : "codeFileExtension");
+	public String getRecognizerFileName(SourceType sourceType) {
+		ST extST = getTemplates().getInstanceOf(sourceType== SourceType.HEADER ? "headerFileExtension" : "codeFileExtension");
 		String recognizerName = gen.g.getRecognizerName();
 		return recognizerName+extST.render();
 	}
 
 	@Override
-	public String getListenerFileName(boolean header) {
+	public String getListenerFileName(SourceType sourceType) {
 		assert gen.g.name != null;
-		ST extST = getTemplates().getInstanceOf(header ? "headerFileExtension" : "codeFileExtension");
+		ST extST = getTemplates().getInstanceOf(sourceType== SourceType.HEADER ? "headerFileExtension" : "codeFileExtension");
 		String listenerName = gen.g.name + "Listener";
 		return listenerName+extST.render();
 	}
 
 	@Override
-	public String getVisitorFileName(boolean header) {
+	public String getVisitorFileName(SourceType sourceType) {
 		assert gen.g.name != null;
-		ST extST = getTemplates().getInstanceOf(header ? "headerFileExtension" : "codeFileExtension");
+		ST extST = getTemplates().getInstanceOf(sourceType== SourceType.HEADER ? "headerFileExtension" : "codeFileExtension");
 		String listenerName = gen.g.name + "Visitor";
 		return listenerName+extST.render();
 	}
 
 	@Override
-	public String getBaseListenerFileName(boolean header) {
+	public String getBaseListenerFileName(SourceType sourceType) {
 		assert gen.g.name != null;
-		ST extST = getTemplates().getInstanceOf(header ? "headerFileExtension" : "codeFileExtension");
+		ST extST = getTemplates().getInstanceOf(sourceType== SourceType.HEADER ? "headerFileExtension" : "codeFileExtension");
 		String listenerName = gen.g.name + "BaseListener";
 		return listenerName+extST.render();
 	}
 
 	@Override
-	public String getBaseVisitorFileName(boolean header) {
+	public String getBaseVisitorFileName(SourceType sourceType) {
 		assert gen.g.name != null;
-		ST extST = getTemplates().getInstanceOf(header ? "headerFileExtension" : "codeFileExtension");
+		ST extST = getTemplates().getInstanceOf(sourceType== SourceType.HEADER ? "headerFileExtension" : "codeFileExtension");
 		String listenerName = gen.g.name + "BaseVisitor";
 		return listenerName+extST.render();
-	}
-
-	@Override
-	protected boolean visibleGrammarSymbolCausesIssueInGeneratedCode(GrammarAST idNode) {
-		return getBadWords().contains(idNode.getText());
-	}
-
-	@Override
-	protected STGroup loadTemplates() {
-		STGroup result = super.loadTemplates();
-		result.registerRenderer(Integer.class, new NumberRenderer());
-		result.registerRenderer(String.class, new StringRenderer());
-		result.setListener(new STErrorListener() {
-			@Override
-			public void compileTimeError(STMessage msg) {
-				reportError(msg);
-			}
-
-			@Override
-			public void runTimeError(STMessage msg) {
-				reportError(msg);
-			}
-
-			@Override
-			public void IOError(STMessage msg) {
-				reportError(msg);
-			}
-
-			@Override
-			public void internalError(STMessage msg) {
-				reportError(msg);
-			}
-
-			private void reportError(STMessage msg) {
-				getCodeGenerator().tool.errMgr.toolError(ErrorType.STRING_TEMPLATE_WARNING, msg.cause, msg.toString());
-			}
-		});
-
-		return result;
-	}
-
-	@Override
-	protected void appendUnicodeEscapedCodePoint(int codePoint, StringBuilder sb) {
-		// C99 and Python share the same escaping style.
-		UnicodeEscapes.appendPythonStyleEscapedCodePoint(codePoint, sb);
 	}
 }

@@ -3,7 +3,15 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <memory>
+#include <utility>
+#include <vector>
+#include <string>
+#include <cstddef>
 #include "XPathLexer.h"
+#include "ANTLRInputStream.h"
+#include "Token.h"
+#include "antlr4-common.h"
 #include "XPathLexerErrorListener.h"
 #include "XPathElement.h"
 #include "XPathWildcardAnywhereElement.h"
@@ -137,7 +145,7 @@ std::vector<ParseTree *> XPath::evaluate(ParseTree *t) {
 
   while (i < elements.size()) {
     std::vector<ParseTree *> next;
-    for (auto node : work) {
+    for (auto *node : work) {
       if (!node->children.empty()) {
         // only try to match next element if it has children
         // e.g., //func/*/stat might have a token node for which

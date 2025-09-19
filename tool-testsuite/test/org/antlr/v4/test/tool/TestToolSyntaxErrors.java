@@ -8,12 +8,13 @@ package org.antlr.v4.test.tool;
 
 import org.antlr.v4.Tool;
 import org.antlr.v4.tool.ErrorType;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-public class TestToolSyntaxErrors extends BaseJavaToolTest {
-    static String[] A = {
+import static org.antlr.v4.test.tool.ToolTestUtils.testErrors;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
+public class TestToolSyntaxErrors {
+	final static String[] A = {
 	    // INPUT
 		"grammar A;\n" +
 		"",
@@ -55,23 +56,17 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 		"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:2:15: syntax error: mismatched input ';' expecting COLON while matching a lexer rule\n",
     };
 
-	@Before
-	@Override
-	public void testSetUp() throws Exception {
-		super.testSetUp();
-	}
-
 	@Test
 	public void AllErrorCodesDistinct() {
 		ErrorType[] errorTypes = ErrorType.class.getEnumConstants();
 		for (int i = 0; i < errorTypes.length; i++) {
 			for (int j = i + 1; j < errorTypes.length; j++) {
-				Assert.assertNotEquals(errorTypes[i].code, errorTypes[j].code);
+				assertNotEquals(errorTypes[i].code, errorTypes[j].code);
 			}
 		}
 	}
 
-	@Test public void testA() { super.testErrors(A, true); }
+	@Test public void testA() { testErrors(A, true); }
 
 	@Test public void testExtraColon() {
 		String[] pair = new String[] {
@@ -80,7 +75,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"b : B ;",
 			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:2:4: syntax error: ':' came as a complete surprise to me while matching alternative\n",
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testMissingRuleSemi() {
@@ -90,7 +85,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"b : B ;",
 			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:3:0: syntax error: unterminated rule (missing ';') detected at 'b :' while looking for rule element\n",
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testMissingRuleSemi2() {
@@ -98,9 +93,9 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"lexer grammar A;\n" +
 			"A : 'a' \n" +
 			"B : 'b' ;",
-			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:3:0: syntax error: unterminated rule (missing ';') detected at 'B :' while looking for lexer rule element\n",
+			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:3:2: syntax error: unterminated rule (missing ';') detected at ': 'b'' while looking for lexer rule element\n",
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testMissingRuleSemi3() {
@@ -110,7 +105,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"b[int i] returns [int y] : B ;",
 			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:3:9: syntax error: unterminated rule (missing ';') detected at 'returns int y' while looking for rule element\n"
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testMissingRuleSemi4() {
@@ -122,7 +117,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 
 			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:2:4: syntax error: unterminated rule (missing ';') detected at 'b catch' while looking for rule element\n"
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testMissingRuleSemi5() {
@@ -133,7 +128,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 
 			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:2:4: syntax error: unterminated rule (missing ';') detected at 'A catch' while looking for rule element\n"
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testBadRulePrequelStart() {
@@ -144,7 +139,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 
 			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:2:4: syntax error: 'options {' came as a complete surprise to me while looking for an identifier\n"
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testBadRulePrequelStart2() {
@@ -155,7 +150,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 
 			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:2:2: syntax error: '}' came as a complete surprise to me while matching rule preamble\n"
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testModeInParser() {
@@ -168,7 +163,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:4:0: syntax error: 'b' came as a complete surprise to me\n" +
 			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:4:6: syntax error: mismatched input ';' expecting COLON while matching a lexer rule\n"
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -184,7 +179,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 
 			"error(" + ErrorType.UNTERMINATED_STRING_LITERAL.code + "): A.g4:2:4: unterminated string literal\n"
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -199,7 +194,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 
 			"error(" + ErrorType.SYNTAX_ERROR.code + "): A.g4:2:0: syntax error: '_' came as a complete surprise to me\n"
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -215,7 +210,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 
 			""
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -230,7 +225,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 
 			""
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -245,7 +240,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 
 			""
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testEmptyTokensBlock() {
@@ -256,7 +251,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 
 			""
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -275,7 +270,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"error(" + ErrorType.INVALID_LEXER_COMMAND.code + "): A.g4:4:14: lexer command popmode does not exist or is not supported by the current target\n" +
 			"error(" + ErrorType.INVALID_LEXER_COMMAND.code + "): A.g4:5:14: lexer command token does not exist or is not supported by the current target\n"
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testLexerCommandArgumentValidation() {
@@ -289,7 +284,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"error(" + ErrorType.UNWANTED_LEXER_COMMAND_ARGUMENT.code + "): A.g4:4:14: lexer command popMode does not take any arguments\n" +
 			"error(" + ErrorType.MISSING_LEXER_COMMAND_ARGUMENT.code + "): A.g4:5:14: missing argument for lexer command type\n"
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testRuleRedefinition() {
@@ -304,7 +299,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 
 			"error(" + ErrorType.RULE_REDEFINITION.code + "): Oops.g4:4:0: rule ret_ty redefinition; previous at line 3\n"
 		};
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testEpsilonClosureAnalysis() {
@@ -325,7 +320,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	// Test for https://github.com/antlr/antlr4/issues/1203
@@ -342,7 +337,43 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
+	}
+
+	// Test for https://github.com/antlr/antlr4/issues/2860, https://github.com/antlr/antlr4/issues/1105
+	@Test public void testEpsilonClosureInLexer() {
+		String grammar =
+				"lexer grammar T;\n" +
+				"TOKEN: '\\'' FRAGMENT '\\'';\n" +
+				"fragment FRAGMENT: ('x'|)+;";
+
+		String expected =
+			"error(" + ErrorType.EPSILON_CLOSURE.code + "): T.g4:3:9: rule FRAGMENT contains a closure with at least one alternative that can match an empty string\n";
+
+		String[] pair = new String[] {
+				grammar,
+				expected
+		};
+
+		testErrors(pair, true);
+	}
+
+	// Test for https://github.com/antlr/antlr4/issues/3359
+	@Test public void testEofClosure() {
+		String grammar =
+				"lexer grammar EofClosure;\n" +
+				"EofClosure: 'x' EOF*;\n" +
+				"EofInAlternative: 'y' ('z' | EOF);";
+
+		String expected =
+			"error(" + ErrorType.EOF_CLOSURE.code + "): EofClosure.g4:2:0: rule EofClosure contains a closure with at least one alternative that can match EOF\n";
+
+		String[] pair = new String[] {
+				grammar,
+				expected
+		};
+
+		testErrors(pair, true);
 	}
 
 	// Test for https://github.com/antlr/antlr4/issues/1203
@@ -359,7 +390,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testEpsilonOptionalAnalysis() {
@@ -378,7 +409,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -408,7 +439,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"";
 
 		String[] pair = new String[] { grammar, expected };
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -440,7 +471,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -452,15 +483,15 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"lexer grammar A;\n" +
 			"STRING : '\\\"' '\\\"' 'x' ;";
 		String expected =
-			"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): A.g4:2:10: invalid escape sequence \\\"\n"+
-			"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): A.g4:2:15: invalid escape sequence \\\"\n";
+			"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): A.g4:2:10: invalid escape sequence \\\"\n"+
+			"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): A.g4:2:15: invalid escape sequence \\\"\n";
 
 		String[] pair = new String[] {
 			grammar,
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -480,7 +511,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -493,17 +524,16 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"lexer grammar A;\n" +
 			"RULE : 'Foo \\uAABG \\x \\u';\n";
 		String expected =
-			"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): A.g4:2:12: invalid escape sequence \\uAABG\n" +
-			"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): A.g4:2:19: invalid escape sequence \\x\n" +
-			"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): A.g4:2:22: invalid escape sequence \\u\n" +
-			"warning("+ErrorType.EPSILON_TOKEN.code+"): A.g4:2:0: non-fragment lexer rule RULE can match the empty string\n";
+			"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): A.g4:2:12: invalid escape sequence \\uAABG\n" +
+			"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): A.g4:2:19: invalid escape sequence \\x\n" +
+			"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): A.g4:2:22: invalid escape sequence \\u\n";
 
 		String[] pair = new String[] {
 			grammar,
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -530,13 +560,12 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 				expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testInvalidCharSetsAndStringLiterals() {
 		String grammar =
 				"lexer grammar Test;\n" +
-				"INVALID_STRING_LITERAL:       '\\\"' | '\\]' | '\\u24';\n" +
 				"INVALID_STRING_LITERAL_RANGE: 'GH'..'LM';\n" +
 				"INVALID_CHAR_SET:             [\\u24\\uA2][\\{];\n" +  //https://github.com/antlr/antlr4/issues/1077
 				"EMPTY_STRING_LITERAL_RANGE:   'F'..'A' | 'Z';\n" +
@@ -545,27 +574,25 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 				"END_HYPHEN_IN_CHAR_SET:       [a-];\n" +
 				"SINGLE_HYPHEN_IN_CHAR_SET:    [-];\n" +
 				"VALID_STRING_LITERALS:        '\\u1234' | '\\t' | '\\'';\n" +
-				"VALID_CHAR_SET:               [`\\-=\\]];";
+				"VALID_CHAR_SET:               [`\\-=\\]];" +
+				"EMPTY_CHAR_SET_WITH_INVALID_ESCAPE_SEQUENCE: [\\'];";  // https://github.com/antlr/antlr4/issues/1556
 
 		String expected =
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:2:31: invalid escape sequence \\\"\n" +
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:2:38: invalid escape sequence \\]\n" +
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:2:45: invalid escape sequence \\u24\n" +
-				"error(" + ErrorType.INVALID_LITERAL_IN_LEXER_SET.code + "): Test.g4:3:30: multi-character literals are not allowed in lexer sets: 'GH'\n" +
-				"error(" + ErrorType.INVALID_LITERAL_IN_LEXER_SET.code + "): Test.g4:3:36: multi-character literals are not allowed in lexer sets: 'LM'\n" +
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:4:30: invalid escape sequence \\u24\\u\n" +
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:4:40: invalid escape sequence \\{\n" +
-				"error(" + ErrorType.EMPTY_STRINGS_AND_SETS_NOT_ALLOWED.code + "): Test.g4:5:33: string literals and sets cannot be empty: 'F'..'A'\n" +
-				"error(" + ErrorType.EMPTY_STRINGS_AND_SETS_NOT_ALLOWED.code + "): Test.g4:6:30: string literals and sets cannot be empty: 'f'..'a'\n" +
-				"error(" + ErrorType.EMPTY_STRINGS_AND_SETS_NOT_ALLOWED.code + "): Test.g4:6:36: string literals and sets cannot be empty: []\n" +
-				"warning("+ ErrorType.EPSILON_TOKEN.code + "): Test.g4:2:0: non-fragment lexer rule INVALID_STRING_LITERAL can match the empty string\n";
+				"error(" + ErrorType.INVALID_LITERAL_IN_LEXER_SET.code + "): Test.g4:2:30: multi-character literals are not allowed in lexer sets: 'GH'\n" +
+				"error(" + ErrorType.INVALID_LITERAL_IN_LEXER_SET.code + "): Test.g4:2:36: multi-character literals are not allowed in lexer sets: 'LM'\n" +
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:3:30: invalid escape sequence \\u24\\u\n" +
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:3:40: invalid escape sequence \\{\n" +
+				"error(" + ErrorType.EMPTY_STRINGS_AND_SETS_NOT_ALLOWED.code + "): Test.g4:4:33: string literals and sets cannot be empty: 'F'..'A'\n" +
+				"error(" + ErrorType.EMPTY_STRINGS_AND_SETS_NOT_ALLOWED.code + "): Test.g4:5:30: string literals and sets cannot be empty: 'f'..'a'\n" +
+				"error(" + ErrorType.EMPTY_STRINGS_AND_SETS_NOT_ALLOWED.code + "): Test.g4:5:36: string literals and sets cannot be empty: []\n" +
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:10:84: invalid escape sequence \\'\n";
 
 		String[] pair = new String[] {
 				grammar,
 				expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testInvalidUnicodeEscapesInCharSet() {
@@ -582,28 +609,30 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 				"UNICODE_PROPERTY_NOT_ALLOWED_IN_RANGE: [\\p{Uppercase_Letter}-\\p{Lowercase_Letter}];\n" +
 				"UNICODE_PROPERTY_NOT_ALLOWED_IN_RANGE_2: [\\p{Letter}-Z];\n" +
 				"UNICODE_PROPERTY_NOT_ALLOWED_IN_RANGE_3: [A-\\p{Number}];\n" +
-				"INVERTED_UNICODE_PROPERTY_NOT_ALLOWED_IN_RANGE: [\\P{Uppercase_Letter}-\\P{Number}];\n";
+				"INVERTED_UNICODE_PROPERTY_NOT_ALLOWED_IN_RANGE: [\\P{Uppercase_Letter}-\\P{Number}];\n" +
+				"EMOJI_MODIFIER: [\\p{Grapheme_Cluster_Break=E_Base}];\n";
 
 		String expected =
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:2:32: invalid escape sequence \\u{}\n"+
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:3:41: invalid escape sequence \\u{\n"+
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:4:35: invalid escape sequence \\u{110\n"+
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:5:32: invalid escape sequence \\p{}\n"+
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:6:41: invalid escape sequence \\p{\n"+
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:7:41: invalid escape sequence \\P{}\n"+
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:8:34: invalid escape sequence \\p{NotAProperty}\n"+
-				"warning(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:9:43: invalid escape sequence \\P{NotAProperty}\n"+
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:2:32: invalid escape sequence \\u{}\n" +
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:3:41: invalid escape sequence \\u{\n" +
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:4:35: invalid escape sequence \\u{110\n" +
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:5:32: invalid escape sequence \\p{}\n" +
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:6:41: invalid escape sequence \\p{\n" +
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:7:41: invalid escape sequence \\P{}\n" +
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:8:34: invalid escape sequence \\p{NotAProperty}\n" +
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:9:43: invalid escape sequence \\P{NotAProperty}\n" +
 				"error(" + ErrorType.UNICODE_PROPERTY_NOT_ALLOWED_IN_RANGE.code + "): Test.g4:10:39: unicode property escapes not allowed in lexer charset range: [\\p{Uppercase_Letter}-\\p{Lowercase_Letter}]\n" +
 				"error(" + ErrorType.UNICODE_PROPERTY_NOT_ALLOWED_IN_RANGE.code + "): Test.g4:11:41: unicode property escapes not allowed in lexer charset range: [\\p{Letter}-Z]\n" +
 				"error(" + ErrorType.UNICODE_PROPERTY_NOT_ALLOWED_IN_RANGE.code + "): Test.g4:12:41: unicode property escapes not allowed in lexer charset range: [A-\\p{Number}]\n" +
-				"error(" + ErrorType.UNICODE_PROPERTY_NOT_ALLOWED_IN_RANGE.code + "): Test.g4:13:48: unicode property escapes not allowed in lexer charset range: [\\P{Uppercase_Letter}-\\P{Number}]\n";
+				"error(" + ErrorType.UNICODE_PROPERTY_NOT_ALLOWED_IN_RANGE.code + "): Test.g4:13:48: unicode property escapes not allowed in lexer charset range: [\\P{Uppercase_Letter}-\\P{Number}]\n" +
+				"error(" + ErrorType.INVALID_ESCAPE_SEQUENCE.code + "): Test.g4:14:16: invalid escape sequence \\p{Grapheme_Cluster_Break=E_Base}\n";
 
 		String[] pair = new String[] {
 				grammar,
 				expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -625,7 +654,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -654,7 +683,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -675,7 +704,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -684,7 +713,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 	 * https://github.com/antlr/antlr4/issues/649
 	 * Stops before processing the lexer
 	 */
-	@Test public void testInvalidLanguageInGrammarWithLexerCommand() throws Exception {
+	@Test public void testInvalidLanguageInGrammarWithLexerCommand() {
 		String grammar =
 			"grammar T;\n" +
 			"options { language=Foo; }\n" +
@@ -697,7 +726,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -705,7 +734,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 	 * null ptr exception.".
 	 * https://github.com/antlr/antlr4/issues/649
 	 */
-	@Test public void testInvalidLanguageInGrammar() throws Exception {
+	@Test public void testInvalidLanguageInGrammar() {
 		String grammar =
 			"grammar T;\n" +
 			"options { language=Foo; }\n" +
@@ -718,7 +747,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testChannelDefinitionInLexer() throws Exception {
@@ -736,7 +765,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 		String expected = "";
 
 		String[] pair = { grammar, expected };
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testChannelDefinitionInParser() throws Exception {
@@ -754,7 +783,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"error(" + ErrorType.CHANNELS_BLOCK_IN_PARSER_GRAMMAR.code + "): T.g4:3:0: custom channels are not supported in parser grammars\n";
 
 		String[] pair = { grammar, expected };
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	@Test public void testChannelDefinitionInCombined() throws Exception {
@@ -777,7 +806,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"error(" + ErrorType.CHANNELS_BLOCK_IN_COMBINED_GRAMMAR.code + "): T.g4:3:0: custom channels are not supported in combined grammars\n";
 
 		String[] pair = { grammar, expected };
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	/**
@@ -804,7 +833,7 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			"error(" + ErrorType.CONSTANT_VALUE_IS_NOT_A_RECOGNIZED_CHANNEL_NAME.code + "): T.g4:10:34: NEWLINE_CHANNEL is not a recognized channel name\n";
 
 		String[] pair = { grammar, expected };
-		super.testErrors(pair, true);
+		testErrors(pair, true);
 	}
 
 	// Test for https://github.com/antlr/antlr4/issues/1556
@@ -820,6 +849,23 @@ public class TestToolSyntaxErrors extends BaseJavaToolTest {
 			expected
 		};
 
-		super.testErrors(pair, true);
+		testErrors(pair, true);
+	}
+
+	@Test public void testRuleNamesAsTree() {
+		String grammar =
+				"grammar T;\n" +
+				"tree : 'X';";
+		testErrors(new String[] { grammar, "" }, true);
+	}
+
+	@Test public void testLexerRuleLabel() {
+		String grammar =
+				"grammar T;\n" +
+				"a : A;\n" +
+				"A : h=~('b'|'c') ;";
+		testErrors(new String[] {
+				grammar,
+				"error(" + ErrorType.SYNTAX_ERROR.code + "): T.g4:3:5: syntax error: '=' came as a complete surprise to me while looking for lexer rule element\n" }, false);
 	}
 }

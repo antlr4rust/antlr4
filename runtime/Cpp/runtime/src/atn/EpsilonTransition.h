@@ -5,6 +5,11 @@
 
 #pragma once
 
+#include <string>
+#include <cstddef>
+#include "antlr4-common.h"
+#include "atn/TransitionType.h"
+#include "atn/ATNState.h"
 #include "atn/Transition.h"
 
 namespace antlr4 {
@@ -12,7 +17,11 @@ namespace atn {
 
   class ANTLR4CPP_PUBLIC EpsilonTransition final : public Transition {
   public:
-    EpsilonTransition(ATNState *target);
+    static bool is(const Transition &transition) { return transition.getTransitionType() == TransitionType::EPSILON; }
+
+    static bool is(const Transition *transition) { return transition != nullptr && is(*transition); }
+
+    explicit EpsilonTransition(ATNState *target);
     EpsilonTransition(ATNState *target, size_t outermostPrecedenceReturn);
 
     /**
@@ -23,13 +32,12 @@ namespace atn {
      * @see ParserATNSimulator#applyPrecedenceFilter(ATNConfigSet)
      * @since 4.4.1
      */
-    size_t outermostPrecedenceReturn();
-    virtual SerializationType getSerializationType() const override;
+    size_t outermostPrecedenceReturn() const;
 
-    virtual bool isEpsilon() const override;
-    virtual bool matches(size_t symbol, size_t minVocabSymbol, size_t maxVocabSymbol) const override;
+    bool isEpsilon() const override;
+    bool matches(size_t symbol, size_t minVocabSymbol, size_t maxVocabSymbol) const override;
 
-    virtual std::string toString() const override;
+    std::string toString() const override;
 
   private:
     const size_t _outermostPrecedenceReturn; // A rule index.

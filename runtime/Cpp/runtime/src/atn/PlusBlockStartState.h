@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include "antlr4-common.h"
+#include "atn/ATNStateType.h"
+#include "atn/ATNState.h"
 #include "atn/BlockStartState.h"
 
 namespace antlr4 {
@@ -16,9 +19,13 @@ namespace atn {
   /// real decision-making note for {@code A+}.
   class ANTLR4CPP_PUBLIC PlusBlockStartState final : public BlockStartState {
   public:
+    static bool is(const ATNState &atnState) { return atnState.getStateType() == ATNStateType::PLUS_BLOCK_START; }
+
+    static bool is(const ATNState *atnState) { return atnState != nullptr && is(*atnState); }
+
     PlusLoopbackState *loopBackState = nullptr;
 
-    virtual size_t getStateType() override;
+    PlusBlockStartState() : BlockStartState(ATNStateType::PLUS_BLOCK_START) {}
   };
 
 } // namespace atn

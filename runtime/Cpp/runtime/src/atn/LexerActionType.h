@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include "antlr4-common.h"
 
 namespace antlr4 {
@@ -20,7 +21,7 @@ namespace atn {
     /// <summary>
     /// The type of a <seealso cref="LexerChannelAction"/> action.
     /// </summary>
-    CHANNEL,
+    CHANNEL = 0,
     /// <summary>
     /// The type of a <seealso cref="LexerCustomAction"/> action.
     /// </summary>
@@ -49,6 +50,8 @@ namespace atn {
     /// The type of a <seealso cref="LexerTypeAction"/> action.
     /// </summary>
     TYPE,
+
+    INDEXED_CUSTOM,
   };
 
 } // namespace atn

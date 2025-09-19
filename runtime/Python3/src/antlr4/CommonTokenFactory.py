@@ -8,13 +8,15 @@
 # This default implementation of {@link TokenFactory} creates
 # {@link CommonToken} objects.
 #
-from antlr4.Token import CommonToken
+from .Token import CommonToken
 
 class TokenFactory(object):
 
     pass
 
 class CommonTokenFactory(TokenFactory):
+    __slots__ = 'copyText'
+
     #
     # The default {@link CommonTokenFactory} instance.
     #

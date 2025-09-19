@@ -3,6 +3,9 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <vector>
+#include <string>
+#include <cstddef>
 #include "tree/ParseTree.h"
 #include "tree/Trees.h"
 #include "support/CPPUtils.h"
@@ -21,7 +24,7 @@ XPathTokenElement::XPathTokenElement(const std::string &tokenName, size_t tokenT
 std::vector<ParseTree *> XPathTokenElement::evaluate(ParseTree *t) {
   // return all children of t that match nodeName
   std::vector<ParseTree *> nodes;
-  for (auto c : t->children) {
+  for (auto *c : t->children) {
     if (antlrcpp::is<TerminalNode *>(c)) {
       TerminalNode *tnode = dynamic_cast<TerminalNode *>(c);
       if ((tnode->getSymbol()->getType() == _tokenType && !_invert) || (tnode->getSymbol()->getType() != _tokenType && _invert)) {

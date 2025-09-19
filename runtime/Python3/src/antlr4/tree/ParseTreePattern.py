@@ -8,12 +8,13 @@
 # A pattern like {@code <ID> = <expr>;} converted to a {@link ParseTree} by
 # {@link ParseTreePatternMatcher#compile(String, int)}.
 #
-from antlr4.tree.ParseTreePatternMatcher import ParseTreePatternMatcher
-from antlr4.tree.Tree import ParseTree
-from antlr4.xpath.XPath import XPath
+from ..tree.ParseTreePatternMatcher import ParseTreePatternMatcher
+from ..tree.Tree import ParseTree
+from ..xpath.XPathLexer import XPathLexer
 
 
 class ParseTreePattern(object):
+    __slots__ = ('matcher', 'patternRuleIndex', 'pattern', 'patternTree')
 
     # Construct a new instance of the {@link ParseTreePattern} class.
     #

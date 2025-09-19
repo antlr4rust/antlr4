@@ -27,6 +27,7 @@ import org.antlr.v4.runtime.tree.TerminalNodeImpl;
 import org.antlr.v4.runtime.tree.pattern.ParseTreePattern;
 import org.antlr.v4.runtime.tree.pattern.ParseTreePatternMatcher;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -80,13 +81,14 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 	}
 
 	/**
-	 * This field maps from the serialized ATN string to the deserialized {@link ATN} with
-	 * bypass alternatives.
+	 * This field holds the deserialized {@link ATN} with bypass alternatives, created
+	 * lazily upon first demand. In 4.10 I changed from map<serializedATNstring, ATN>
+	 * since we only need one per parser object and also it complicates other targets
+	 * that don't use ATN strings.
 	 *
 	 * @see ATNDeserializationOptions#isGenerateRuleBypassTransitions()
 	 */
-	private static final Map<String, ATN> bypassAltsAtnCache =
-		new WeakHashMap<String, ATN>();
+	private ATN bypassAltsAtnCache;
 
 	/**
 	 * The error handling strategy for the parser. The default value is a new
@@ -445,16 +447,14 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 			throw new UnsupportedOperationException("The current parser does not support an ATN with bypass alternatives.");
 		}
 
-		synchronized (bypassAltsAtnCache) {
-			ATN result = bypassAltsAtnCache.get(serializedAtn);
-			if (result == null) {
-				ATNDeserializationOptions deserializationOptions = new ATNDeserializationOptions();
-				deserializationOptions.setGenerateRuleBypassTransitions(true);
-				result = new ATNDeserializer(deserializationOptions).deserialize(serializedAtn.toCharArray());
-				bypassAltsAtnCache.put(serializedAtn, result);
+		synchronized (this) {
+			if ( bypassAltsAtnCache!=null ) {
+				return bypassAltsAtnCache;
 			}
-
-			return result;
+			ATNDeserializationOptions deserializationOptions = new ATNDeserializationOptions();
+			deserializationOptions.setGenerateRuleBypassTransitions(true);
+			bypassAltsAtnCache = new ATNDeserializer(deserializationOptions).deserialize(serializedAtn.toCharArray());
+			return bypassAltsAtnCache;
 		}
 	}
 
@@ -874,16 +874,20 @@ public abstract class Parser extends Recognizer<Token, ParserATNSimulator> {
 		}
     }
 
-	/** For debugging and other purposes. */
 	public void dumpDFA() {
+		dumpDFA(System.out);
+	}
+
+	/** For debugging and other purposes. */
+	public void dumpDFA(PrintStream dumpStream) {
 		synchronized (_interp.decisionToDFA) {
 			boolean seenOne = false;
 			for (int d = 0; d < _interp.decisionToDFA.length; d++) {
 				DFA dfa = _interp.decisionToDFA[d];
 				if ( !dfa.states.isEmpty() ) {
-					if ( seenOne ) System.out.println();
-					System.out.println("Decision " + dfa.decision + ":");
-					System.out.print(dfa.toString(getVocabulary()));
+					if ( seenOne ) dumpStream.println();
+					dumpStream.println("Decision " + dfa.decision + ":");
+					dumpStream.print(dfa.toString(getVocabulary()));
 					seenOne = true;
 				}
 			}

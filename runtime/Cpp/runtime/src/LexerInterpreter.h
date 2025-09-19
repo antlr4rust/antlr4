@@ -5,39 +5,36 @@
 
 #pragma once
 
+#include <vector>
+#include <string>
 #include "Lexer.h"
+#include "antlr4-common.h"
 #include "atn/PredictionContext.h"
+#include "atn/PredictionContextCache.h"
 #include "Vocabulary.h"
 
 namespace antlr4 {
 
   class ANTLR4CPP_PUBLIC LexerInterpreter : public Lexer {
   public:
-    // @deprecated
-    LexerInterpreter(const std::string &grammarFileName, const std::vector<std::string> &tokenNames,
-                     const std::vector<std::string> &ruleNames, const std::vector<std::string> &channelNames,
-                     const std::vector<std::string> &modeNames, const atn::ATN &atn, CharStream *input);
     LexerInterpreter(const std::string &grammarFileName, const dfa::Vocabulary &vocabulary,
                      const std::vector<std::string> &ruleNames, const std::vector<std::string> &channelNames,
                      const std::vector<std::string> &modeNames, const atn::ATN &atn, CharStream *input);
 
-    ~LexerInterpreter();
+    ~LexerInterpreter() override;
 
-    virtual const atn::ATN& getATN() const override;
-    virtual std::string getGrammarFileName() const override;
-    virtual const std::vector<std::string>& getTokenNames() const override;
-    virtual const std::vector<std::string>& getRuleNames() const override;
-    virtual const std::vector<std::string>& getChannelNames() const override;
-    virtual const std::vector<std::string>& getModeNames() const override;
+    const atn::ATN& getATN() const override;
+    std::string getGrammarFileName() const override;
+    const std::vector<std::string>& getRuleNames() const override;
+    const std::vector<std::string>& getChannelNames() const override;
+    const std::vector<std::string>& getModeNames() const override;
 
-    virtual const dfa::Vocabulary& getVocabulary() const override;
+    const dfa::Vocabulary& getVocabulary() const override;
 
   protected:
     const std::string _grammarFileName;
     const atn::ATN &_atn;
 
-    // @deprecated
-    std::vector<std::string> _tokenNames;
     const std::vector<std::string> &_ruleNames;
     const std::vector<std::string> &_channelNames;
     const std::vector<std::string> &_modeNames;

@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include <string>
+#include <cstddef>
+#include "antlr4-common.h"
 #include "RecognitionException.h"
 
 namespace antlr4 {
@@ -15,7 +18,7 @@ namespace antlr4 {
   /// prediction.
   class ANTLR4CPP_PUBLIC FailedPredicateException : public RecognitionException {
   public:
-    FailedPredicateException(Parser *recognizer);
+    explicit FailedPredicateException(Parser *recognizer);
     FailedPredicateException(Parser *recognizer, const std::string &predicate);
     FailedPredicateException(Parser *recognizer, const std::string &predicate, const std::string &message);
 

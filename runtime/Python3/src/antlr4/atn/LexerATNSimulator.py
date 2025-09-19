@@ -20,20 +20,21 @@
 #  can simply return the predicted token type.</p>
 #/
 
-from antlr4.PredictionContext import PredictionContextCache, SingletonPredictionContext, PredictionContext
-from antlr4.InputStream import InputStream
-from antlr4.Token import Token
-from antlr4.atn.ATN import ATN
-from antlr4.atn.ATNConfig import LexerATNConfig
-from antlr4.atn.ATNSimulator import ATNSimulator
-from antlr4.atn.ATNConfigSet import ATNConfigSet, OrderedATNConfigSet
-from antlr4.atn.ATNState import RuleStopState, ATNState
-from antlr4.atn.LexerActionExecutor import LexerActionExecutor
-from antlr4.atn.Transition import Transition
-from antlr4.dfa.DFAState import DFAState
-from antlr4.error.Errors import LexerNoViableAltException, UnsupportedOperationException
+from ..PredictionContext import PredictionContextCache, SingletonPredictionContext, PredictionContext
+from ..InputStream import InputStream
+from ..Token import Token
+from ..atn.ATN import ATN
+from ..atn.ATNConfig import LexerATNConfig
+from ..atn.ATNSimulator import ATNSimulator
+from ..atn.ATNConfigSet import ATNConfigSet, OrderedATNConfigSet
+from ..atn.ATNState import RuleStopState, ATNState
+from ..atn.LexerActionExecutor import LexerActionExecutor
+from ..atn.Transition import Transition
+from ..dfa.DFAState import DFAState
+from ..error.Errors import LexerNoViableAltException, UnsupportedOperationException
 
 class SimState(object):
+    __slots__ = ('index', 'line', 'column', 'dfaState')
 
     def __init__(self):
         self.reset()
@@ -49,6 +50,10 @@ Lexer = None
 LexerATNSimulator = None
 
 class LexerATNSimulator(ATNSimulator):
+    __slots__ = (
+        'decisionToDFA', 'recog', 'startIndex', 'line', 'column', 'mode',
+        'DEFAULT_MODE', 'MAX_CHAR_VALUE', 'prevAccept'
+    )
 
     debug = False
     dfa_debug = False
@@ -57,8 +62,6 @@ class LexerATNSimulator(ATNSimulator):
     MAX_DFA_EDGE = 127 # forces unicode to stay in ATN
 
     ERROR = None
-
-    match_calls = 0
 
     def __init__(self, recog:Lexer, atn:ATN, decisionToDFA:list, sharedContextCache:PredictionContextCache):
         super().__init__(atn, sharedContextCache)
@@ -73,8 +76,11 @@ class LexerATNSimulator(ATNSimulator):
         self.line = 1
         # The index of the character relative to the beginning of the line 0..n-1#/
         self.column = 0
-        from antlr4.Lexer import Lexer
+        from ..Lexer import Lexer
         self.mode = Lexer.DEFAULT_MODE
+        # Cache Lexer properties to avoid further imports
+        self.DEFAULT_MODE = Lexer.DEFAULT_MODE
+        self.MAX_CHAR_VALUE = Lexer.MAX_CHAR_VALUE
         # Used during DFA/ATN exec to record the most recent accept configuration info
         self.prevAccept = SimState()
 
@@ -86,7 +92,6 @@ class LexerATNSimulator(ATNSimulator):
         self.startIndex = simulator.startIndex
 
     def match(self, input:InputStream , mode:int):
-        self.match_calls += 1
         self.mode = mode
         mark = input.mark()
         try:
@@ -105,8 +110,7 @@ class LexerATNSimulator(ATNSimulator):
         self.startIndex = -1
         self.line = 1
         self.column = 0
-        from antlr4.Lexer import Lexer
-        self.mode = Lexer.DEFAULT_MODE
+        self.mode = self.DEFAULT_MODE
 
     def matchATN(self, input:InputStream):
         startState = self.atn.modeToStartState[self.mode]
@@ -291,8 +295,7 @@ class LexerATNSimulator(ATNSimulator):
             lexerActionExecutor.execute(self.recog, input, startIndex)
 
     def getReachableTarget(self, trans:Transition, t:int):
-        from antlr4.Lexer import Lexer
-        if trans.matches(t, 0, Lexer.MAX_CHAR_VALUE):
+        if trans.matches(t, 0, self.MAX_CHAR_VALUE):
             return trans.target
         else:
             return None
@@ -420,8 +423,7 @@ class LexerATNSimulator(ATNSimulator):
 
         elif t.serializationType in [ Transition.ATOM, Transition.RANGE, Transition.SET ]:
             if treatEofAsEpsilon:
-                from antlr4.Lexer import Lexer
-                if t.matches(Token.EOF, 0, Lexer.MAX_CHAR_VALUE):
+                if t.matches(Token.EOF, 0, self.MAX_CHAR_VALUE):
                     c = LexerATNConfig(state=t.target, config=config)
 
         return c

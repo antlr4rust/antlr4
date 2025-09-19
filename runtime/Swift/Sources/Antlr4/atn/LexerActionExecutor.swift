@@ -60,12 +60,12 @@ public class LexerActionExecutor: Hashable {
     /// of `lexerActionExecutor` and `lexerAction`.
     /// 
     public static func append(_ lexerActionExecutor: LexerActionExecutor?, _ lexerAction: LexerAction) -> LexerActionExecutor {
-        if lexerActionExecutor == nil {
+        guard let lexerActionExecutor = lexerActionExecutor else {
             return LexerActionExecutor([lexerAction])
         }
 
         //var lexerActions : [LexerAction] = lexerActionExecutor.lexerActions, //lexerActionExecutor.lexerActions.length + 1);
-        var lexerActions: [LexerAction] = lexerActionExecutor!.lexerActions
+        var lexerActions: [LexerAction] = lexerActionExecutor.lexerActions
         lexerActions.append(lexerAction)
         //lexerActions[lexerActions.length - 1] = lexerAction;
         return LexerActionExecutor(lexerActions)
@@ -149,7 +149,7 @@ public class LexerActionExecutor: Hashable {
     /// 
     public func execute(_ lexer: Lexer, _ input: CharStream, _ startIndex: Int) throws {
         var requiresSeek: Bool = false
-        var stopIndex: Int = input.index()
+        let stopIndex: Int = input.index()
         defer {
             if requiresSeek {
                 try! input.seek(stopIndex)

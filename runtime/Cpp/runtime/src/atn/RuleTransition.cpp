@@ -3,7 +3,12 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <sstream>
+#include <string>
+#include <cstddef>
 #include "atn/RuleStartState.h"
+#include "atn/TransitionType.h"
+#include "atn/ATNState.h"
 #include "atn/RuleTransition.h"
 
 using namespace antlr4::atn;
@@ -13,12 +18,8 @@ RuleTransition::RuleTransition(RuleStartState *ruleStart, size_t ruleIndex, ATNS
 }
 
 RuleTransition::RuleTransition(RuleStartState *ruleStart, size_t ruleIndex, int precedence, ATNState *followState)
-  : Transition(ruleStart), ruleIndex(ruleIndex), precedence(precedence) {
+  : Transition(TransitionType::RULE, ruleStart), ruleIndex(ruleIndex), precedence(precedence) {
   this->followState = followState;
-}
-
-Transition::SerializationType RuleTransition::getSerializationType() const {
-  return RULE;
 }
 
 bool RuleTransition::isEpsilon() const {

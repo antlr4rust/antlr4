@@ -3,6 +3,10 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <sstream>
+#include <vector>
+#include <string>
+#include <cstddef>
 #include "dfa/DFA.h"
 #include "Vocabulary.h"
 
@@ -10,14 +14,7 @@
 
 using namespace antlr4::dfa;
 
-DFASerializer::DFASerializer(const DFA *dfa, const std::vector<std::string>& tokenNames)
-  : DFASerializer(dfa, Vocabulary::fromTokenNames(tokenNames)) {
-}
-
 DFASerializer::DFASerializer(const DFA *dfa, const Vocabulary &vocabulary) : _dfa(dfa), _vocabulary(vocabulary) {
-}
-
-DFASerializer::~DFASerializer() {
 }
 
 std::string DFASerializer::toString() const {
@@ -27,7 +24,7 @@ std::string DFASerializer::toString() const {
 
   std::stringstream ss;
   std::vector<DFAState *> states = _dfa->getStates();
-  for (auto s : states) {
+  for (auto *s : states) {
     for (size_t i = 0; i < s->edges.size(); i++) {
       DFAState *t = s->edges[i];
       if (t != nullptr && t->stateNumber != INT32_MAX) {
@@ -55,7 +52,7 @@ std::string DFASerializer::getStateString(DFAState *s) const {
     if (!s->predicates.empty()) {
       std::string buf;
       for (size_t i = 0; i < s->predicates.size(); i++) {
-        buf.append(s->predicates[i]->toString());
+        buf.append(s->predicates[i].toString());
       }
       return baseStateStr + "=>" + buf;
     } else {

@@ -3,9 +3,11 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <cstddef>
 #include "atn/ATN.h"
+#include "Token.h"
+#include "antlr4-common.h"
 #include "Recognizer.h"
-#include "support/StringUtils.h"
 #include "ParserRuleContext.h"
 #include "misc/IntervalSet.h"
 

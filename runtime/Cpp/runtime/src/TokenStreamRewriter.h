@@ -5,6 +5,15 @@
 
 #pragma once
 
+#include <unordered_map>
+#include <map>
+#include <vector>
+#include <string>
+#include <cstddef>
+#include "Token.h"
+#include "misc/Interval.h"
+#include "antlr4-common.h"
+
 namespace antlr4 {
 
   /**
@@ -86,8 +95,8 @@ namespace antlr4 {
   class ANTLR4CPP_PUBLIC TokenStreamRewriter {
   public:
     static const std::string DEFAULT_PROGRAM_NAME;
-    static const size_t PROGRAM_INIT_SIZE = 100;
-    static const size_t MIN_TOKEN_INDEX = 0;
+    static constexpr size_t PROGRAM_INIT_SIZE = 100;
+    static constexpr size_t MIN_TOKEN_INDEX = 0;
 
     TokenStreamRewriter(TokenStream *tokens);
     virtual ~TokenStreamRewriter();
@@ -184,7 +193,7 @@ namespace antlr4 {
     public:
       InsertBeforeOp(TokenStreamRewriter *outerInstance, size_t index, const std::string& text);
 
-      virtual size_t execute(std::string *buf) override;
+      size_t execute(std::string *buf) override;
     };
 
     class ReplaceOp : public RewriteOperation {
@@ -195,8 +204,8 @@ namespace antlr4 {
       size_t lastIndex;
 
       ReplaceOp(TokenStreamRewriter *outerInstance, size_t from, size_t to, const std::string& text);
-      virtual size_t execute(std::string *buf) override;
-      virtual std::string toString() override;
+      size_t execute(std::string *buf) override;
+      std::string toString() override;
 
     private:
       void InitializeInstanceFields();

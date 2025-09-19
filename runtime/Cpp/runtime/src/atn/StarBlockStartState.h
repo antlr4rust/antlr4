@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include "antlr4-common.h"
+#include "atn/ATNStateType.h"
+#include "atn/ATNState.h"
 #include "atn/BlockStartState.h"
 
 namespace antlr4 {
@@ -12,9 +15,12 @@ namespace atn {
 
   /// The block that begins a closure loop.
   class ANTLR4CPP_PUBLIC StarBlockStartState final : public BlockStartState {
-
   public:
-    virtual size_t getStateType() override;
+    static bool is(const ATNState &atnState) { return atnState.getStateType() == ATNStateType::STAR_BLOCK_START; }
+
+    static bool is(const ATNState *atnState) { return atnState != nullptr && is(*atnState); }
+
+    StarBlockStartState() : BlockStartState(ATNStateType::STAR_BLOCK_START) {}
   };
 
 } // namespace atn
