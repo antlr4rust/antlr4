@@ -191,7 +191,7 @@ impl PredictionContext {
                     None => 0,
                     Some(x) => x.hash_code(),
                 });
-                hasher.write_isize((*return_state));
+                hasher.write_isize(*return_state);
             }
             PredictionContext::Array(ArrayPredictionContext {
                 parents,
@@ -204,9 +204,7 @@ impl PredictionContext {
                         Some(x) => x.hash_code(),
                     })
                 });
-                return_states
-                    .iter()
-                    .for_each(|x| hasher.write_isize((*x)));
+                return_states.iter().for_each(|x| hasher.write_isize(*x));
             } //            PredictionContext::Empty { .. } => {}
         };
 

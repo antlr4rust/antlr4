@@ -136,7 +136,7 @@ impl<'input, Node: ParserNodeType<'input>, T: 'static> CustomRuleContext<'input>
     type Ctx = Node;
 
     fn get_rule_index(&self) -> usize {
-        usize::max_value()
+        usize::MAX
     }
 
     fn get_node_text(&self, rule_names: &[&str]) -> String {

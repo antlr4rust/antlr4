@@ -1108,8 +1108,7 @@ impl ParserATNSimulator {
                             .outermost_precedence_return;
                         let atn_start_state =
                             self.atn().states[local.dfa().atn_start_state as usize].as_ref();
-                        if outermost_precedence_return == atn_start_state.get_rule_index()
-                        {
+                        if outermost_precedence_return == atn_start_state.get_rule_index() {
                             c.set_precedence_filter_suppressed(true);
                         }
                     }
@@ -1357,10 +1356,8 @@ impl ParserATNSimulator {
 
     fn rule_transition(&self, config: &ATNConfig, t: &RuleTransition) -> ATNConfig {
         assert!(config.get_context().is_some());
-        let new_ctx = PredictionContext::new_singleton(
-            config.get_context().cloned(),
-            t.follow_state,
-        );
+        let new_ctx =
+            PredictionContext::new_singleton(config.get_context().cloned(), t.follow_state);
         config.cloned_with_new_ctx(
             self.atn().states[t.target as usize].as_ref(),
             Some(new_ctx.into()),
