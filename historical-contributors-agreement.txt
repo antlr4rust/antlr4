@@ -332,3 +332,4 @@ YYYY/MM/DD, github id, Full name, email
 2025/05/28, alexsnaps, Alex Snaps, alex@wcgw.dev
 2025/07/09, cyqw, Chen Yong, cyqw@163.com
 2025/09/12, torbensen, Torben Magne, torbenmagne@gmail.com
+2025/10/01, KyrylR, Kyrylo Riabov, kyryl.ryabov@gmail.com
