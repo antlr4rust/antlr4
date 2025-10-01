@@ -106,7 +106,7 @@ pub(crate) fn has_sll_conflict_terminating_prediction(
     }
 
     let altsets = get_conflicting_alt_subsets(configs);
-    
+
     has_conflicting_alt_set(&altsets) && !has_state_associated_with_one_alt(configs)
 }
 
@@ -114,7 +114,7 @@ pub(crate) fn has_sll_conflict_terminating_prediction(
 //    for co
 //}
 
-pub(crate) fn resolves_to_just_one_viable_alt(altsets: &Vec<BitSet>) -> i32 {
+pub(crate) fn resolves_to_just_one_viable_alt(altsets: &Vec<BitSet>) -> isize {
     get_single_viable_alt(altsets)
 }
 
@@ -182,7 +182,7 @@ fn has_state_associated_with_one_alt(configs: &ATNConfigSet) -> bool {
     false
 }
 
-pub(crate) fn get_single_viable_alt(altsets: &Vec<BitSet>) -> i32 {
+pub(crate) fn get_single_viable_alt(altsets: &Vec<BitSet>) -> isize {
     let mut viable_alts = BitSet::new();
     let mut min_alt = INVALID_ALT as usize;
     for alt in altsets {
@@ -192,5 +192,5 @@ pub(crate) fn get_single_viable_alt(altsets: &Vec<BitSet>) -> i32 {
             return INVALID_ALT;
         }
     }
-    min_alt as i32
+    min_alt as isize
 }

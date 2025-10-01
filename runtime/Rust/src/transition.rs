@@ -21,16 +21,16 @@ const _TRANSITION_NAMES: [&str; 11] = [
     "PRECEDENCE",
 ];
 
-pub const TRANSITION_EPSILON: i32 = 1;
-pub const TRANSITION_RANGE: i32 = 2;
-pub const TRANSITION_RULE: i32 = 3;
-pub const TRANSITION_PREDICATE: i32 = 4;
-pub const TRANSITION_ATOM: i32 = 5;
-pub const TRANSITION_ACTION: i32 = 6;
-pub const TRANSITION_SET: i32 = 7;
-pub const TRANSITION_NOTSET: i32 = 8;
-pub const TRANSITION_WILDCARD: i32 = 9;
-pub const TRANSITION_PRECEDENCE: i32 = 10;
+pub const TRANSITION_EPSILON: isize = 1;
+pub const TRANSITION_RANGE: isize = 2;
+pub const TRANSITION_RULE: isize = 3;
+pub const TRANSITION_PREDICATE: isize = 4;
+pub const TRANSITION_ATOM: isize = 5;
+pub const TRANSITION_ACTION: isize = 6;
+pub const TRANSITION_SET: isize = 7;
+pub const TRANSITION_NOTSET: isize = 8;
+pub const TRANSITION_WILDCARD: isize = 9;
+pub const TRANSITION_PRECEDENCE: isize = 10;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Eq, PartialEq)]
@@ -59,11 +59,11 @@ pub trait Transition: Sync + Send + Debug + Any {
         None
     }
     fn get_serialization_type(&self) -> TransitionType;
-    fn matches(&self, symbol: i32, min_vocab_symbol: i32, max_vocab_symbol: i32) -> bool;
+    fn matches(&self, symbol: isize, min_vocab_symbol: isize, max_vocab_symbol: isize) -> bool;
     fn get_predicate(&self) -> Option<SemanticContext> {
         None
     }
-    fn get_reachable_target(&self, symbol: i32) -> Option<ATNStateRef> {
+    fn get_reachable_target(&self, symbol: isize) -> Option<ATNStateRef> {
         //        println!("reachable target called on {:?}", self);
         if self.matches(symbol, LEXER_MIN_CHAR_VALUE, LEXER_MAX_CHAR_VALUE) {
             return Some(self.get_target());
@@ -83,7 +83,7 @@ impl dyn Transition {
 #[derive(Debug)]
 pub struct AtomTransition {
     pub target: ATNStateRef,
-    pub label: i32,
+    pub label: isize,
 }
 
 impl Transition for AtomTransition {
@@ -105,7 +105,7 @@ impl Transition for AtomTransition {
         TransitionType::TRANSITION_ATOM
     }
 
-    fn matches(&self, _symbol: i32, _min_vocab_symbol: i32, _max_vocab_symbol: i32) -> bool {
+    fn matches(&self, _symbol: isize, _min_vocab_symbol: isize, _max_vocab_symbol: isize) -> bool {
         _symbol == self.label
     }
 }
@@ -114,8 +114,8 @@ impl Transition for AtomTransition {
 pub struct RuleTransition {
     pub target: ATNStateRef,
     pub follow_state: ATNStateRef,
-    pub rule_index: i32,
-    pub precedence: i32,
+    pub rule_index: isize,
+    pub precedence: isize,
 }
 
 impl Transition for RuleTransition {
@@ -134,7 +134,7 @@ impl Transition for RuleTransition {
         TransitionType::TRANSITION_RULE
     }
 
-    fn matches(&self, _symbol: i32, _min_vocab_symbol: i32, _max_vocab_symbol: i32) -> bool {
+    fn matches(&self, _symbol: isize, _min_vocab_symbol: isize, _max_vocab_symbol: isize) -> bool {
         unimplemented!()
     }
 }
@@ -142,7 +142,7 @@ impl Transition for RuleTransition {
 #[derive(Debug)]
 pub struct EpsilonTransition {
     pub target: ATNStateRef,
-    pub outermost_precedence_return: i32,
+    pub outermost_precedence_return: isize,
 }
 
 impl Transition for EpsilonTransition {
@@ -161,7 +161,7 @@ impl Transition for EpsilonTransition {
         TransitionType::TRANSITION_EPSILON
     }
 
-    fn matches(&self, _symbol: i32, _min_vocab_symbol: i32, _max_vocab_symbol: i32) -> bool {
+    fn matches(&self, _symbol: isize, _min_vocab_symbol: isize, _max_vocab_symbol: isize) -> bool {
         false
     }
 }
@@ -169,8 +169,8 @@ impl Transition for EpsilonTransition {
 #[derive(Debug)]
 pub struct RangeTransition {
     pub target: ATNStateRef,
-    pub start: i32,
-    pub stop: i32,
+    pub start: isize,
+    pub stop: isize,
 }
 
 impl Transition for RangeTransition {
@@ -191,7 +191,7 @@ impl Transition for RangeTransition {
         TransitionType::TRANSITION_RANGE
     }
 
-    fn matches(&self, _symbol: i32, _min_vocab_symbol: i32, _max_vocab_symbol: i32) -> bool {
+    fn matches(&self, _symbol: isize, _min_vocab_symbol: isize, _max_vocab_symbol: isize) -> bool {
         _symbol >= self.start && _symbol <= self.stop
     }
 }
@@ -200,9 +200,9 @@ impl Transition for RangeTransition {
 pub struct ActionTransition {
     pub target: ATNStateRef,
     pub is_ctx_dependent: bool,
-    pub rule_index: i32,
-    pub action_index: i32,
-    pub pred_index: i32,
+    pub rule_index: isize,
+    pub action_index: isize,
+    pub pred_index: isize,
 }
 
 impl Transition for ActionTransition {
@@ -221,7 +221,7 @@ impl Transition for ActionTransition {
         TransitionType::TRANSITION_ACTION
     }
 
-    fn matches(&self, _symbol: i32, _min_vocab_symbol: i32, _max_vocab_symbol: i32) -> bool {
+    fn matches(&self, _symbol: isize, _min_vocab_symbol: isize, _max_vocab_symbol: isize) -> bool {
         false
     }
 }
@@ -248,7 +248,7 @@ impl Transition for SetTransition {
         TransitionType::TRANSITION_SET
     }
 
-    fn matches(&self, _symbol: i32, _min_vocab_symbol: i32, _max_vocab_symbol: i32) -> bool {
+    fn matches(&self, _symbol: isize, _min_vocab_symbol: isize, _max_vocab_symbol: isize) -> bool {
         self.set.contains(_symbol)
     }
 }
@@ -275,7 +275,7 @@ impl Transition for NotSetTransition {
         TransitionType::TRANSITION_NOTSET
     }
 
-    fn matches(&self, _symbol: i32, _min_vocab_symbol: i32, _max_vocab_symbol: i32) -> bool {
+    fn matches(&self, _symbol: isize, _min_vocab_symbol: isize, _max_vocab_symbol: isize) -> bool {
         _symbol >= _min_vocab_symbol && _symbol <= _max_vocab_symbol && !self.set.contains(_symbol)
     }
 }
@@ -297,7 +297,7 @@ impl Transition for WildcardTransition {
         TransitionType::TRANSITION_WILDCARD
     }
 
-    fn matches(&self, _symbol: i32, _min_vocab_symbol: i32, _max_vocab_symbol: i32) -> bool {
+    fn matches(&self, _symbol: isize, _min_vocab_symbol: isize, _max_vocab_symbol: isize) -> bool {
         _symbol < _max_vocab_symbol && _symbol > _min_vocab_symbol
     }
 }
@@ -306,8 +306,8 @@ impl Transition for WildcardTransition {
 pub struct PredicateTransition {
     pub target: ATNStateRef,
     pub is_ctx_dependent: bool,
-    pub rule_index: i32,
-    pub pred_index: i32,
+    pub rule_index: isize,
+    pub pred_index: isize,
 }
 
 impl Transition for PredicateTransition {
@@ -327,7 +327,7 @@ impl Transition for PredicateTransition {
         TransitionType::TRANSITION_PREDICATE
     }
 
-    fn matches(&self, _symbol: i32, _min_vocab_symbol: i32, _max_vocab_symbol: i32) -> bool {
+    fn matches(&self, _symbol: isize, _min_vocab_symbol: isize, _max_vocab_symbol: isize) -> bool {
         false
     }
 
@@ -343,7 +343,7 @@ impl Transition for PredicateTransition {
 #[derive(Debug)]
 pub struct PrecedencePredicateTransition {
     pub target: ATNStateRef,
-    pub precedence: i32,
+    pub precedence: isize,
 }
 
 impl Transition for PrecedencePredicateTransition {
@@ -362,7 +362,7 @@ impl Transition for PrecedencePredicateTransition {
         TransitionType::TRANSITION_PRECEDENCE
     }
 
-    fn matches(&self, _symbol: i32, _min_vocab_symbol: i32, _max_vocab_symbol: i32) -> bool {
+    fn matches(&self, _symbol: isize, _min_vocab_symbol: isize, _max_vocab_symbol: isize) -> bool {
         false
     }
 

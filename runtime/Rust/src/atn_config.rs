@@ -17,12 +17,12 @@ pub struct ATNConfig {
     //todo since ATNState is immutable when we started working with ATNConfigs
     // looks like it is possible to have usual reference here
     state: ATNStateRef,
-    alt: i32,
+    alt: isize,
     //todo maybe option is unnecessary and PredictionContext::EMPTY would be enough
     //another todo check arena alloc
     context: Option<Arc<PredictionContext>>,
     pub semantic_context: Box<SemanticContext>,
-    pub reaches_into_outer_context: i32,
+    pub reaches_into_outer_context: isize,
     pub(crate) config_type: ATNConfigType,
 }
 
@@ -42,10 +42,10 @@ impl PartialEq for ATNConfig {
 
 impl Hash for ATNConfig {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        state.write_i32(self.get_state() as i32);
-        state.write_i32(self.get_alt() as i32);
+        state.write_isize(self.get_state());
+        state.write_isize(self.get_alt());
         match self.get_context() {
-            None => state.write_i32(0),
+            None => state.write_isize(0),
             Some(c) => c.hash(state),
         }
         self.semantic_context.hash(state);
@@ -54,13 +54,13 @@ impl Hash for ATNConfig {
             passed_through_non_greedy_decision,
         } = &self.config_type
         {
-            state.write_i32(if *passed_through_non_greedy_decision {
+            state.write_isize(if *passed_through_non_greedy_decision {
                 1
             } else {
                 0
             });
             match lexer_action_executor {
-                None => state.write_i32(0),
+                None => state.write_isize(0),
                 Some(ex) => ex.hash(state),
             }
         }
@@ -112,7 +112,7 @@ impl ATNConfig {
 
     pub fn new(
         state: ATNStateRef,
-        alt: i32,
+        alt: isize,
         context: Option<Arc<PredictionContext>>,
     ) -> ATNConfig {
         ATNConfig {
@@ -128,7 +128,7 @@ impl ATNConfig {
 
     pub fn new_with_semantic(
         state: ATNStateRef,
-        alt: i32,
+        alt: isize,
         context: Option<Arc<PredictionContext>>,
         semantic_context: Box<SemanticContext>,
     ) -> ATNConfig {
@@ -139,7 +139,7 @@ impl ATNConfig {
 
     pub fn new_lexer_atnconfig6(
         _state: ATNStateRef,
-        _alt: i32,
+        _alt: isize,
         _context: Arc<PredictionContext>,
     ) -> ATNConfig {
         let mut atnconfig = ATNConfig::new(_state, _alt, Some(_context));
@@ -206,7 +206,7 @@ impl ATNConfig {
         self.state
     }
 
-    pub fn get_alt(&self) -> i32 {
+    pub fn get_alt(&self) -> isize {
         self.alt
     }
 
@@ -226,11 +226,11 @@ impl ATNConfig {
         self.context = Some(_v);
     }
 
-    pub fn get_reaches_into_outer_context(&self) -> i32 {
+    pub fn get_reaches_into_outer_context(&self) -> isize {
         self.reaches_into_outer_context
     }
 
-    pub fn set_reaches_into_outer_context(&mut self, _v: i32) {
+    pub fn set_reaches_into_outer_context(&mut self, _v: isize) {
         self.reaches_into_outer_context = _v
     }
 

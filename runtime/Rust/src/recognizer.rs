@@ -26,8 +26,8 @@ pub trait Recognizer<'input>: TokenAware<'input> {
     fn sempred(
         &mut self,
         _localctx: Option<&<Self::Node as ParserNodeType<'input>>::Type>,
-        _rule_index: i32,
-        _action_index: i32,
+        _rule_index: isize,
+        _action_index: isize,
     ) -> bool
     where
         Self: Sized,
@@ -37,8 +37,8 @@ pub trait Recognizer<'input>: TokenAware<'input> {
     fn action(
         &mut self,
         _localctx: Option<&<Self::Node as ParserNodeType<'input>>::Type>,
-        _rule_index: i32,
-        _action_index: i32,
+        _rule_index: isize,
+        _action_index: isize,
     ) where
         Self: Sized,
     {
@@ -69,8 +69,8 @@ pub trait Recognizer<'input>: TokenAware<'input> {
 pub trait Actions<'a, P: Recognizer<'a>> {
     fn sempred(
         _localctx: Option<&<P::Node as ParserNodeType<'a>>::Type>,
-        _rule_index: i32,
-        _action_index: i32,
+        _rule_index: isize,
+        _action_index: isize,
         _recog: &mut P,
     ) -> bool {
         true
@@ -78,8 +78,8 @@ pub trait Actions<'a, P: Recognizer<'a>> {
 
     fn action(
         _localctx: Option<&<P::Node as ParserNodeType<'a>>::Type>,
-        _rule_index: i32,
-        _action_index: i32,
+        _rule_index: isize,
+        _action_index: isize,
         _recog: &mut P,
     ) {
     }
@@ -103,11 +103,11 @@ pub trait Actions<'a, P: Recognizer<'a>> {
 }
 
 //impl Recognizer for BaseRecognizer {
-//    fn get_state(&self) -> i32 {
+//    fn get_state(&self) -> isize {
 //        self.state
 //    }
 //
-//    fn set_state(&mut self, _v: i32) {
+//    fn set_state(&mut self, _v: isize) {
 //        self.state = _v;
 //    }
 //
@@ -126,7 +126,7 @@ pub trait Actions<'a, P: Recognizer<'a>> {
 //
 //pub struct BaseRecognizer {
 //    pub listeners: Vec<Box<ErrorListener>>,
-//    pub state: i32, //    rule_names: Vec<String>,
+//    pub state: isize, //    rule_names: Vec<String>,
 //    //    literal_names: Vec<String>,
 //    //    symbolic_names: Vec<String>,
 //    //    grammar_file_name: String
@@ -148,11 +148,11 @@ pub trait Actions<'a, P: Recognizer<'a>> {
 //        unimplemented!()
 //    }
 //
-//    fn get_rule_index_map(&self) -> Map<i32, String> {
+//    fn get_rule_index_map(&self) -> Map<isize, String> {
 //        unimplemented!()
 //    }
 //
-//    fn get_token_type(&self, _tokenName: String) -> i32 {
+//    fn get_token_type(&self, _tokenName: String) -> isize {
 //        unimplemented!()
 //    }
 //

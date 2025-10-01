@@ -37,12 +37,12 @@ pub trait Parser<'input>: Recognizer<'input> {
     where
         Self: Sized;
     //    fn get_parse_listeners(&self) -> Vec<ParseTreeListener>;
-    //fn sempred(&mut self, _localctx: Option<&dyn ParserRuleContext>, rule_index: i32, action_index: i32) -> bool { true }
+    //fn sempred(&mut self, _localctx: Option<&dyn ParserRuleContext>, rule_index: isize, action_index: isize) -> bool { true }
 
     fn precpred(
         &self,
         localctx: Option<&<Self::Node as ParserNodeType<'input>>::Type>,
-        precedence: i32,
+        precedence: isize,
     ) -> bool;
 
     //    fn get_error_handler(&self) -> ErrorStrategy;
@@ -59,18 +59,18 @@ pub trait Parser<'input>: Recognizer<'input> {
     fn notify_error_listeners(
         &self,
         msg: String,
-        offending_token: Option<i32>,
+        offending_token: Option<isize>,
         err: Option<&ANTLRError>,
     );
     fn get_error_lister_dispatch<'a>(&'a self) -> Box<dyn ErrorListener<'input, Self> + 'a>
     where
         Self: Sized;
 
-    fn is_expected_token(&self, symbol: i32) -> bool;
-    fn get_precedence(&self) -> i32;
+    fn is_expected_token(&self, symbol: isize) -> bool;
+    fn get_precedence(&self) -> isize;
 
-    fn get_state(&self) -> i32;
-    fn set_state(&mut self, v: i32);
+    fn get_state(&self) -> isize;
+    fn set_state(&mut self, v: isize);
     fn get_rule_invocation_stack(&self) -> Vec<String>;
 }
 
@@ -138,13 +138,13 @@ pub struct BaseParser<
     /// true if parser reached EOF
     pub matched_eof: bool,
 
-    state: i32,
+    state: isize,
     /// Token stream that is currently used by this parser
     pub input: I,
-    precedence_stack: Vec<i32>,
+    precedence_stack: Vec<isize>,
 
     parse_listeners: Vec<Box<T>>,
-    _syntax_errors: Cell<i32>,
+    _syntax_errors: Cell<isize>,
     error_listeners: RefCell<Vec<Box<dyn ErrorListener<'input, Self>>>>,
 
     ext: Ext,
@@ -202,8 +202,8 @@ where
     fn sempred(
         &mut self,
         localctx: Option<&Ctx::Type>,
-        rule_index: i32,
-        action_index: i32,
+        rule_index: isize,
+        action_index: isize,
     ) -> bool {
         <Ext as Actions<'input, Self>>::sempred(localctx, rule_index, action_index, self)
     }
@@ -290,7 +290,7 @@ where
         }
     }
 
-    fn precpred(&self, _localctx: Option<&Ctx::Type>, precedence: i32) -> bool {
+    fn precpred(&self, _localctx: Option<&Ctx::Type>, precedence: isize) -> bool {
         //        localctx.map(|it|println!("check at{}",it.to_string_tree(self)));
         //        println!("{}",self.get_precedence());
         precedence >= self.get_precedence()
@@ -327,7 +327,7 @@ where
     fn notify_error_listeners(
         &self,
         msg: String,
-        offending_token: Option<i32>,
+        offending_token: Option<isize>,
         err: Option<&ANTLRError>,
     ) {
         cell_update(&self._syntax_errors, |it| it + 1);
@@ -349,21 +349,21 @@ where
         })
     }
 
-    fn is_expected_token(&self, _symbol: i32) -> bool {
+    fn is_expected_token(&self, _symbol: isize) -> bool {
         unimplemented!()
     }
 
-    fn get_precedence(&self) -> i32 {
+    fn get_precedence(&self) -> isize {
         *self.precedence_stack.last().unwrap_or(&-1)
     }
 
     #[inline(always)]
-    fn get_state(&self) -> i32 {
+    fn get_state(&self) -> isize {
         self.state
     }
 
     #[inline(always)]
-    fn set_state(&mut self, v: i32) {
+    fn set_state(&mut self, v: isize) {
         self.state = v;
     }
 
@@ -423,7 +423,7 @@ where
     #[inline]
     pub fn match_token(
         &mut self,
-        ttype: i32,
+        ttype: isize,
         err_handler: &mut impl ErrorStrategy<'input, Self>,
     ) -> Result<<I::TF as TokenFactory<'input>>::Tok, ANTLRError> {
         let mut token = self.get_current_token().clone();
@@ -538,7 +538,7 @@ where
     }
 
     #[inline]
-    pub fn enter_rule(&mut self, localctx: Rc<Ctx::Type>, state: i32, _rule_index: usize) {
+    pub fn enter_rule(&mut self, localctx: Rc<Ctx::Type>, state: isize, _rule_index: usize) {
         self.set_state(state);
         localctx.set_start(self.input.lt(1).cloned());
         self.ctx = Some(localctx);
@@ -570,7 +570,7 @@ where
 
     // todo make new_ctx not option
     #[inline]
-    pub fn enter_outer_alt(&mut self, new_ctx: Option<Rc<Ctx::Type>>, alt_num: i32) {
+    pub fn enter_outer_alt(&mut self, new_ctx: Option<Rc<Ctx::Type>>, alt_num: isize) {
         if let Some(new_ctx) = new_ctx {
             new_ctx.set_alt_number(alt_num);
 
@@ -591,9 +591,9 @@ where
     pub fn enter_recursion_rule(
         &mut self,
         localctx: Rc<Ctx::Type>,
-        state: i32,
+        state: isize,
         _rule_index: usize,
-        precedence: i32,
+        precedence: isize,
     ) {
         self.set_state(state);
         self.precedence_stack.push(precedence);
@@ -605,7 +605,7 @@ where
     pub fn push_new_recursion_context(
         &mut self,
         localctx: Rc<Ctx::Type>,
-        state: i32,
+        state: isize,
         _rule_index: usize,
     ) {
         let prev = self.ctx.take().unwrap();
@@ -628,9 +628,7 @@ where
         let retctx = self.ctx.clone().unwrap();
         retctx.set_stop(self.input.lt(-1).cloned());
         if !self.parse_listeners.is_empty() {
-            while self.ctx.as_ref().map(Rc::as_ptr)
-                != parent_ctx.as_ref().map(Rc::as_ptr)
-            {
+            while self.ctx.as_ref().map(Rc::as_ptr) != parent_ctx.as_ref().map(Rc::as_ptr) {
                 self.trigger_exit_rule_event();
                 self.ctx = self.ctx.as_ref().unwrap().get_parent_ctx()
             }
@@ -678,7 +676,7 @@ where
         }
     }
 
-    //    fn get_invoking_context(&self, ruleIndex: i32) -> ParserRuleContext { unimplemented!() }
+    //    fn get_invoking_context(&self, ruleIndex: isize) -> ParserRuleContext { unimplemented!() }
     //
     //    fn in_context(&self, context: ParserRuleContext) -> bool { unimplemented!() }
     //

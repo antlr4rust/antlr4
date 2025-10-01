@@ -14,7 +14,7 @@ use crate::token_factory::CommonTokenFactory;
 use crate::transition::RuleTransition;
 use std::fmt::{Debug, Formatter};
 
-pub const INVALID_ALT: i32 = 0;
+pub const INVALID_ALT: isize = 0;
 
 /// Augmented Transition Network
 ///
@@ -28,7 +28,7 @@ pub struct ATN {
 
     pub(crate) lexer_actions: Vec<LexerAction>,
 
-    pub max_token_type: i32,
+    pub max_token_type: isize,
 
     pub mode_name_to_start_state: HashMap<String, ATNStateRef>,
 
@@ -38,7 +38,7 @@ pub struct ATN {
 
     pub rule_to_stop_state: Vec<ATNStateRef>,
 
-    pub rule_to_token_type: Vec<i32>,
+    pub rule_to_token_type: Vec<isize>,
 
     pub states: Vec<Box<dyn ATNState>>,
 }
@@ -55,7 +55,7 @@ impl Debug for ATN {
 }
 
 impl ATN {
-    pub(crate) fn new_atn(grammar_type: ATNType, max_token_type: i32) -> ATN {
+    pub(crate) fn new_atn(grammar_type: ATNType, max_token_type: isize) -> ATN {
         ATN {
             decision_to_state: Vec::new(),
             grammar_type,
@@ -100,9 +100,9 @@ impl ATN {
 
     // fn remove_state(&self, _state: ATNStateRef) { unimplemented!() }
 
-    // fn define_decision_state(&self, _s: ATNStateRef) -> i32 { unimplemented!() }
+    // fn define_decision_state(&self, _s: ATNStateRef) -> isize { unimplemented!() }
 
-    pub fn get_decision_state(&self, decision: i32) -> ATNStateRef {
+    pub fn get_decision_state(&self, decision: isize) -> ATNStateRef {
         self.decision_to_state[decision as usize]
     }
 
@@ -140,8 +140,8 @@ impl ATN {
     /// number {@code stateNumber}
     pub fn get_expected_tokens(
         &self,
-        state_number: i32,
-        states_stack: impl Iterator<Item = i32>, // _ctx: &Rc<Ctx::Type>,
+        state_number: isize,
+        states_stack: impl Iterator<Item = isize>, // _ctx: &Rc<Ctx::Type>,
     ) -> IntervalSet {
         let s = self.states[state_number as usize].as_ref();
         let mut following = self.next_tokens(s);

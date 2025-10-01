@@ -21,11 +21,11 @@ use crate::parser::{Parser, ParserNodeType};
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub enum SemanticContext {
     Predicate {
-        rule_index: i32,
-        pred_index: i32,
+        rule_index: isize,
+        pred_index: isize,
         is_ctx_dependent: bool,
     },
-    Precedence(i32),
+    Precedence(isize),
     AND(Vec<SemanticContext>),
     OR(Vec<SemanticContext>),
 }

@@ -9,22 +9,22 @@ use crate::vocabulary::{Vocabulary, DUMMY_VOCAB};
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct Interval {
     /// start
-    pub a: i32,
+    pub a: isize,
     /// end >= start
-    pub b: i32,
+    pub b: isize,
 }
 
 pub(crate) const INVALID: Interval = Interval { a: -1, b: -2 };
 
 impl Interval {
     /* stop is not included! */
-    fn new(a: i32, b: i32) -> Interval {
+    fn new(a: isize, b: isize) -> Interval {
         Interval { a, b }
     }
 
-    // fn contains(&self, _item: i32) -> bool { unimplemented!() }
+    // fn contains(&self, _item: isize) -> bool { unimplemented!() }
 
-    fn length(&self) -> i32 {
+    fn length(&self) -> isize {
         self.b - self.a
     }
 
@@ -57,7 +57,7 @@ impl Interval {
 
     /** Does self start after other? NonDisjoint */
     pub fn starts_after_non_disjoint(&self, other: &Interval) -> bool {
-        self.a > other.a && self.a <= other.b// self.b>=other.b implied
+        self.a > other.a && self.a <= other.b // self.b>=other.b implied
     }
 
     /** Are both ranges disjoint? I.e., no overlap? */
@@ -111,15 +111,15 @@ impl IntervalSet {
         }
     }
 
-    pub fn get_min(&self) -> Option<i32> {
+    pub fn get_min(&self) -> Option<isize> {
         self.intervals.first().map(|x| x.a)
     }
 
-    pub fn add_one(&mut self, _v: i32) {
+    pub fn add_one(&mut self, _v: isize) {
         self.add_range(_v, _v)
     }
 
-    pub fn add_range(&mut self, l: i32, h: i32) {
+    pub fn add_range(&mut self, l: isize, h: isize) {
         self.add_interval(Interval { a: l, b: h })
     }
 
@@ -227,14 +227,14 @@ impl IntervalSet {
         //        return result;
     }
 
-    pub fn complement(&self, start: i32, stop: i32) -> IntervalSet {
+    pub fn complement(&self, start: isize, stop: isize) -> IntervalSet {
         let mut vocablulary_is = IntervalSet::new();
         vocablulary_is.add_range(start, stop);
         vocablulary_is.substract(self);
         vocablulary_is
     }
 
-    pub fn contains(&self, _item: i32) -> bool {
+    pub fn contains(&self, _item: isize) -> bool {
         self.intervals
             .binary_search_by(|x| {
                 if _item < x.a {
@@ -248,7 +248,7 @@ impl IntervalSet {
             .is_ok()
     }
 
-    pub fn length(&self) -> i32 {
+    pub fn length(&self) -> isize {
         self.intervals
             .iter()
             .fold(0, |acc, it| acc + it.b - it.a + 1)
@@ -256,7 +256,7 @@ impl IntervalSet {
 
     // fn remove_range(&self, _v: &Interval) { unimplemented!() }
 
-    pub fn remove_one(&mut self, el: i32) {
+    pub fn remove_one(&mut self, el: isize) {
         if self.read_only {
             panic!("can't alter readonly IntervalSet")
         }
@@ -343,7 +343,7 @@ impl IntervalSet {
         buf
     }
 
-    fn element_name<'a>(&self, vocabulary: &'a dyn Vocabulary, a: i32) -> Cow<'a, str> {
+    fn element_name<'a>(&self, vocabulary: &'a dyn Vocabulary, a: isize) -> Cow<'a, str> {
         if a == TOKEN_EOF {
             Borrowed("<EOF>")
         } else if a == TOKEN_EPSILON {

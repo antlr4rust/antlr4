@@ -143,9 +143,9 @@ impl<'a, T: Parser<'a> + TidAble<'a>> ErrorStrategy<'a, T> for Box<dyn ErrorStra
 #[derive(Debug)]
 pub struct DefaultErrorStrategy<'input, Ctx: ParserNodeType<'input>> {
     error_recovery_mode: bool,
-    last_error_index: i32,
+    last_error_index: isize,
     last_error_states: Option<IntervalSet>,
-    next_tokens_state: i32,
+    next_tokens_state: isize,
     next_tokens_ctx: Option<Rc<Ctx::Type>>,
 }
 

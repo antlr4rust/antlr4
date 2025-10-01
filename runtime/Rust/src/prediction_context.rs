@@ -18,7 +18,7 @@ use crate::rule_context::RuleContext;
 
 use crate::transition::RuleTransition;
 
-pub const PREDICTION_CONTEXT_EMPTY_RETURN_STATE: i32 = 0x7FFFFFFF;
+pub const PREDICTION_CONTEXT_EMPTY_RETURN_STATE: isize = 0x7FFFFFFF;
 
 #[cfg(test)]
 mod test;
@@ -42,8 +42,8 @@ impl PartialEq for PredictionContext {
 
 #[derive(Eq, Clone, Debug)]
 pub struct ArrayPredictionContext {
-    cached_hash: i32,
-    return_states: Vec<i32>,
+    cached_hash: isize,
+    return_states: Vec<isize>,
     parents: Vec<Option<Arc<PredictionContext>>>,
 }
 
@@ -72,8 +72,8 @@ fn opt_eq(
 
 #[derive(Eq, Clone, Debug)]
 pub struct SingletonPredictionContext {
-    cached_hash: i32,
-    return_state: i32,
+    cached_hash: isize,
+    return_state: isize,
     parent_ctx: Option<Arc<PredictionContext>>,
 }
 
@@ -136,7 +136,7 @@ impl Display for PredictionContext {
 
 impl Hash for PredictionContext {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        state.write_i32(self.hash_code())
+        state.write_isize(self.hash_code())
     }
 }
 
@@ -148,7 +148,7 @@ lazy_static! {
 impl PredictionContext {
     pub fn new_array(
         parents: Vec<Option<Arc<PredictionContext>>>,
-        return_states: Vec<i32>,
+        return_states: Vec<isize>,
     ) -> PredictionContext {
         PredictionContext::Array(ArrayPredictionContext {
             cached_hash: 0,
@@ -159,7 +159,7 @@ impl PredictionContext {
 
     pub fn new_singleton(
         parent_ctx: Option<Arc<PredictionContext>>,
-        return_state: i32,
+        return_state: isize,
     ) -> PredictionContext {
         PredictionContext::Singleton(SingletonPredictionContext {
             cached_hash: 0,
@@ -187,11 +187,11 @@ impl PredictionContext {
                 return_state,
                 ..
             }) => {
-                hasher.write_i32(match parent_ctx {
+                hasher.write_isize(match parent_ctx {
                     None => 0,
                     Some(x) => x.hash_code(),
                 });
-                hasher.write_i32(*return_state as i32);
+                hasher.write_isize((*return_state));
             }
             PredictionContext::Array(ArrayPredictionContext {
                 parents,
@@ -199,18 +199,18 @@ impl PredictionContext {
                 ..
             }) => {
                 parents.iter().for_each(|x| {
-                    hasher.write_i32(match x {
+                    hasher.write_isize(match x {
                         None => 0,
                         Some(x) => x.hash_code(),
                     })
                 });
                 return_states
                     .iter()
-                    .for_each(|x| hasher.write_i32(*x as i32));
+                    .for_each(|x| hasher.write_isize((*x)));
             } //            PredictionContext::Empty { .. } => {}
         };
 
-        let hash = hasher.finish() as i32;
+        let hash = hasher.finish() as isize;
 
         match self {
             PredictionContext::Singleton(SingletonPredictionContext { cached_hash, .. })
@@ -230,7 +230,7 @@ impl PredictionContext {
         }
     }
 
-    pub fn get_return_state(&self, index: usize) -> i32 {
+    pub fn get_return_state(&self, index: usize) -> isize {
         match self {
             PredictionContext::Singleton(SingletonPredictionContext { return_state, .. }) => {
                 *return_state
@@ -264,7 +264,7 @@ impl PredictionContext {
     }
 
     #[inline(always)]
-    pub fn hash_code(&self) -> i32 {
+    pub fn hash_code(&self) -> isize {
         match self {
             PredictionContext::Singleton(SingletonPredictionContext { cached_hash, .. })
             | PredictionContext::Array(ArrayPredictionContext { cached_hash, .. }) => *cached_hash,
@@ -314,7 +314,6 @@ impl PredictionContext {
 
         let r = match (a.deref(), b.deref()) {
             (PredictionContext::Singleton(sa), PredictionContext::Singleton(sb)) => {
-                
                 //                println!("single result = {}",result);
                 Self::merge_singletons(sa, sb, root_is_wildcard, merge_cache)
             }
@@ -332,7 +331,6 @@ impl PredictionContext {
                     Self::merge_arrays(sa.to_array(), sb.to_array(), root_is_wildcard, merge_cache)
                         .alloc();
 
-                
                 //                println!("array result = {}",result);
 
                 if &*result == sa {
@@ -507,8 +505,6 @@ impl PredictionContext {
 
         PredictionContext::combine_common_parents(&mut merged);
 
-        
-
         //        if &m == a.deref(){ return ; }
         //        if &m == b.deref(){ return ; }
 
@@ -537,7 +533,7 @@ impl PredictionContext {
             .deref()
             .cast::<RuleTransition>();
 
-        PredictionContext::new_singleton(Some(parent), transition.follow_state as i32).alloc()
+        PredictionContext::new_singleton(Some(parent), transition.follow_state).alloc()
     }
 
     fn combine_common_parents(array: &mut ArrayPredictionContext) {

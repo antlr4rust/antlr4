@@ -9,7 +9,7 @@ use crate::semantic_context::SemanticContext;
 
 #[derive(Eq, PartialEq, Debug)]
 pub struct PredPrediction {
-    pub(crate) alt: i32,
+    pub(crate) alt: isize,
     pub(crate) pred: SemanticContext,
 }
 
@@ -33,7 +33,7 @@ pub struct DFAState {
     pub edges: Vec<DFAStateRef>,
     pub is_accept_state: bool,
 
-    pub prediction: i32,
+    pub prediction: isize,
     pub(crate) lexer_action_executor: Option<Box<LexerActionExecutor>>,
     pub requires_full_context: bool,
     pub predicates: Vec<PredPrediction>,
@@ -74,5 +74,5 @@ impl DFAState {
 
     //    fn get_alt_set(&self) -> &Set { unimplemented!() }
 
-    // fn set_prediction(&self, _v: i32) { unimplemented!() }
+    // fn set_prediction(&self, _v: isize) { unimplemented!() }
 }
