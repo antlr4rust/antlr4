@@ -155,7 +155,7 @@ impl LL1Analyzer<'_> {
                             add_eof,
                         )
                     } else {
-                        look.add_one(TOKEN_INVALID_TYPE)
+                        look.add_one(TOKEN_INVALID_TYPE);
                     }
                 }
                 TransitionType::TRANSITION_WILDCARD => {

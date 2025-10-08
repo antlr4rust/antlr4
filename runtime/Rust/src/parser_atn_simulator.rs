@@ -83,7 +83,7 @@ use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
 pub struct ParserATNSimulator {
     base: BaseATNSimulator,
     prediction_mode: Cell<PredictionMode>,
-    start_index: Cell<i32>,
+    start_index: Cell<isize>,
     // pd:PhantomData<P>
 }
 
@@ -116,7 +116,7 @@ impl<'a, 'input, T: Parser<'input> + 'a> Local<'a, 'input, T> {
     fn input(&mut self) -> &mut dyn TokenStream<'input, TF = T::TF> {
         self.parser.get_input_stream_mut()
     }
-    // fn seek(&mut self, i: i32) { self.input().seek(i) }
+    // fn seek(&mut self, i: isize) { self.input().seek(i) }
     fn outer_context(&self) -> &<T::Node as ParserNodeType<'input>>::Type {
         self.outer_context.deref()
     }
@@ -900,7 +900,7 @@ impl ParserATNSimulator {
             }
         }
 
-        alts.get_min().unwrap_or(INVALID_ALT)
+        alts.get_min().unwrap_or(INVALID_ALT) as i32
     }
 
     fn eval_semantic_context<'a, T: Parser<'a>>(
@@ -1384,7 +1384,7 @@ impl ParserATNSimulator {
         &self,
         local: &mut Local<'_, 'a, T>,
         _configs: &ATNConfigSet,
-        start_index: i32,
+        start_index: isize,
     ) -> ANTLRError {
         let start_token = local.parser.get_input_stream().get(start_index).borrow();
         let start_token = Token::to_owned(start_token);
@@ -1461,8 +1461,8 @@ impl ParserATNSimulator {
         dfa: &DFA,
         conflicting_alts: &BitSet,
         configs: &ATNConfigSet,
-        start_index: i32,
-        stop_index: i32,
+        start_index: isize,
+        stop_index: isize,
         parser: &mut T,
     ) {
         //        let ambig_index = parser.get_current_token().get_token_index();
@@ -1483,8 +1483,8 @@ impl ParserATNSimulator {
         dfa: &DFA,
         prediction: i32,
         configs: &ATNConfigSet,
-        start_index: i32,
-        stop_index: i32,
+        start_index: isize,
+        stop_index: isize,
         parser: &mut T,
     ) {
         parser
@@ -1495,8 +1495,8 @@ impl ParserATNSimulator {
     fn report_ambiguity<'a, T: Parser<'a>>(
         &self,
         dfa: &DFA,
-        start_index: i32,
-        stop_index: i32,
+        start_index: isize,
+        stop_index: isize,
         exact: bool,
         ambig_alts: &BitSet,
         configs: &ATNConfigSet,

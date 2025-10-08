@@ -45,7 +45,7 @@ fn gen_for_grammar(
     let input = env::current_dir().unwrap().join("grammars");
     let file_name = grammar_file_name.to_owned() + ".g4";
 
-    let c = Command::new("java")
+    Command::new("java")
         .current_dir(input)
         .arg("-cp")
         .arg(antlr_path)

@@ -17,7 +17,7 @@ use std::ops::Deref;
 pub struct InputStream<Data: Deref> {
     name: String,
     data_raw: Data,
-    index: i32,
+    index: isize,
 }
 
 // #[impl_tid]
@@ -29,14 +29,14 @@ better_any::tid! {impl<'a, T: 'static> TidAble<'a> for InputStream<Box<T>> where
 
 impl<'a, T: From<&'a str>> CharStream<T> for InputStream<&'a str> {
     #[inline]
-    fn get_text(&self, start: i32, stop: i32) -> T {
+    fn get_text(&self, start: isize, stop: isize) -> T {
         self.get_text_inner(start, stop).into()
     }
 }
 
 impl<T: From<D::Owned>, D: ?Sized + InputData> CharStream<T> for InputStream<Box<D>> {
     #[inline]
-    fn get_text(&self, start: i32, stop: i32) -> T {
+    fn get_text(&self, start: isize, stop: isize) -> T {
         self.get_text_owned(start, stop).into()
     }
 }
@@ -54,7 +54,7 @@ where
     [T]: InputData,
 {
     #[inline]
-    fn get_text(&self, a: i32, b: i32) -> Cow<'a, [T]> {
+    fn get_text(&self, a: isize, b: isize) -> Cow<'a, [T]> {
         Cow::Borrowed(self.get_text_inner(a, b))
     }
 }
@@ -63,7 +63,7 @@ impl<T> CharStream<String> for InputStream<&[T]>
 where
     [T]: InputData,
 {
-    fn get_text(&self, a: i32, b: i32) -> String {
+    fn get_text(&self, a: isize, b: isize) -> String {
         self.get_text_inner(a, b).to_display()
     }
 }
@@ -73,7 +73,7 @@ where
     [T]: InputData,
 {
     #[inline]
-    fn get_text(&self, a: i32, b: i32) -> Cow<'b, str> {
+    fn get_text(&self, a: isize, b: isize) -> Cow<'b, str> {
         self.get_text_inner(a, b).to_display().into()
     }
 }
@@ -83,13 +83,13 @@ where
     [T]: InputData,
 {
     #[inline]
-    fn get_text(&self, a: i32, b: i32) -> &'a [T] {
+    fn get_text(&self, a: isize, b: isize) -> &'a [T] {
         self.get_text_inner(a, b)
     }
 }
 
 impl<Data: ?Sized + InputData> InputStream<Box<Data>> {
-    fn get_text_owned(&self, start: i32, stop: i32) -> Data::Owned {
+    fn get_text_owned(&self, start: isize, stop: isize) -> Data::Owned {
         let start = start as usize;
         let stop = self.data_raw.offset(stop, 1).unwrap_or(stop) as usize;
 
@@ -115,7 +115,7 @@ impl<'a, Data> InputStream<&'a Data>
 where
     Data: ?Sized + InputData,
 {
-    fn get_text_inner(&self, start: i32, stop: i32) -> &'a Data {
+    fn get_text_inner(&self, start: isize, stop: isize) -> &'a Data {
         // println!("get text {}..{} of {:?}",start,stop,self.data_raw.to_display());
         let start = start as usize;
         let stop = self.data_raw.offset(stop, 1).unwrap_or(stop) as usize;
@@ -169,7 +169,7 @@ where
     }
 
     #[inline]
-    fn la(&mut self, mut offset: i32) -> i32 {
+    fn la(&mut self, mut offset: isize) -> i32 {
         if offset == 1 {
             return self
                 .data_raw
@@ -190,26 +190,26 @@ where
     }
 
     #[inline]
-    fn mark(&mut self) -> i32 {
+    fn mark(&mut self) -> isize {
         -1
     }
 
     #[inline]
-    fn release(&mut self, _marker: i32) {}
+    fn release(&mut self, _marker: isize) {}
 
     #[inline]
-    fn index(&self) -> i32 {
+    fn index(&self) -> isize {
         self.index
     }
 
     #[inline]
-    fn seek(&mut self, index: i32) {
+    fn seek(&mut self, index: isize) {
         self.index = index
     }
 
     #[inline]
-    fn size(&self) -> i32 {
-        self.data_raw.len() as i32
+    fn size(&self) -> isize {
+        self.data_raw.len() as isize
     }
 
     fn get_source_name(&self) -> String {

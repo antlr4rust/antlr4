@@ -61,7 +61,7 @@ impl ATNDeserializer {
         self.read_rules(&mut atn, data);
         self.read_modes(&mut atn, data);
 
-        let mut sets = self.read_sets(&mut atn, data);
+        let sets = self.read_sets(&mut atn, data);
 
         self.read_edges(&mut atn, data, &sets);
         self.read_decisions(&mut atn, data);

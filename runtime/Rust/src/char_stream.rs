@@ -12,7 +12,7 @@ pub trait CharStream<Data>: IntStream {
     /// Panics if provided indexes are invalid
     /// Called by parser only on token intervals.
     /// This fact can be used by custom implementations  
-    fn get_text(&self, a: i32, b: i32) -> Data;
+    fn get_text(&self, a: isize, b: isize) -> Data;
 }
 
 /// Trait for input that can be accepted by `InputStream` to be able to provide lexer with data.
@@ -27,10 +27,10 @@ pub trait InputData:
     // fn to_indexed_vec(&self) -> Vec<(u32, u32)>;
 
     #[doc(hidden)]
-    fn offset(&self, index: i32, item_offset: i32) -> Option<i32>;
+    fn offset(&self, index: isize, item_offset: isize) -> Option<isize>;
 
     #[doc(hidden)]
-    fn item(&self, index: i32) -> Option<i32>;
+    fn item(&self, index: isize) -> Option<i32>;
 
     #[doc(hidden)]
     fn len(&self) -> usize;
@@ -54,12 +54,12 @@ where
     // }
 
     #[inline]
-    fn offset(&self, index: i32, item_offset: i32) -> Option<i32> {
+    fn offset(&self, index: isize, item_offset: isize) -> Option<isize> {
         let new_index = index + item_offset;
         if new_index < 0 {
             return None; // invalid; no char before first char
         }
-        if new_index > self.len() as i32 {
+        if new_index > self.len() as isize {
             return None;
         }
 
@@ -67,7 +67,7 @@ where
     }
 
     #[inline]
-    fn item(&self, index: i32) -> Option<i32> {
+    fn item(&self, index: isize) -> Option<i32> {
         self.get(index as usize).map(|&it| it.into() as i32)
     }
 
@@ -117,7 +117,7 @@ impl InputData for str {
     // }
 
     #[inline]
-    fn offset(&self, mut index: i32, mut item_offset: i32) -> Option<i32> {
+    fn offset(&self, mut index: isize, mut item_offset: isize) -> Option<isize> {
         if item_offset == 0 {
             return Some(index);
         }
@@ -125,7 +125,7 @@ impl InputData for str {
 
         while {
             index += direction;
-            if index < 0 || index > self.len() as i32 {
+            if index < 0 || index > self.len() as isize {
                 return None;
             }
             if self.is_char_boundary(index as usize) {
@@ -138,7 +138,7 @@ impl InputData for str {
     }
 
     #[inline]
-    fn item(&self, index: i32) -> Option<i32> {
+    fn item(&self, index: isize) -> Option<i32> {
         self.get(index as usize..)
             .and_then(|it| it.chars().next())
             .map(|it| it as i32)

@@ -156,11 +156,11 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for LabelsLexe
         self.base.next_token()
     }
 
-    fn get_line(&self) -> i32 {
+    fn get_line(&self) -> isize {
         self.base.get_line()
     }
 
-    fn get_char_position_in_line(&self) -> i32 {
+    fn get_char_position_in_line(&self) -> isize {
         self.base.get_char_position_in_line()
     }
 

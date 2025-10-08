@@ -25,7 +25,7 @@ pub(crate) enum LexerAction {
     LexerSkipAction,
     LexerTypeAction(i32),
     LexerIndexedCustomAction {
-        offset: i32,
+        offset: isize,
         action: Box<LexerAction>,
     },
 }

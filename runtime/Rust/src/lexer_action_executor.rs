@@ -46,7 +46,7 @@ impl LexerActionExecutor {
         new
     }
 
-    pub fn fix_offset_before_match(mut self, offset: i32) -> LexerActionExecutor {
+    pub fn fix_offset_before_match(mut self, offset: isize) -> LexerActionExecutor {
         for action in self.lexer_actions.iter_mut() {
             match action {
                 LexerAction::LexerIndexedCustomAction { .. } => {}
@@ -63,7 +63,7 @@ impl LexerActionExecutor {
         self
     }
 
-    pub fn execute<'input>(&self, lexer: &mut impl Lexer<'input>, start_index: i32) {
+    pub fn execute<'input>(&self, lexer: &mut impl Lexer<'input>, start_index: isize) {
         let mut requires_seek = false;
         let stop_index = lexer.input().index();
         for action in self.lexer_actions.iter() {

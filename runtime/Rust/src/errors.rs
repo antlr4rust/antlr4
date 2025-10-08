@@ -27,7 +27,7 @@ pub enum ANTLRError {
     /// to prevent lexer from throwing errors and have all error handling in parser.
     LexerNoAltError {
         /// Index at which error has happened
-        start_index: i32,
+        start_index: isize,
     },
 
     /// Indicates that the parser could not decide which of two or more paths

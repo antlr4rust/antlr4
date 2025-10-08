@@ -44,10 +44,10 @@ pub trait ILexerATNSimulator: IATNSimulator {
         mode: usize,
         lexer: &mut impl Lexer<'input>,
     ) -> Result<i32, ANTLRError>;
-    fn get_char_position_in_line(&self) -> i32;
-    fn set_char_position_in_line(&mut self, column: i32);
-    fn get_line(&self) -> i32;
-    fn set_line(&mut self, line: i32);
+    fn get_char_position_in_line(&self) -> isize;
+    fn set_char_position_in_line(&mut self, column: isize);
+    fn get_line(&self) -> isize;
+    fn set_line(&mut self, line: isize);
     fn consume<T: IntStream + ?Sized>(&self, input: &mut T);
     #[cold]
     fn recover(&mut self, _re: ANTLRError, input: &mut impl IntStream) {
@@ -63,7 +63,7 @@ pub struct LexerATNSimulator {
     base: BaseATNSimulator,
 
     //    merge_cache: DoubleDict,
-    start_index: i32,
+    start_index: isize,
     pub(crate) current_pos: Rc<LexerPosition>,
     mode: usize,
     prev_accept: SimState,
@@ -104,19 +104,19 @@ impl ILexerATNSimulator for LexerATNSimulator {
         result
     }
 
-    fn get_char_position_in_line(&self) -> i32 {
+    fn get_char_position_in_line(&self) -> isize {
         self.current_pos.char_position_in_line.get()
     }
 
-    fn set_char_position_in_line(&mut self, column: i32) {
+    fn set_char_position_in_line(&mut self, column: isize) {
         self.current_pos.char_position_in_line.set(column)
     }
 
-    fn get_line(&self) -> i32 {
+    fn get_line(&self) -> isize {
         self.current_pos.line.get()
     }
 
-    fn set_line(&mut self, line: i32) {
+    fn set_line(&mut self, line: isize) {
         self.current_pos.char_position_in_line.set(line)
     }
 
@@ -686,7 +686,7 @@ impl LexerATNSimulator {
 
         let states = &mut dfa.states;
         let key = dfastate.default_hash();
-        let dfastate_index: DFAStateRef = if let Some(mut entry) = dfa.states_map.get(&key) {
+        let dfastate_index: DFAStateRef = if let Some(entry) = dfa.states_map.get(&key) {
             let find_result = entry.iter().find(|it| {
                 states[**it].configs == dfastate.configs
             });
@@ -735,9 +735,9 @@ impl LexerATNSimulator {
 
 #[derive(Debug)]
 pub(crate) struct SimState {
-    index: i32,
-    line: i32,
-    column: i32,
+    index: isize,
+    line: isize,
+    column: isize,
     dfa_state: Option<usize>,
 }
 

@@ -59,7 +59,7 @@ pub trait Parser<'input>: Recognizer<'input> {
     fn notify_error_listeners(
         &self,
         msg: String,
-        offending_token: Option<i32>,
+        offending_token: Option<isize>,
         err: Option<&ANTLRError>,
     );
     fn get_error_lister_dispatch<'a>(&'a self) -> Box<dyn ErrorListener<'input, Self> + 'a>
@@ -327,7 +327,7 @@ where
     fn notify_error_listeners(
         &self,
         msg: String,
-        offending_token: Option<i32>,
+        offending_token: Option<isize>,
         err: Option<&ANTLRError>,
     ) {
         cell_update(&self._syntax_errors, |it| it + 1);

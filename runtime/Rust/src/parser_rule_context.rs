@@ -9,7 +9,6 @@ use std::rc::Rc;
 use better_any::{Tid, TidAble, TidExt};
 
 use crate::errors::ANTLRError;
-use crate::interval_set::Interval;
 use crate::parser::ParserNodeType;
 use crate::rule_context::{BaseRuleContext, CustomRuleContext, RuleContext};
 use crate::token::Token;
@@ -431,12 +430,7 @@ impl<'input, Ctx: CustomRuleContext<'input>> Tree<'input> for BaseParserRuleCont
 impl<'input, Ctx: CustomRuleContext<'input> + TidAble<'input>> ParseTree<'input>
     for BaseParserRuleContext<'input, Ctx>
 {
-    fn get_source_interval(&self) -> Interval {
-        Interval {
-            a: self.start().get_token_index(),
-            b: self.stop().get_token_index(),
-        }
-    }
+
 
     fn get_text(&self) -> String {
         let children = self.get_children();
@@ -586,9 +580,6 @@ where
     T: DerefSeal<Target = I> + 'input + Debug + Tid<'input>,
     I: ParserRuleContext<'input> + 'input + ?Sized,
 {
-    fn get_source_interval(&self) -> Interval {
-        self.deref().get_source_interval()
-    }
 
     fn get_text(&self) -> String {
         self.deref().get_text()

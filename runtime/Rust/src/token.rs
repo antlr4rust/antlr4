@@ -4,7 +4,7 @@ use std::borrow::{Borrow, Cow};
 use std::fmt::Formatter;
 use std::fmt::{Debug, Display};
 
-use std::sync::atomic::{AtomicI32, Ordering};
+use std::sync::atomic::{AtomicIsize, Ordering};
 
 use crate::char_stream::InputData;
 use crate::int_stream::EOF;
@@ -38,26 +38,26 @@ pub trait Token: Debug + Display {
     fn get_channel(&self) -> i32 {
         TOKEN_DEFAULT_CHANNEL
     }
-    fn get_start(&self) -> i32 {
+    fn get_start(&self) -> isize {
         0
     }
-    fn get_stop(&self) -> i32 {
+    fn get_stop(&self) -> isize {
         0
     }
-    fn get_line(&self) -> i32 {
+    fn get_line(&self) -> isize {
         0
     }
-    fn get_column(&self) -> i32 {
+    fn get_column(&self) -> isize {
         0
     }
 
     fn get_text(&self) -> &Self::Data;
     fn set_text(&mut self, _text: <Self::Data as ToOwned>::Owned) {}
 
-    fn get_token_index(&self) -> i32 {
+    fn get_token_index(&self) -> isize {
         0
     }
-    fn set_token_index(&self, _v: i32) {}
+    fn set_token_index(&self, _v: isize) {}
 
     // fn get_token_source(&self) -> &dyn TokenSource;
     // fn get_input_stream(&self) -> &dyn CharStream;
@@ -69,7 +69,7 @@ pub trait Token: Debug + Display {
             channel: self.get_channel(),
             start: self.get_start(),
             stop: self.get_stop(),
-            token_index: AtomicI32::from(self.get_token_index()),
+            token_index: AtomicIsize::from(self.get_token_index()),
             line: self.get_line(),
             column: self.get_column(),
             text: self.get_text().to_display(),
@@ -93,11 +93,11 @@ pub struct GenericToken<T> {
     //    source: Option<(Box<TokenSource>,Box<CharStream>)>,
     pub token_type: i32,
     pub channel: i32,
-    pub start: i32,
-    pub stop: i32,
-    pub token_index: AtomicI32,
-    pub line: i32,
-    pub column: i32,
+    pub start: isize,
+    pub stop: isize,
+    pub token_index: AtomicIsize,
+    pub line: isize,
+    pub column: isize,
     pub text: T,
     pub read_only: bool,
 }
@@ -112,7 +112,7 @@ where
             channel: self.channel,
             start: self.start,
             stop: self.stop,
-            token_index: AtomicI32::new(self.get_token_index()),
+            token_index: AtomicIsize::new(self.get_token_index()),
             line: self.line,
             column: self.column,
             text: self.text.clone(),
@@ -163,19 +163,19 @@ impl<T: Borrow<str> + Debug> Token for GenericToken<T> {
         self.channel
     }
 
-    fn get_start(&self) -> i32 {
+    fn get_start(&self) -> isize {
         self.start
     }
 
-    fn get_stop(&self) -> i32 {
+    fn get_stop(&self) -> isize {
         self.stop
     }
 
-    fn get_line(&self) -> i32 {
+    fn get_line(&self) -> isize {
         self.line
     }
 
-    fn get_column(&self) -> i32 {
+    fn get_column(&self) -> isize {
         self.column
     }
 
@@ -195,11 +195,11 @@ impl<T: Borrow<str> + Debug> Token for GenericToken<T> {
         unimplemented!()
     }
 
-    fn get_token_index(&self) -> i32 {
+    fn get_token_index(&self) -> isize {
         self.token_index.load(Ordering::Relaxed)
     }
 
-    fn set_token_index(&self, _v: i32) {
+    fn set_token_index(&self, _v: isize) {
         self.token_index.store(_v, Ordering::Relaxed)
     }
 
@@ -209,7 +209,7 @@ impl<T: Borrow<str> + Debug> Token for GenericToken<T> {
             channel: self.channel,
             start: self.start,
             stop: self.stop,
-            token_index: AtomicI32::new(self.get_token_index()),
+            token_index: AtomicIsize::new(self.get_token_index()),
             line: self.line,
             column: self.column,
             text: self.text.borrow().to_owned(),
@@ -236,8 +236,8 @@ impl Default for &'_ CommonToken<'_> {
 //         _source: Option<(Box<dyn TokenSource>, Box<dyn CharStream>)>,
 //         _token_type: i32,
 //         _channel: i32,
-//         _start: i32,
-//         _stop: i32,
+//         _start: isize,
+//         _stop: isize,
 //     ) -> CommonToken {
 //         unimplemented!()
 //     }

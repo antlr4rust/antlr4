@@ -91,9 +91,9 @@ pub struct BaseLexer<
 
     error_listeners: RefCell<Vec<Box<dyn ErrorListener<'input, Self>>>>,
 
-    pub token_start_char_index: i32,
-    pub token_start_line: i32,
-    pub token_start_column: i32,
+    pub token_start_char_index: isize,
+    pub token_start_line: isize,
+    pub token_start_column: isize,
     current_pos: Rc<LexerPosition>,
     /// Overrides token type emitted by lexer for current token
     pub token_type: i32,
@@ -112,8 +112,8 @@ pub struct BaseLexer<
 
 #[derive(Debug)]
 pub(crate) struct LexerPosition {
-    pub(crate) line: Cell<i32>,
-    pub(crate) char_position_in_line: Cell<i32>,
+    pub(crate) line: Cell<isize>,
+    pub(crate) char_position_in_line: Cell<isize>,
 }
 
 impl<'input, T, Input, TF> Deref for BaseLexer<'input, T, Input, TF>
@@ -227,7 +227,7 @@ where
     }
 
     /// Current position in input stream
-    pub fn get_char_index(&self) -> i32 {
+    pub fn get_char_index(&self) -> isize {
         self.input.as_ref().unwrap().index()
     }
 
@@ -388,11 +388,11 @@ where
         self.token.take().unwrap()
     }
 
-    fn get_line(&self) -> i32 {
+    fn get_line(&self) -> isize {
         self.current_pos.line.get()
     }
 
-    fn get_char_position_in_line(&self) -> i32 {
+    fn get_char_position_in_line(&self) -> isize {
         self.current_pos.char_position_in_line.get()
     }
 

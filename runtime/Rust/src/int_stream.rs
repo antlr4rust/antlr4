@@ -1,6 +1,6 @@
 //! <ost generic stream of symbols
 
-use crate::token::{TOKEN_EOF, TOKEN_INVALID_TYPE};
+use crate::token::{TOKEN_EOF};
 
 /// `IntStream::la` must return EOF in the end of stream
 pub const EOF: i32 = -1;
@@ -42,28 +42,28 @@ pub trait IntStream {
     /// so it can be used for optimizations in downstream implementations.
     ///
     /// Must return `EOF` if `i` points to position at or beyond the end of the stream
-    fn la(&mut self, i: i32) -> i32;
+    fn la(&mut self, i: isize) -> i32;
 
     /// After this call subsequent calls to seek must succeed if seek index is greater than mark index
     ///
     /// Returns marker that should be used later by `release` call to release this stream from
-    fn mark(&mut self) -> i32;
+    fn mark(&mut self) -> isize;
 
     /// Releases `marker`
-    fn release(&mut self, marker: i32);
+    fn release(&mut self, marker: isize);
 
     /// Returns current position of the input stream
     ///
     /// If there is active marker from `mark` then calling `seek` later with result of this call
     /// should put stream in same state it is currently in.
-    fn index(&self) -> i32;
+    fn index(&self) -> isize;
     /// Put stream back in state it was when it was in `index` position
     ///
     /// Allowed to panic if `index` does not belong to marked region(via `mark`-`release` calls)
-    fn seek(&mut self, index: i32);
+    fn seek(&mut self, index: isize);
 
     /// Returns the total number of symbols in the stream.
-    fn size(&self) -> i32;
+    fn size(&self) -> isize;
 
     /// Returns name of the source this stream operates over if any
     fn get_source_name(&self) -> String;
@@ -82,7 +82,7 @@ impl<T: IntStream> Iterator for IterWrapper<'_, T> {
         }
         let token = self.0.la(1);
 
-        let mut result = if self.0.size() > self.0.index() {
+        let result = if self.0.size() > self.0.index() {
             Some(token)
         } else {
             None
