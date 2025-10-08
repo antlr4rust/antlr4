@@ -21,18 +21,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.antlr.v4.test.runtime.FileUtils.*;
 import static org.antlr.v4.test.runtime.RuntimeTestUtils.FileSeparator;
-import static org.antlr.v4.test.runtime.RuntimeTestUtils.isWindows;
 
 public class RustRunner extends RuntimeRunner {
 
 	public static final String CARGO_TOML = "Cargo.toml";
-	public static final String LEXER = "Lexer";
-	public static final Pattern PATTERN = Pattern.compile("-L native=(.*)`");
 
 	@Override
 	public String getLanguage() {
@@ -98,21 +93,12 @@ public class RustRunner extends RuntimeRunner {
 		ProcessorResult result = Processor.run(new String[]{runtimeToolPath,
 			"build", "--target-dir", cachePath, "-v"}, runtimePath);
 		libName = findLibName(cachePath);
-		if (isWindows()) {
-			cargoNativePath = getNativePath(result.errors);
-		}
 		String tomlPath = cachePath + File.separator + "toml";
 		mkdir(tomlPath);
 		Processor.run(new String[]{runtimeToolPath, "init"}, tomlPath);
 		Processor.run(new String[]{runtimeToolPath, "add", "--path", runtimePath}, tomlPath);
 		cachedCargo = readFile(tomlPath + FileSeparator, CARGO_TOML);
 
-	}
-
-	private String getNativePath(String errors) {
-		Matcher matcher = PATTERN.matcher(errors);
-		matcher.find();
-		return matcher.group(1);
 	}
 
 	public static String findLibName(String cachePath) {
@@ -154,20 +140,11 @@ public class RustRunner extends RuntimeRunner {
 		String depsPath = getCachePath() +  File.separator + "debug" + File.separator + "deps";
 		Exception ex = null;
 		try {
-			if (isWindows()) {
-				String[] arguments = {"rustc",
-					"--crate-name", "Rust", "--edition=2024", "src" + File.separator + "main.rs", "--out-dir",
-					"target" + File.separator + "debug",
-					"-L", "dependency=" + depsPath, "--extern", "antlr4rust=" + depsPath + File.separator + libName,
-					"-L", "native=" + cargoNativePath};
-				Processor.run(arguments, getTempDirPath(), environment);
-			} else {
-				String[] arguments = {"rustc",
-					"--crate-name", "Rust", "--edition=2024", "src" + File.separator + "main.rs", "--out-dir",
-					"target" + File.separator + "debug",
-					"-L", "dependency=" + depsPath, "--extern", "antlr4rust=" + depsPath + File.separator + libName};
-				Processor.run(arguments, getTempDirPath(), environment);
-			}
+			String[] arguments = {"rustc",
+				"--crate-name", "Rust", "--edition=2024", "src" + File.separator + "main.rs", "--out-dir",
+				"target" + File.separator + "debug",
+				"-L", "dependency=" + depsPath, "--extern", "antlr4rust=" + depsPath + File.separator + libName};
+			Processor.run(arguments, getTempDirPath(), environment);
 		} catch (InterruptedException | IOException e) {
 			ex = e;
 		}
