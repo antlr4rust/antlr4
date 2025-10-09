@@ -13,6 +13,8 @@ keywords = ["ANTLR","ANTLR4","parsing","runtime"]
 categories = ["parsing"]
 exclude = ["/build.rs","/grammars","/templates"]
 
+[features]
+debug = []
 
 [dependencies]
 lazy_static = "^1.4"

@@ -380,7 +380,9 @@ where
 pub trait Visitable<Vis: ?Sized> {
     /// Calls corresponding visit callback on visitor`Vis`
     fn accept(&self, _visitor: &mut Vis) {
-        unreachable!("should have been properly implemented by generated context when reachable")
+        if cfg!(feature = "debug") {
+            unreachable!("should have been properly implemented by generated context when reachable")
+        }
     }
 }
 
@@ -388,7 +390,9 @@ pub trait Visitable<Vis: ?Sized> {
 #[doc(hidden)]
 pub trait VisitableDyn<Vis: ?Sized> {
     fn accept_dyn(&self, _visitor: &mut Vis) {
-        unreachable!("should have been properly implemented by generated context when reachable")
+        if cfg!(feature = "debug") {
+            unreachable!("should have been properly implemented by generated context when reachable")
+        }
     }
 }
 
