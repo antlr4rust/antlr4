@@ -222,7 +222,6 @@ impl InputMisMatchError {
 pub struct FailedPredicateError {
     pub base: BaseRecognitionError,
     pub rule_index: isize,
-    predicate_index: isize,
     pub predicate: String,
 }
 
@@ -237,7 +236,7 @@ impl FailedPredicateError {
             .get_transitions()
             .first()
             .unwrap();
-        let (rule_index, predicate_index) = if tr.get_serialization_type() == TRANSITION_PREDICATE {
+        let (rule_index, _) = if tr.get_serialization_type() == TRANSITION_PREDICATE {
             let pr = tr.deref().cast::<PredicateTransition>();
             (pr.rule_index, pr.pred_index)
         } else {
@@ -257,7 +256,6 @@ impl FailedPredicateError {
                 states_stack: states_stack(recog.get_parser_rule_context().clone()).collect(), // ctx: recog.get_parser_rule_context().clone()
             },
             rule_index,
-            predicate_index,
             predicate: predicate.unwrap_or_default(),
         })
     }

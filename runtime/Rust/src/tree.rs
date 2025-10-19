@@ -140,7 +140,7 @@ impl<'input, Node: ParserNodeType<'input>, T: 'static> CustomRuleContext<'input>
         usize::max_value()
     }
 
-    fn get_node_text(&self, rule_names: &[&str]) -> String {
+    fn get_node_text(&self, _rule_names: &[&str]) -> String {
         self.symbol.borrow().get_text().to_display()
     }
 }
@@ -284,14 +284,14 @@ pub trait ParseTreeVisitorCompat<'input>: VisitChildren<'input, Self::Node> {
         result
     }
 
-    fn aggregate_results(&self, aggregate: Self::Return, next: Self::Return) -> Self::Return {
+    fn aggregate_results(&self, _aggregate: Self::Return, next: Self::Return) -> Self::Return {
         next
     }
 
     fn should_visit_next_child(
         &self,
-        node: &<Self::Node as ParserNodeType<'input>>::Type,
-        current: &Self::Return,
+        _node: &<Self::Node as ParserNodeType<'input>>::Type,
+        _current: &Self::Return,
     ) -> bool {
         true
     }
