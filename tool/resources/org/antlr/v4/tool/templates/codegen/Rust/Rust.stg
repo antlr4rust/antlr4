@@ -517,8 +517,8 @@ impl\<'input,'a> Visitable\<dyn <parser.grammarName>Visitor\<'input> + 'a> for <
 <endif>
 <if(parser.file.genListener)>
 impl\<'input,'a> Listenable\<dyn <parser.grammarName>Listener\<'input> + 'a> for <currentRule.ctxType>All\<'input>{
-    fn enter(&self, listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) { self.deref().enter(listener) }
-    fn exit(&self, listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) { self.deref().exit(listener) }
+    fn enter(&self, listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) -> Result\<(), ANTLRError> { self.deref().enter(listener) }
+    fn exit(&self, listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) -> Result\<(), ANTLRError> { self.deref().exit(listener) }
 }
 <endif>
 
@@ -641,11 +641,11 @@ where
 CodeBlockForOuterMostAlt(currentOuterMostAltCodeBlock, locals, preamble, ops) ::= <<
 <if(currentOuterMostAltCodeBlock.altLabel)>
 let tmp = <currentOuterMostAltCodeBlock.altLabel; format="cap">ContextExt::new(&**_localctx);
-<self()>.base.enter_outer_alt(Some(tmp.clone()), <currentOuterMostAltCodeBlock.alt.altNum>);
+<self()>.base.enter_outer_alt(Some(tmp.clone()), <currentOuterMostAltCodeBlock.alt.altNum>)?;
 _localctx = tmp;
 <else>
-//<self()>.base.enter_outer_alt(_localctx.clone(), <currentOuterMostAltCodeBlock.alt.altNum>);
-<self()>.base.enter_outer_alt(None, <currentOuterMostAltCodeBlock.alt.altNum>);
+//<self()>.base.enter_outer_alt(_localctx.clone(), <currentOuterMostAltCodeBlock.alt.altNum>)?;
+<self()>.base.enter_outer_alt(None, <currentOuterMostAltCodeBlock.alt.altNum>)?;
 <endif>
 <CodeBlockForAlt(currentAltCodeBlock=currentOuterMostAltCodeBlock, ...)>
 >>
@@ -1145,10 +1145,11 @@ impl\<'input> <struct.name>Ext\<'input>{
 >>
 
 ListenerDispatchMethod(method) ::= <<
-fn <if(method.isEnter)>enter<else>exit<endif>(&self,listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) {
-	<if(method.isEnter)>listener.enter_every_rule(self);<endif>
+fn <if(method.isEnter)>enter<else>exit<endif>(&self,listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) -> Result\<(), ANTLRError> {
+	<if(method.isEnter)>listener.enter_every_rule(self)?;<endif>
 	listener.<if(method.isEnter)>enter<else>exit<endif>_<struct.derivedFromName>(self);
-	<if(!method.isEnter)>listener.exit_every_rule(self);<endif>
+	<if(!method.isEnter)>listener.exit_every_rule(self)?;<endif>
+	Ok(())
 }
 >>
 
@@ -1195,7 +1196,7 @@ let mut tmp = <ctxName>ContextExt::new(_parentctx.clone(), _parentState);
 <endif>
 <endif>
 <!<if(label)>_localctx.<label> = _prevctx;<endif>!>
-<self()>.push_new_recursion_context(tmp.clone(), _startState, RULE_<ruleName>);
+<self()>.push_new_recursion_context(tmp.clone(), _startState, RULE_<ruleName>)?;
 _localctx = tmp;
 >>
 
@@ -1211,7 +1212,7 @@ if let <ruleName; format="cap">ContextAll::<currentAltLabel; format="cap">Contex
 <endif>
 } else {unreachable!("cant cast");}
 <endif>
-<self()>.push_new_recursion_context(tmp.clone(), _startState, RULE_<ruleName>);
+<self()>.push_new_recursion_context(tmp.clone(), _startState, RULE_<ruleName>)?;
 _localctx = tmp;
 >>
 

@@ -1145,10 +1145,11 @@ impl\<'input> <struct.name>Ext\<'input>{
 >>
 
 ListenerDispatchMethod(method) ::= <<
-fn <if(method.isEnter)>enter<else>exit<endif>(&self,listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) {
-	<if(method.isEnter)>listener.enter_every_rule(self);<endif>
+fn <if(method.isEnter)>enter<else>exit<endif>(&self,listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) -> Result\<(), ANTLRError> {
+	<if(method.isEnter)>listener.enter_every_rule(self)?;<endif>
 	listener.<if(method.isEnter)>enter<else>exit<endif>_<struct.derivedFromName>(self);
-	<if(!method.isEnter)>listener.exit_every_rule(self);<endif>
+	<if(!method.isEnter)>listener.exit_every_rule(self)?;<endif>
+	Ok(())
 }
 >>
 
