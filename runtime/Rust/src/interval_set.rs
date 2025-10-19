@@ -57,7 +57,7 @@ impl Interval {
 
     /** Does self start after other? NonDisjoint */
     pub fn starts_after_non_disjoint(&self, other: &Interval) -> bool {
-        self.a > other.a && self.a <= other.b// self.b>=other.b implied
+        self.a > other.a && self.a <= other.b // self.b>=other.b implied
     }
 
     /** Are both ranges disjoint? I.e., no overlap? */

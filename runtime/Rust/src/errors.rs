@@ -1,4 +1,11 @@
 //! Error types
+use crate::atn_simulator::IATNSimulator;
+use crate::interval_set::IntervalSet;
+use crate::parser::{Parser, ParserNodeType};
+use crate::rule_context::states_stack;
+use crate::token::{OwningToken, Token};
+use crate::transition::PredicateTransition;
+use crate::transition::TransitionType::TRANSITION_PREDICATE;
 use std::borrow::Borrow;
 use std::error::Error;
 use std::fmt;
@@ -7,13 +14,6 @@ use std::fmt::{Debug, Display};
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::Arc;
-use crate::atn_simulator::IATNSimulator;
-use crate::interval_set::IntervalSet;
-use crate::parser::{Parser, ParserNodeType};
-use crate::rule_context::states_stack;
-use crate::token::{OwningToken, Token};
-use crate::transition::PredicateTransition;
-use crate::transition::TransitionType::TRANSITION_PREDICATE;
 
 /// Main ANTLR4 Rust runtime error
 #[derive(Debug, Clone)]

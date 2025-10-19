@@ -19,10 +19,7 @@ mod gen {
     use antlr4rust::token::{Token, TOKEN_EOF};
     use antlr4rust::token_factory::{ArenaCommonFactory, OwningTokenFactory};
     use antlr4rust::token_stream::{TokenStream, UnbufferedTokenStream};
-    use antlr4rust::tree::{
-        ParseTree, ParseTreeListener,
-        TerminalNode,
-    };
+    use antlr4rust::tree::{ParseTree, ParseTreeListener, TerminalNode};
     use antlr4rust::InputStream;
     use csvlexer::*;
     use csvlistener::*;
@@ -32,10 +29,8 @@ mod gen {
     use referencetoatnparser::ReferenceToATNParser;
     use xmllexer::XMLLexer;
 
-    use crate::gen::csvparser::{
-        CSVParserContext, CSVParserContextType,
-    };
-    
+    use crate::gen::csvparser::{CSVParserContext, CSVParserContextType};
+
     use crate::gen::labelslexer::LabelsLexer;
     use crate::gen::labelsparser::{EContextAll, LabelsParser};
     use crate::gen::referencetoatnparser::{

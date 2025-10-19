@@ -125,8 +125,6 @@ impl ATNDeserializer {
     }
 
     fn read_atn(&self, data: &mut dyn Iterator<Item = isize>) -> ATN {
-        
-
         ATN::new_atn(
             match data.next() {
                 Some(0) => ATNType::LEXER,
