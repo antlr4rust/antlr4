@@ -631,7 +631,7 @@ where
 	        <self()>.err_handler.recover(&mut <self()>.base, re)?;}
 		}
 		<finallyAction>
-		<self()>.base.unroll_recursion_context(_parentctx);
+		<self()>.base.unroll_recursion_context(_parentctx)?;
 
 		Ok(_localctx)
 	}
@@ -1224,7 +1224,7 @@ _prevctx = _localctx.clone();
 >>
 
 recRuleSetPrevCtx() ::= <<
-<self()>.trigger_exit_rule_event();
+<self()>.trigger_exit_rule_event()?;
 _prevctx = _localctx.clone();
 >>
 

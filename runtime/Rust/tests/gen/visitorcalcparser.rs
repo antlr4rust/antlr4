@@ -344,7 +344,7 @@ where
 				recog.err_handler.recover(&mut recog.base, re)?;
 			}
 		}
-		recog.base.exit_rule();
+		recog.base.exit_rule()?;
 
 		Ok(_localctx)
 	}
@@ -701,7 +701,7 @@ where
 			_alt = recog.interpreter.adaptive_predict(1,&mut recog.base)?;
 			while { _alt!=2 && _alt!=INVALID_ALT } {
 				if _alt==1 {
-					recog.trigger_exit_rule_event();
+					recog.trigger_exit_rule_event()?;
 					_prevctx = _localctx.clone();
 					{
 					recog.base.set_state(16);
@@ -782,7 +782,7 @@ where
 			recog.err_handler.report_error(&mut recog.base, re);
 	        recog.err_handler.recover(&mut recog.base, re)?;}
 		}
-		recog.base.unroll_recursion_context(_parentctx);
+		recog.base.unroll_recursion_context(_parentctx)?;
 
 		Ok(_localctx)
 	}
