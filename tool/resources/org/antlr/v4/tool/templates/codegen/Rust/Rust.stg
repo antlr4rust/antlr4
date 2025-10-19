@@ -573,7 +573,7 @@ where
 			}
 		}
 		<finallyAction>
-		<self()>.base.exit_rule();
+		<self()>.base.exit_rule()?;
 
 		Ok(_localctx)
 	}
