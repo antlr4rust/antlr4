@@ -15,8 +15,6 @@ pub fn escape_whitespaces(data: impl Borrow<str>, escape_spaces: bool) -> String
     res
 }
 
-pub trait Sealed {}
-
 pub fn cell_update<T: Copy, F>(cell: &Cell<T>, f: F) -> T
 where
     F: FnOnce(T) -> T,

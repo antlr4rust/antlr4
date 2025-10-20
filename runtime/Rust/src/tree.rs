@@ -9,6 +9,7 @@ use std::ops::Deref;
 use std::rc::Rc;
 
 use crate::char_stream::InputData;
+use crate::errors::ANTLRError;
 use crate::int_stream::EOF;
 use crate::interval_set::Interval;
 use crate::parser::ParserNodeType;
@@ -139,7 +140,7 @@ impl<'input, Node: ParserNodeType<'input>, T: 'static> CustomRuleContext<'input>
         usize::max_value()
     }
 
-    fn get_node_text(&self, rule_names: &[&str]) -> String {
+    fn get_node_text(&self, _rule_names: &[&str]) -> String {
         self.symbol.borrow().get_text().to_display()
     }
 }
@@ -202,12 +203,9 @@ pub type TerminalNode<'input, NodeType> = LeafNode<'input, NodeType, NoError>;
 impl<'input, Node: ParserNodeType<'input>, Listener: ParseTreeListener<'input, Node> + ?Sized>
     Listenable<Listener> for TerminalNode<'input, Node>
 {
-    fn enter(&self, listener: &mut Listener) {
-        listener.visit_terminal(self)
-    }
-
-    fn exit(&self, _listener: &mut Listener) {
-        // do nothing
+    fn enter(&self, listener: &mut Listener) -> Result<(), ANTLRError> {
+        listener.visit_terminal(self);
+        Ok(())
     }
 }
 
@@ -226,12 +224,9 @@ pub type ErrorNode<'input, NodeType> = LeafNode<'input, NodeType, IsError>;
 impl<'input, Node: ParserNodeType<'input>, Listener: ParseTreeListener<'input, Node> + ?Sized>
     Listenable<Listener> for ErrorNode<'input, Node>
 {
-    fn enter(&self, listener: &mut Listener) {
-        listener.visit_error_node(self)
-    }
-
-    fn exit(&self, _listener: &mut Listener) {
-        // do nothing
+    fn enter(&self, listener: &mut Listener) -> Result<(), ANTLRError> {
+        listener.visit_error_node(self);
+        Ok(())
     }
 }
 
@@ -289,14 +284,14 @@ pub trait ParseTreeVisitorCompat<'input>: VisitChildren<'input, Self::Node> {
         result
     }
 
-    fn aggregate_results(&self, aggregate: Self::Return, next: Self::Return) -> Self::Return {
+    fn aggregate_results(&self, _aggregate: Self::Return, next: Self::Return) -> Self::Return {
         next
     }
 
     fn should_visit_next_child(
         &self,
-        node: &<Self::Node as ParserNodeType<'input>>::Type,
-        current: &Self::Return,
+        _node: &<Self::Node as ParserNodeType<'input>>::Type,
+        _current: &Self::Return,
     ) -> bool {
         true
     }
@@ -380,7 +375,9 @@ where
 pub trait Visitable<Vis: ?Sized> {
     /// Calls corresponding visit callback on visitor`Vis`
     fn accept(&self, _visitor: &mut Vis) {
-        unreachable!("should have been properly implemented by generated context when reachable")
+        if cfg!(feature = "debug") {
+            unreachable!("should have been properly implemented by generated context when reachable")
+        }
     }
 }
 
@@ -388,7 +385,9 @@ pub trait Visitable<Vis: ?Sized> {
 #[doc(hidden)]
 pub trait VisitableDyn<Vis: ?Sized> {
     fn accept_dyn(&self, _visitor: &mut Vis) {
-        unreachable!("should have been properly implemented by generated context when reachable")
+        if cfg!(feature = "debug") {
+            unreachable!("should have been properly implemented by generated context when reachable")
+        }
     }
 }
 
@@ -399,18 +398,26 @@ pub trait ParseTreeListener<'input, Node: ParserNodeType<'input>> {
     /// Called when parser creates error node
     fn visit_error_node(&mut self, _node: &ErrorNode<'input, Node>) {}
     /// Called when parser enters any rule node
-    fn enter_every_rule(&mut self, _ctx: &Node::Type) {}
+    fn enter_every_rule(&mut self, _ctx: &Node::Type) -> Result<(), ANTLRError> {
+        Ok(())
+    }
     /// Called when parser exits any rule node
-    fn exit_every_rule(&mut self, _ctx: &Node::Type) {}
+    fn exit_every_rule(&mut self, _ctx: &Node::Type) -> Result<(), ANTLRError> {
+        Ok(())
+    }
 }
 
 /// Types that can accept particular listener
 /// ** Usually implemented only in generated parser **
 pub trait Listenable<T: ?Sized> {
     /// Calls corresponding enter callback on listener `T`
-    fn enter(&self, _listener: &mut T) {}
+    fn enter(&self, _listener: &mut T) -> Result<(), ANTLRError> {
+        Ok(())
+    }
     /// Calls corresponding exit callback on listener `T`
-    fn exit(&self, _listener: &mut T) {}
+    fn exit(&self, _listener: &mut T) -> Result<(), ANTLRError> {
+        Ok(())
+    }
 }
 
 // #[inline]
@@ -435,7 +442,10 @@ where
     Node::Type: Listenable<T>,
 {
     /// Walks recursively over tree `t` with `listener`
-    pub fn walk<Listener, Ctx>(mut listener: Box<Listener>, t: &Ctx) -> Box<Listener>
+    pub fn walk<Listener, Ctx>(
+        mut listener: Box<Listener>,
+        t: &Ctx,
+    ) -> Result<Box<Listener>, ANTLRError>
     where
         // for<'x> &'x mut Listener: CoerceUnsized<&'x mut T>,
         // for<'x> &'x Ctx: CoerceUnsized<&'x Node::Type>,
@@ -443,20 +453,21 @@ where
         Ctx: CoerceTo<Node::Type>,
     {
         // let mut listener = listener as Box<T>;
-        Self::walk_inner(listener.as_mut().coerce_mut_to(), t.coerce_ref_to());
+        Self::walk_inner(listener.as_mut().coerce_mut_to(), t.coerce_ref_to())?;
 
         // just cast back
         // unsafe { Box::<Listener>::from_raw(Box::into_raw(listener) as *mut _) }
-        listener
+        Ok(listener)
     }
 
-    fn walk_inner(listener: &mut T, t: &Node::Type) {
-        t.enter(listener);
+    fn walk_inner(listener: &mut T, t: &Node::Type) -> Result<(), ANTLRError> {
+        t.enter(listener)?;
 
         for child in t.get_children() {
-            Self::walk_inner(listener, child.deref())
+            Self::walk_inner(listener, child.deref())?;
         }
 
-        t.exit(listener);
+        t.exit(listener)?;
+        Ok(())
     }
 }

@@ -13,16 +13,14 @@ mod gen {
     use std::iter::FromIterator;
 
     use antlr4rust::common_token_stream::CommonTokenStream;
+    use antlr4rust::errors::ANTLRError;
     use antlr4rust::int_stream::IntStream;
     use antlr4rust::lexer::Lexer;
 
     use antlr4rust::token::{Token, TOKEN_EOF};
     use antlr4rust::token_factory::{ArenaCommonFactory, OwningTokenFactory};
     use antlr4rust::token_stream::{TokenStream, UnbufferedTokenStream};
-    use antlr4rust::tree::{
-        ParseTree, ParseTreeListener,
-        TerminalNode,
-    };
+    use antlr4rust::tree::{ParseTree, ParseTreeListener, TerminalNode};
     use antlr4rust::InputStream;
     use csvlexer::*;
     use csvlistener::*;
@@ -32,10 +30,8 @@ mod gen {
     use referencetoatnparser::ReferenceToATNParser;
     use xmllexer::XMLLexer;
 
-    use crate::gen::csvparser::{
-        CSVParserContext, CSVParserContextType,
-    };
-    
+    use crate::gen::csvparser::{CSVParserContext, CSVParserContextType};
+
     use crate::gen::labelslexer::LabelsLexer;
     use crate::gen::labelsparser::{EContextAll, LabelsParser};
     use crate::gen::referencetoatnparser::{
@@ -167,13 +163,14 @@ if (x < x && a > 0) then duh
     struct Listener {}
 
     impl<'input> ParseTreeListener<'input, CSVParserContextType> for Listener {
-        fn enter_every_rule(&mut self, ctx: &dyn CSVParserContext<'input>) {
+        fn enter_every_rule(&mut self, ctx: &dyn CSVParserContext<'input>) -> Result<(), ANTLRError> {
             println!(
                 "rule entered {}",
                 csvparser::ruleNames
                     .get(ctx.get_rule_index())
                     .unwrap_or(&"error")
-            )
+            );
+            Ok(())
         }
     }
 
@@ -200,13 +197,14 @@ if (x < x && a > 0) then duh
     struct Listener2 {}
 
     impl<'input> ParseTreeListener<'input, ReferenceToATNParserContextType> for Listener2 {
-        fn enter_every_rule(&mut self, ctx: &dyn ReferenceToATNParserContext<'input>) {
+        fn enter_every_rule(&mut self, ctx: &dyn ReferenceToATNParserContext<'input>) -> Result<(), ANTLRError> {
             println!(
                 "rule entered {}",
                 referencetoatnparser::ruleNames
                     .get(ctx.get_rule_index())
                     .unwrap_or(&"error")
-            )
+            );
+            Ok(())
         }
     }
 
@@ -237,22 +235,24 @@ if (x < x && a > 0) then duh
             println!("terminal node {}", node.symbol.get_text());
         }
 
-        fn enter_every_rule(&mut self, ctx: &dyn SimpleLRParserContext<'input>) {
+        fn enter_every_rule(&mut self, ctx: &dyn SimpleLRParserContext<'input>) -> Result<(), ANTLRError> {
             println!(
                 "rule entered {}",
                 simplelrparser::ruleNames
                     .get(ctx.get_rule_index())
                     .unwrap_or(&"error")
-            )
+            );
+            Ok(())
         }
 
-        fn exit_every_rule(&mut self, ctx: &dyn SimpleLRParserContext<'input>) {
+        fn exit_every_rule(&mut self, ctx: &dyn SimpleLRParserContext<'input>) -> Result<(), ANTLRError> {
             println!(
                 "rule exited {}",
                 simplelrparser::ruleNames
                     .get(ctx.get_rule_index())
                     .unwrap_or(&"error")
-            )
+            );
+            Ok(())
         }
     }
 
@@ -289,13 +289,14 @@ if (x < x && a > 0) then duh
             println!("enter terminal");
             let _ = writeln!(&mut self.data, "terminal node {}", node.symbol.get_text());
         }
-        fn enter_every_rule(&mut self, ctx: &dyn SimpleLRParserContext<'input>) {
+        fn enter_every_rule(&mut self, ctx: &dyn SimpleLRParserContext<'input>) -> Result<(), ANTLRError> {
             println!(
                 "rule entered {}",
                 simplelrparser::ruleNames
                     .get(ctx.get_rule_index())
                     .unwrap_or(&"error")
-            )
+            );
+            Ok(())
         }
     }
 
@@ -323,7 +324,7 @@ if (x < x && a > 0) then duh
 
         let listener = SimpleLRTreeWalker::walk(listener, &*result);
         assert_eq!(
-            &listener.data,
+            &listener.unwrap().data,
             "terminal node x\nterminal node y\nterminal node z\n"
         );
     }

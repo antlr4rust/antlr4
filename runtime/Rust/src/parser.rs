@@ -502,20 +502,22 @@ where
         self.parse_listeners.clear()
     }
 
-    pub fn trigger_enter_rule_event(&mut self) {
+    pub fn trigger_enter_rule_event(&mut self) -> Result<(), ANTLRError> {
         let ctx = self.ctx.as_deref().unwrap();
         for listener in self.parse_listeners.iter_mut() {
             // listener.enter_every_rule(ctx);
-            ctx.enter(listener);
+            ctx.enter(listener)?;
         }
+        Ok(())
     }
 
-    pub fn trigger_exit_rule_event(&mut self) {
+    pub fn trigger_exit_rule_event(&mut self) -> Result<(), ANTLRError> {
         let ctx = self.ctx.as_deref().unwrap();
         for listener in self.parse_listeners.iter_mut().rev() {
-            ctx.exit(listener);
+            ctx.exit(listener)?;
             // listener.exit_every_rule(ctx);
         }
+        Ok(())
     }
     //
     //    fn set_token_factory(&self, factory: TokenFactory) { unimplemented!() }
@@ -549,7 +551,7 @@ where
     }
 
     #[inline]
-    pub fn exit_rule(&mut self) {
+    pub fn exit_rule(&mut self) -> Result<(), ANTLRError> {
         if self.matched_eof {
             self.ctx
                 .as_ref()
@@ -561,16 +563,21 @@ where
                 .unwrap()
                 .set_stop(self.input.lt(-1).cloned())
         }
-        self.trigger_exit_rule_event();
+        self.trigger_exit_rule_event()?;
         self.set_state(self.get_parser_rule_context().get_invoking_state());
         let parent = self.ctx.as_ref().unwrap().get_parent_ctx();
         // mem::replace(&mut self.ctx, parent);
         self.ctx = parent;
+        Ok(())
     }
 
     // todo make new_ctx not option
     #[inline]
-    pub fn enter_outer_alt(&mut self, new_ctx: Option<Rc<Ctx::Type>>, alt_num: isize) {
+    pub fn enter_outer_alt(
+        &mut self,
+        new_ctx: Option<Rc<Ctx::Type>>,
+        alt_num: isize,
+    ) -> Result<(), ANTLRError> {
         if let Some(new_ctx) = new_ctx {
             new_ctx.set_alt_number(alt_num);
 
@@ -585,7 +592,7 @@ where
             self.ctx = Some(new_ctx);
         }
 
-        self.trigger_enter_rule_event();
+        self.trigger_enter_rule_event()
     }
 
     pub fn enter_recursion_rule(
@@ -607,7 +614,7 @@ where
         localctx: Rc<Ctx::Type>,
         state: isize,
         _rule_index: usize,
-    ) {
+    ) -> Result<(), ANTLRError> {
         let prev = self.ctx.take().unwrap();
         prev.set_parent(&Some(localctx.clone()));
         prev.set_invoking_state(state);
@@ -620,18 +627,19 @@ where
         if self.build_parse_trees {
             self.ctx.as_ref().unwrap().add_child(prev);
         }
-        self.trigger_enter_rule_event();
+        self.trigger_enter_rule_event()
     }
 
-    pub fn unroll_recursion_context(&mut self, parent_ctx: Option<Rc<Ctx::Type>>) {
+    pub fn unroll_recursion_context(
+        &mut self,
+        parent_ctx: Option<Rc<Ctx::Type>>,
+    ) -> Result<(), ANTLRError> {
         self.precedence_stack.pop();
         let retctx = self.ctx.clone().unwrap();
         retctx.set_stop(self.input.lt(-1).cloned());
         if !self.parse_listeners.is_empty() {
-            while self.ctx.as_ref().map(Rc::as_ptr)
-                != parent_ctx.as_ref().map(Rc::as_ptr)
-            {
-                self.trigger_exit_rule_event();
+            while self.ctx.as_ref().map(Rc::as_ptr) != parent_ctx.as_ref().map(Rc::as_ptr) {
+                self.trigger_exit_rule_event()?;
                 self.ctx = self.ctx.as_ref().unwrap().get_parent_ctx()
             }
         } else {
@@ -645,6 +653,7 @@ where
         if self.build_parse_trees && self.ctx.is_some() {
             self.ctx.as_ref().unwrap().add_child(retctx);
         }
+        Ok(())
     }
 
     fn create_token_node(
