@@ -96,7 +96,7 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -253,12 +253,14 @@ ph:PhantomData<&'input str>
 impl<'input> LabelsParserContext<'input> for SContext<'input>{}
 
 impl<'input,'a> Listenable<dyn LabelsListener<'input> + 'a> for SContext<'input>{
-		fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) {
-			listener.enter_every_rule(self);
+		fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) -> Result<(), ANTLRError> {
+			listener.enter_every_rule(self)?;
 			listener.enter_s(self);
-		}fn exit(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) {
+			Ok(())
+		}fn exit(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) -> Result<(), ANTLRError> {
 			listener.exit_s(self);
-			listener.exit_every_rule(self);
+			listener.exit_every_rule(self)?;
+			Ok(())
 		}
 }
 
@@ -305,8 +307,8 @@ where
         let mut _localctx: Rc<SContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
-			//recog.base.enter_outer_alt(_localctx.clone(), 1);
-			recog.base.enter_outer_alt(None, 1);
+			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+			recog.base.enter_outer_alt(None, 1)?;
 			{
 			/*InvokeRule e*/
 			recog.base.set_state(4);
@@ -326,7 +328,7 @@ where
 				recog.err_handler.recover(&mut recog.base, re)?;
 			}
 		}
-		recog.base.exit_rule();
+		recog.base.exit_rule()?;
 
 		Ok(_localctx)
 	}
@@ -366,8 +368,8 @@ Error(inner) => inner
 	}
 }
 impl<'input,'a> Listenable<dyn LabelsListener<'input> + 'a> for EContextAll<'input>{
-    fn enter(&self, listener: &mut (dyn LabelsListener<'input> + 'a)) { self.deref().enter(listener) }
-    fn exit(&self, listener: &mut (dyn LabelsListener<'input> + 'a)) { self.deref().exit(listener) }
+    fn enter(&self, listener: &mut (dyn LabelsListener<'input> + 'a)) -> Result<(), ANTLRError> { self.deref().enter(listener) }
+    fn exit(&self, listener: &mut (dyn LabelsListener<'input> + 'a)) -> Result<(), ANTLRError> { self.deref().exit(listener) }
 }
 
 
@@ -443,9 +445,10 @@ antlr4rust::tid!{AddContextExt<'a>}
 impl<'input> LabelsParserContext<'input> for AddContext<'input>{}
 
 impl<'input,'a> Listenable<dyn LabelsListener<'input> + 'a> for AddContext<'input>{
-	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
+	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) -> Result<(), ANTLRError> {
+		listener.enter_every_rule(self)?;
 		listener.enter_add(self);
+		Ok(())
 	}
 }
 
@@ -500,9 +503,10 @@ antlr4rust::tid!{ParensContextExt<'a>}
 impl<'input> LabelsParserContext<'input> for ParensContext<'input>{}
 
 impl<'input,'a> Listenable<dyn LabelsListener<'input> + 'a> for ParensContext<'input>{
-	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
+	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) -> Result<(), ANTLRError> {
+		listener.enter_every_rule(self)?;
 		listener.enter_parens(self);
+		Ok(())
 	}
 }
 
@@ -562,9 +566,10 @@ antlr4rust::tid!{MultContextExt<'a>}
 impl<'input> LabelsParserContext<'input> for MultContext<'input>{}
 
 impl<'input,'a> Listenable<dyn LabelsListener<'input> + 'a> for MultContext<'input>{
-	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
+	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) -> Result<(), ANTLRError> {
+		listener.enter_every_rule(self)?;
 		listener.enter_mult(self);
+		Ok(())
 	}
 }
 
@@ -620,9 +625,10 @@ antlr4rust::tid!{DecContextExt<'a>}
 impl<'input> LabelsParserContext<'input> for DecContext<'input>{}
 
 impl<'input,'a> Listenable<dyn LabelsListener<'input> + 'a> for DecContext<'input>{
-	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
+	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) -> Result<(), ANTLRError> {
+		listener.enter_every_rule(self)?;
 		listener.enter_dec(self);
+		Ok(())
 	}
 }
 
@@ -679,9 +685,10 @@ antlr4rust::tid!{AnIDContextExt<'a>}
 impl<'input> LabelsParserContext<'input> for AnIDContext<'input>{}
 
 impl<'input,'a> Listenable<dyn LabelsListener<'input> + 'a> for AnIDContext<'input>{
-	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
+	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) -> Result<(), ANTLRError> {
+		listener.enter_every_rule(self)?;
 		listener.enter_anID(self);
+		Ok(())
 	}
 }
 
@@ -738,9 +745,10 @@ antlr4rust::tid!{AnIntContextExt<'a>}
 impl<'input> LabelsParserContext<'input> for AnIntContext<'input>{}
 
 impl<'input,'a> Listenable<dyn LabelsListener<'input> + 'a> for AnIntContext<'input>{
-	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
+	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) -> Result<(), ANTLRError> {
+		listener.enter_every_rule(self)?;
 		listener.enter_anInt(self);
+		Ok(())
 	}
 }
 
@@ -795,9 +803,10 @@ antlr4rust::tid!{IncContextExt<'a>}
 impl<'input> LabelsParserContext<'input> for IncContext<'input>{}
 
 impl<'input,'a> Listenable<dyn LabelsListener<'input> + 'a> for IncContext<'input>{
-	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
+	fn enter(&self,listener: &mut (dyn LabelsListener<'input> + 'a)) -> Result<(), ANTLRError> {
+		listener.enter_every_rule(self)?;
 		listener.enter_inc(self);
+		Ok(())
 	}
 }
 
@@ -852,8 +861,8 @@ where
 		let _startState = 2;
 		let result: Result<(), ANTLRError> = (|| {
 			let mut _alt: i32;
-			//recog.base.enter_outer_alt(_localctx.clone(), 1);
-			recog.base.enter_outer_alt(None, 1);
+			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+			recog.base.enter_outer_alt(None, 1)?;
 			{
 			recog.base.set_state(16);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -932,7 +941,7 @@ where
 			_alt = recog.interpreter.adaptive_predict(2,&mut recog.base)?;
 			while { _alt!=2 && _alt!=INVALID_ALT } {
 				if _alt==1 {
-					recog.trigger_exit_rule_event();
+					recog.trigger_exit_rule_event()?;
 					_prevctx = _localctx.clone();
 					{
 					recog.base.set_state(34);
@@ -945,7 +954,7 @@ where
 							if let EContextAll::MultContext(ctx) = cast_mut::<_,EContextAll >(&mut tmp){
 								ctx.a = Some(_prevctx.clone());
 							} else {unreachable!("cant cast");}
-							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
 							_localctx = tmp;
 							recog.base.set_state(18);
 							if !({let _localctx = Some(_localctx.clone());
@@ -978,7 +987,7 @@ where
 							if let EContextAll::AddContext(ctx) = cast_mut::<_,EContextAll >(&mut tmp){
 								ctx.a = Some(_prevctx.clone());
 							} else {unreachable!("cant cast");}
-							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
 							_localctx = tmp;
 							recog.base.set_state(23);
 							if !({let _localctx = Some(_localctx.clone());
@@ -1009,7 +1018,7 @@ where
 							if let EContextAll::IncContext(ctx) = cast_mut::<_,EContextAll >(&mut tmp){
 								ctx.x = Some(_prevctx.clone());
 							} else {unreachable!("cant cast");}
-							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
 							_localctx = tmp;
 							recog.base.set_state(28);
 							if !({let _localctx = Some(_localctx.clone());
@@ -1033,7 +1042,7 @@ where
 							if let EContextAll::DecContext(ctx) = cast_mut::<_,EContextAll >(&mut tmp){
 								ctx.x = Some(_prevctx.clone());
 							} else {unreachable!("cant cast");}
-							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
 							_localctx = tmp;
 							recog.base.set_state(31);
 							if !({let _localctx = Some(_localctx.clone());
@@ -1069,7 +1078,7 @@ where
 			recog.err_handler.report_error(&mut recog.base, re);
 	        recog.err_handler.recover(&mut recog.base, re)?;}
 		}
-		recog.base.unroll_recursion_context(_parentctx);
+		recog.base.unroll_recursion_context(_parentctx)?;
 
 		Ok(_localctx)
 	}

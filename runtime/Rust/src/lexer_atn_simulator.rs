@@ -245,7 +245,8 @@ impl LexerATNSimulator {
                 self.consume(lexer.input());
             }
 
-            if self.capture_sim_state(dfa.as_ref().unwrap(), lexer.input(), target) && symbol == EOF {
+            if self.capture_sim_state(dfa.as_ref().unwrap(), lexer.input(), target) && symbol == EOF
+            {
                 break;
             }
 
@@ -582,7 +583,9 @@ impl LexerATNSimulator {
             TransitionType::TRANSITION_RANGE
             | TransitionType::TRANSITION_SET
             | TransitionType::TRANSITION_ATOM => {
-                if _treat_eofas_epsilon && _trans.matches(EOF, LEXER_MIN_CHAR_VALUE, LEXER_MAX_CHAR_VALUE) {
+                if _treat_eofas_epsilon
+                    && _trans.matches(EOF, LEXER_MIN_CHAR_VALUE, LEXER_MAX_CHAR_VALUE)
+                {
                     let target = self.atn().states[_trans.get_target() as usize].as_ref();
                     result = Some(_config.cloned(target));
                 }
@@ -673,8 +676,7 @@ impl LexerATNSimulator {
                 //println!("accepted rule {} on state {}",rule_index,c.get_state());
                 (
                     self.atn().rule_to_token_type[rule_index as usize],
-                    c.get_lexer_executor().cloned()
-                        .map(Box::new),
+                    c.get_lexer_executor().cloned().map(Box::new),
                 )
             });
 

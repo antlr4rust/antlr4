@@ -1043,7 +1043,7 @@ impl ParserATNSimulator {
             } else if full_ctx {
                 configs.add_cached(Box::new(config), Some(local.merge_cache));
                 return;
-            } 
+            }
         }
         self.closure_work(
             config,
@@ -1122,7 +1122,9 @@ impl ParserATNSimulator {
                         continue;
                     }
 
-                    if tr.get_serialization_type() == TransitionType::TRANSITION_RULE && new_depth >= 0 {
+                    if tr.get_serialization_type() == TransitionType::TRANSITION_RULE
+                        && new_depth >= 0
+                    {
                         new_depth += 1
                     }
                 }
@@ -1448,10 +1450,7 @@ impl ParserATNSimulator {
         states.push(dfastate);
 
         //        if key != new_hash {
-        dfa.states_map
-            .entry(key)
-            .or_default()
-            .push(state_number);
+        dfa.states_map.entry(key).or_default().push(state_number);
         //        }
         state_number
     }

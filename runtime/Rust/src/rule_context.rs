@@ -217,10 +217,7 @@ impl<'input, ExtCtx: CustomRuleContext<'input>> RuleContext<'input>
     }
 
     fn get_parent_ctx(&self) -> Option<Rc<<ExtCtx::Ctx as ParserNodeType<'input>>::Type>> {
-        self.parent_ctx
-            .borrow()
-            .as_ref()
-            .and_then(Weak::upgrade)
+        self.parent_ctx.borrow().as_ref().and_then(Weak::upgrade)
     }
 
     //    fn get_parent_ctx(&self) -> Option<ParserRuleContextType> {

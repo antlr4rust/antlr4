@@ -582,7 +582,6 @@ impl<'input, Ctx: ParserNodeType<'input>> BailErrorStrategy<'input, Ctx> {
                 ctx.set_exception(e.clone());
                 ctx = ctx.get_parent()?
             }
-            // Some(())
         })();
         ANTLRError::FallThrough(Arc::new(ParseCancelledError(e.clone())))
     }

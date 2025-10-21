@@ -88,7 +88,7 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -208,12 +208,14 @@ ph:PhantomData<&'input str>
 impl<'input> ReferenceToATNParserContext<'input> for AContext<'input>{}
 
 impl<'input,'a> Listenable<dyn ReferenceToATNListener<'input> + 'a> for AContext<'input>{
-		fn enter(&self,listener: &mut (dyn ReferenceToATNListener<'input> + 'a)) {
-			listener.enter_every_rule(self);
+		fn enter(&self,listener: &mut (dyn ReferenceToATNListener<'input> + 'a)) -> Result<(), ANTLRError> {
+			listener.enter_every_rule(self)?;
 			listener.enter_a(self);
-		}fn exit(&self,listener: &mut (dyn ReferenceToATNListener<'input> + 'a)) {
+			Ok(())
+		}fn exit(&self,listener: &mut (dyn ReferenceToATNListener<'input> + 'a)) -> Result<(), ANTLRError> {
 			listener.exit_a(self);
-			listener.exit_every_rule(self);
+			listener.exit_every_rule(self)?;
+			Ok(())
 		}
 }
 
@@ -276,8 +278,8 @@ where
 		let result: Result<(), ANTLRError> = (|| {
 
 			let mut _alt: i32;
-			//recog.base.enter_outer_alt(_localctx.clone(), 1);
-			recog.base.enter_outer_alt(None, 1);
+			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+			recog.base.enter_outer_alt(None, 1)?;
 			{
 			recog.base.set_state(5);
 			recog.err_handler.sync(&mut recog.base)?;
@@ -328,7 +330,7 @@ where
 				recog.err_handler.recover(&mut recog.base, re)?;
 			}
 		}
-		recog.base.exit_rule();
+		recog.base.exit_rule()?;
 
 		Ok(_localctx)
 	}

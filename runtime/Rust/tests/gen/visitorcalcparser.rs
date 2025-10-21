@@ -95,7 +95,7 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -253,13 +253,15 @@ ph:PhantomData<&'input str>
 impl<'input> VisitorCalcParserContext<'input> for SContext<'input>{}
 
 impl<'input,'a> Listenable<dyn VisitorCalcListener<'input> + 'a> for SContext<'input>{
-		fn enter(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) {
-			listener.enter_every_rule(self);
+		fn enter(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) -> Result<(), ANTLRError> {
+			listener.enter_every_rule(self)?;
 			listener.enter_s(self);
+			Ok(())
 		}
-		fn exit(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) {
+		fn exit(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) -> Result<(), ANTLRError> {
 			listener.exit_s(self);
-			listener.exit_every_rule(self);
+			listener.exit_every_rule(self)?;
+			Ok(())
 		}
 }
 
@@ -316,8 +318,8 @@ where
         let mut _localctx: Rc<SContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
-			//recog.base.enter_outer_alt(_localctx.clone(), 1);
-			recog.base.enter_outer_alt(None, 1);
+			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+			recog.base.enter_outer_alt(None, 1)?;
 			{
 			/*InvokeRule expr*/
 			recog.base.set_state(4);
@@ -338,7 +340,7 @@ where
 				recog.err_handler.recover(&mut recog.base, re)?;
 			}
 		}
-		recog.base.exit_rule();
+		recog.base.exit_rule()?;
 
 		Ok(_localctx)
 	}
@@ -373,8 +375,8 @@ impl<'input,'a> Visitable<dyn VisitorCalcVisitor<'input> + 'a> for ExprContextAl
 	fn accept(&self, visitor: &mut (dyn VisitorCalcVisitor<'input> + 'a)) { self.deref().accept(visitor) }
 }
 impl<'input,'a> Listenable<dyn VisitorCalcListener<'input> + 'a> for ExprContextAll<'input>{
-    fn enter(&self, listener: &mut (dyn VisitorCalcListener<'input> + 'a)) { self.deref().enter(listener) }
-    fn exit(&self, listener: &mut (dyn VisitorCalcListener<'input> + 'a)) { self.deref().exit(listener) }
+    fn enter(&self, listener: &mut (dyn VisitorCalcListener<'input> + 'a)) -> Result<(), ANTLRError> { self.deref().enter(listener) }
+    fn exit(&self, listener: &mut (dyn VisitorCalcListener<'input> + 'a)) -> Result<(), ANTLRError> { self.deref().exit(listener) }
 }
 
 
@@ -455,13 +457,15 @@ antlr4rust::tid!{AddContextExt<'a>}
 impl<'input> VisitorCalcParserContext<'input> for AddContext<'input>{}
 
 impl<'input,'a> Listenable<dyn VisitorCalcListener<'input> + 'a> for AddContext<'input>{
-	fn enter(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
+	fn enter(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) -> Result<(), ANTLRError> {
+		listener.enter_every_rule(self)?;
 		listener.enter_add(self);
+		Ok(())
 	}
-	fn exit(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) {
+	fn exit(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) -> Result<(), ANTLRError> {
 		listener.exit_add(self);
-		listener.exit_every_rule(self);
+		listener.exit_every_rule(self)?;
+		Ok(())
 	}
 }
 
@@ -522,13 +526,15 @@ antlr4rust::tid!{NumberContextExt<'a>}
 impl<'input> VisitorCalcParserContext<'input> for NumberContext<'input>{}
 
 impl<'input,'a> Listenable<dyn VisitorCalcListener<'input> + 'a> for NumberContext<'input>{
-	fn enter(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
+	fn enter(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) -> Result<(), ANTLRError> {
+		listener.enter_every_rule(self)?;
 		listener.enter_number(self);
+		Ok(())
 	}
-	fn exit(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) {
+	fn exit(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) -> Result<(), ANTLRError> {
 		listener.exit_number(self);
-		listener.exit_every_rule(self);
+		listener.exit_every_rule(self)?;
+		Ok(())
 	}
 }
 
@@ -600,13 +606,15 @@ antlr4rust::tid!{MultiplyContextExt<'a>}
 impl<'input> VisitorCalcParserContext<'input> for MultiplyContext<'input>{}
 
 impl<'input,'a> Listenable<dyn VisitorCalcListener<'input> + 'a> for MultiplyContext<'input>{
-	fn enter(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) {
-		listener.enter_every_rule(self);
+	fn enter(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) -> Result<(), ANTLRError> {
+		listener.enter_every_rule(self)?;
 		listener.enter_multiply(self);
+		Ok(())
 	}
-	fn exit(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) {
+	fn exit(&self,listener: &mut (dyn VisitorCalcListener<'input> + 'a)) -> Result<(), ANTLRError> {
 		listener.exit_multiply(self);
-		listener.exit_every_rule(self);
+		listener.exit_every_rule(self)?;
+		Ok(())
 	}
 }
 
@@ -667,8 +675,8 @@ where
 		let mut _la: i32 = -1;
 		let result: Result<(), ANTLRError> = (|| {
 			let mut _alt: i32;
-			//recog.base.enter_outer_alt(_localctx.clone(), 1);
-			recog.base.enter_outer_alt(None, 1);
+			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+			recog.base.enter_outer_alt(None, 1)?;
 			{
 			{
 			let mut tmp = NumberContextExt::new(&**_localctx);
@@ -687,7 +695,7 @@ where
 			_alt = recog.interpreter.adaptive_predict(1,&mut recog.base)?;
 			while { _alt!=2 && _alt!=INVALID_ALT } {
 				if _alt==1 {
-					recog.trigger_exit_rule_event();
+					recog.trigger_exit_rule_event()?;
 					_prevctx = _localctx.clone();
 					{
 					recog.base.set_state(16);
@@ -697,7 +705,7 @@ where
 							{
 							/*recRuleLabeledAltStartAction*/
 							let mut tmp = MultiplyContextExt::new(&**ExprContextExt::new(_parentctx.clone(), _parentState));
-							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expr);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expr)?;
 							_localctx = tmp;
 							recog.base.set_state(10);
 							if !({let _localctx = Some(_localctx.clone());
@@ -726,7 +734,7 @@ where
 							{
 							/*recRuleLabeledAltStartAction*/
 							let mut tmp = AddContextExt::new(&**ExprContextExt::new(_parentctx.clone(), _parentState));
-							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expr);
+							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expr)?;
 							_localctx = tmp;
 							recog.base.set_state(13);
 							if !({let _localctx = Some(_localctx.clone());
@@ -770,7 +778,7 @@ where
 			recog.err_handler.report_error(&mut recog.base, re);
 	        recog.err_handler.recover(&mut recog.base, re)?;}
 		}
-		recog.base.unroll_recursion_context(_parentctx);
+		recog.base.unroll_recursion_context(_parentctx)?;
 
 		Ok(_localctx)
 	}

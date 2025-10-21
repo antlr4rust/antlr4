@@ -14,6 +14,7 @@ use <lexerName; format="lower">::<lexerName>;
 mod <parserName; format="lower">;
 use <parserName; format="lower">::<parserName>;
 use <parserName; format="lower">::<grammarName>ParserContextType;
+use antlr4rust::errors::ANTLRError;
 <endif>
 <if(useListener)>
 mod <grammarName; format="lower">baselistener;
@@ -77,8 +78,18 @@ impl\<'input> ParseTreeListener\<'_, <grammarName>ParserContextType> for TreeSha
 
     fn visit_error_node(&mut self, _node: &LeafNode\<'_, <grammarName>ParserContextType, IsError>) {}
 
-    fn enter_every_rule(&mut self, _ctx: &\<<grammarName>ParserContextType as ParserNodeType>::Type) {}
+    fn enter_every_rule(
+        &mut self,
+        _ctx: &\<<grammarName>ParserContextType as ParserNodeType>::Type,
+    ) -> Result\<(), ANTLRError> {
+        Ok(())
+    }
 
-    fn exit_every_rule(&mut self, _ctx: &\<<grammarName>ParserContextType as ParserNodeType>::Type) {}
+    fn exit_every_rule(
+        &mut self,
+        _ctx: &\<<grammarName>ParserContextType as ParserNodeType>::Type,
+    ) -> Result\<(), ANTLRError> {
+        Ok(())
+    }
 }
 <endif>

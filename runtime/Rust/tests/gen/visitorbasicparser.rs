@@ -88,7 +88,7 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -218,13 +218,15 @@ ph:PhantomData<&'input str>
 impl<'input> VisitorBasicParserContext<'input> for SContext<'input>{}
 
 impl<'input,'a> Listenable<dyn VisitorBasicListener<'input> + 'a> for SContext<'input>{
-		fn enter(&self,listener: &mut (dyn VisitorBasicListener<'input> + 'a)) {
-			listener.enter_every_rule(self);
+		fn enter(&self,listener: &mut (dyn VisitorBasicListener<'input> + 'a)) -> Result<(), ANTLRError> {
+			listener.enter_every_rule(self)?;
 			listener.enter_s(self);
+			Ok(())
 		}
-		fn exit(&self,listener: &mut (dyn VisitorBasicListener<'input> + 'a)) {
+		fn exit(&self,listener: &mut (dyn VisitorBasicListener<'input> + 'a)) -> Result<(), ANTLRError> {
 			listener.exit_s(self);
-			listener.exit_every_rule(self);
+			listener.exit_every_rule(self)?;
+			Ok(())
 		}
 }
 
@@ -283,8 +285,8 @@ where
         let mut _localctx: Rc<SContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
-			//recog.base.enter_outer_alt(_localctx.clone(), 1);
-			recog.base.enter_outer_alt(None, 1);
+			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+			recog.base.enter_outer_alt(None, 1)?;
 			{
 			recog.base.set_state(2);
 			recog.base.match_token(VisitorBasic_A,&mut recog.err_handler)?;
@@ -304,7 +306,7 @@ where
 				recog.err_handler.recover(&mut recog.base, re)?;
 			}
 		}
-		recog.base.exit_rule();
+		recog.base.exit_rule()?;
 
 		Ok(_localctx)
 	}

@@ -176,11 +176,11 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
 
         let mut token = self.base.tokens[i as usize].borrow();
         while token.get_channel() != channel {
+            i += direction;
             if token.get_token_type() == EOF || i < 0 {
                 return i;
             }
 
-            i += direction;
             self.sync(i);
             token = self.base.tokens[i as usize].borrow();
         }

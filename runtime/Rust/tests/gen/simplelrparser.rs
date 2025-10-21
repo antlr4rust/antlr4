@@ -87,7 +87,7 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -231,12 +231,14 @@ ph:PhantomData<&'input str>
 impl<'input> SimpleLRParserContext<'input> for SContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SimpleLRListener<'input> + 'a> for SContext<'input>{
-		fn enter(&self,listener: &mut (dyn SimpleLRListener<'input> + 'a)) {
-			listener.enter_every_rule(self);
+		fn enter(&self,listener: &mut (dyn SimpleLRListener<'input> + 'a)) -> Result<(), ANTLRError> {
+			listener.enter_every_rule(self)?;
 			listener.enter_s(self);
-		}fn exit(&self,listener: &mut (dyn SimpleLRListener<'input> + 'a)) {
+			Ok(())
+		}fn exit(&self,listener: &mut (dyn SimpleLRListener<'input> + 'a)) -> Result<(), ANTLRError> {
 			listener.exit_s(self);
-			listener.exit_every_rule(self);
+			listener.exit_every_rule(self)?;
+			Ok(())
 		}
 }
 
@@ -282,8 +284,8 @@ where
         let mut _localctx: Rc<SContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
-			//recog.base.enter_outer_alt(_localctx.clone(), 1);
-			recog.base.enter_outer_alt(None, 1);
+			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+			recog.base.enter_outer_alt(None, 1)?;
 			{
 			/*InvokeRule a*/
 			recog.base.set_state(4);
@@ -304,7 +306,7 @@ where
 				recog.err_handler.recover(&mut recog.base, re)?;
 			}
 		}
-		recog.base.exit_rule();
+		recog.base.exit_rule()?;
 
 		Ok(_localctx)
 	}
@@ -323,12 +325,14 @@ ph:PhantomData<&'input str>
 impl<'input> SimpleLRParserContext<'input> for AContext<'input>{}
 
 impl<'input,'a> Listenable<dyn SimpleLRListener<'input> + 'a> for AContext<'input>{
-		fn enter(&self,listener: &mut (dyn SimpleLRListener<'input> + 'a)) {
-			listener.enter_every_rule(self);
+		fn enter(&self,listener: &mut (dyn SimpleLRListener<'input> + 'a)) -> Result<(), ANTLRError> {
+			listener.enter_every_rule(self)?;
 			listener.enter_a(self);
-		}fn exit(&self,listener: &mut (dyn SimpleLRListener<'input> + 'a)) {
+			Ok(())
+		}fn exit(&self,listener: &mut (dyn SimpleLRListener<'input> + 'a)) -> Result<(), ANTLRError> {
 			listener.exit_a(self);
-			listener.exit_every_rule(self);
+			listener.exit_every_rule(self)?;
+			Ok(())
 		}
 }
 
@@ -387,8 +391,8 @@ where
 		let _startState = 2;
 		let result: Result<(), ANTLRError> = (|| {
 			let mut _alt: i32;
-			//recog.base.enter_outer_alt(_localctx.clone(), 1);
-			recog.base.enter_outer_alt(None, 1);
+			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+			recog.base.enter_outer_alt(None, 1)?;
 			{
 			{
 			recog.base.set_state(7);
@@ -402,13 +406,13 @@ where
 			_alt = recog.interpreter.adaptive_predict(0,&mut recog.base)?;
 			while { _alt!=2 && _alt!=INVALID_ALT } {
 				if _alt==1 {
-					recog.trigger_exit_rule_event();
+					recog.trigger_exit_rule_event()?;
 					_prevctx = _localctx.clone();
 					{
 					{
 					/*recRuleAltStartAction*/
 					let mut tmp = AContextExt::new(_parentctx.clone(), _parentState);
-					recog.push_new_recursion_context(tmp.clone(), _startState, RULE_a);
+					recog.push_new_recursion_context(tmp.clone(), _startState, RULE_a)?;
 					_localctx = tmp;
 					recog.base.set_state(9);
 					if !({let _localctx = Some(_localctx.clone());
@@ -436,7 +440,7 @@ where
 			recog.err_handler.report_error(&mut recog.base, re);
 	        recog.err_handler.recover(&mut recog.base, re)?;}
 		}
-		recog.base.unroll_recursion_context(_parentctx);
+		recog.base.unroll_recursion_context(_parentctx)?;
 
 		Ok(_localctx)
 	}

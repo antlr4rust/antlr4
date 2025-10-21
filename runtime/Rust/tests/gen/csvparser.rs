@@ -97,7 +97,7 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -227,13 +227,15 @@ ph:PhantomData<&'input str>
 impl<'input> CSVParserContext<'input> for CsvFileContext<'input>{}
 
 impl<'input,'a> Listenable<dyn CSVListener<'input> + 'a> for CsvFileContext<'input>{
-		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
-			listener.enter_every_rule(self);
+		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) -> Result<(), ANTLRError> {
+			listener.enter_every_rule(self)?;
 			listener.enter_csvFile(self);
+			Ok(())
 		}
-		fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+		fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) -> Result<(), ANTLRError> {
 			listener.exit_csvFile(self);
-			listener.exit_every_rule(self);
+			listener.exit_every_rule(self)?;
+			Ok(())
 		}
 }
 
@@ -292,8 +294,8 @@ where
 		let mut _la: i32 = -1;
 		let result: Result<(), ANTLRError> = (|| {
 
-			//recog.base.enter_outer_alt(_localctx.clone(), 1);
-			recog.base.enter_outer_alt(None, 1);
+			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+			recog.base.enter_outer_alt(None, 1)?;
 			{
 			/*InvokeRule hdr*/
 			recog.base.set_state(8);
@@ -328,7 +330,7 @@ where
 				recog.err_handler.recover(&mut recog.base, re)?;
 			}
 		}
-		recog.base.exit_rule();
+		recog.base.exit_rule()?;
 
 		Ok(_localctx)
 	}
@@ -347,13 +349,15 @@ ph:PhantomData<&'input str>
 impl<'input> CSVParserContext<'input> for HdrContext<'input>{}
 
 impl<'input,'a> Listenable<dyn CSVListener<'input> + 'a> for HdrContext<'input>{
-		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
-			listener.enter_every_rule(self);
+		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) -> Result<(), ANTLRError> {
+			listener.enter_every_rule(self)?;
 			listener.enter_hdr(self);
+			Ok(())
 		}
-		fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+		fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) -> Result<(), ANTLRError> {
 			listener.exit_hdr(self);
-			listener.exit_every_rule(self);
+			listener.exit_every_rule(self)?;
+			Ok(())
 		}
 }
 
@@ -405,8 +409,8 @@ where
         let mut _localctx: Rc<HdrContextAll> = _localctx;
 		let result: Result<(), ANTLRError> = (|| {
 
-			//recog.base.enter_outer_alt(_localctx.clone(), 1);
-			recog.base.enter_outer_alt(None, 1);
+			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+			recog.base.enter_outer_alt(None, 1)?;
 			{
 			/*InvokeRule row*/
 			recog.base.set_state(14);
@@ -424,7 +428,7 @@ where
 				recog.err_handler.recover(&mut recog.base, re)?;
 			}
 		}
-		recog.base.exit_rule();
+		recog.base.exit_rule()?;
 
 		Ok(_localctx)
 	}
@@ -443,13 +447,15 @@ ph:PhantomData<&'input str>
 impl<'input> CSVParserContext<'input> for RowContext<'input>{}
 
 impl<'input,'a> Listenable<dyn CSVListener<'input> + 'a> for RowContext<'input>{
-		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
-			listener.enter_every_rule(self);
+		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) -> Result<(), ANTLRError> {
+			listener.enter_every_rule(self)?;
 			listener.enter_row(self);
+			Ok(())
 		}
-		fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+		fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) -> Result<(), ANTLRError> {
 			listener.exit_row(self);
-			listener.exit_every_rule(self);
+			listener.exit_every_rule(self)?;
+			Ok(())
 		}
 }
 
@@ -505,8 +511,8 @@ where
 		let mut _la: i32 = -1;
 		let result: Result<(), ANTLRError> = (|| {
 
-			//recog.base.enter_outer_alt(_localctx.clone(), 1);
-			recog.base.enter_outer_alt(None, 1);
+			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+			recog.base.enter_outer_alt(None, 1)?;
 			{
 			/*InvokeRule field*/
 			recog.base.set_state(16);
@@ -557,7 +563,7 @@ where
 				recog.err_handler.recover(&mut recog.base, re)?;
 			}
 		}
-		recog.base.exit_rule();
+		recog.base.exit_rule()?;
 
 		Ok(_localctx)
 	}
@@ -576,13 +582,15 @@ ph:PhantomData<&'input str>
 impl<'input> CSVParserContext<'input> for FieldContext<'input>{}
 
 impl<'input,'a> Listenable<dyn CSVListener<'input> + 'a> for FieldContext<'input>{
-		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
-			listener.enter_every_rule(self);
+		fn enter(&self,listener: &mut (dyn CSVListener<'input> + 'a)) -> Result<(), ANTLRError> {
+			listener.enter_every_rule(self)?;
 			listener.enter_field(self);
+			Ok(())
 		}
-		fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) {
+		fn exit(&self,listener: &mut (dyn CSVListener<'input> + 'a)) -> Result<(), ANTLRError> {
 			listener.exit_field(self);
-			listener.exit_every_rule(self);
+			listener.exit_every_rule(self)?;
+			Ok(())
 		}
 }
 
@@ -646,8 +654,8 @@ where
 			match recog.base.input.la(1) {
 			CSV_TEXT 
 				=> {
-					//recog.base.enter_outer_alt(_localctx.clone(), 1);
-					recog.base.enter_outer_alt(None, 1);
+					//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
+					recog.base.enter_outer_alt(None, 1)?;
 					{
 					recog.base.set_state(29);
 					recog.base.match_token(CSV_TEXT,&mut recog.err_handler)?;
@@ -657,8 +665,8 @@ where
 
 			CSV_STRING 
 				=> {
-					//recog.base.enter_outer_alt(_localctx.clone(), 2);
-					recog.base.enter_outer_alt(None, 2);
+					//recog.base.enter_outer_alt(_localctx.clone(), 2)?;
+					recog.base.enter_outer_alt(None, 2)?;
 					{
 					recog.base.set_state(30);
 					recog.base.match_token(CSV_STRING,&mut recog.err_handler)?;
@@ -668,8 +676,8 @@ where
 
 			CSV_T__0 |CSV_T__1 |CSV_T__2 
 				=> {
-					//recog.base.enter_outer_alt(_localctx.clone(), 3);
-					recog.base.enter_outer_alt(None, 3);
+					//recog.base.enter_outer_alt(_localctx.clone(), 3)?;
+					recog.base.enter_outer_alt(None, 3)?;
 					{
 					}
 				}
@@ -687,7 +695,7 @@ where
 				recog.err_handler.recover(&mut recog.base, re)?;
 			}
 		}
-		recog.base.exit_rule();
+		recog.base.exit_rule()?;
 
 		Ok(_localctx)
 	}

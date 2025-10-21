@@ -5,7 +5,6 @@ use crate::char_stream::{CharStream, InputData};
 use crate::int_stream::IntStream;
 use std::ops::Deref;
 
-
 /// Default rust target input stream.
 ///
 /// Since Rust uses UTF-8 format which does not support indexing by char,
