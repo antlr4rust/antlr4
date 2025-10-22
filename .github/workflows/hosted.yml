@@ -6,9 +6,9 @@ concurrency:
 
 on:
   push:
-    branches: [ master, dev, hostedci ]
+    branches: [ master, dev, rust-target, hostedci ]
   pull_request:
-    branches: [ master, dev ]
+    branches: [ master, dev, rust-target ]
 
 permissions:
   contents: read
