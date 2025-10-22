@@ -5,6 +5,11 @@
 
 #pragma once
 
+#include <unordered_map>
+#include <vector>
+#include <cstddef>
+#include "antlr4-common.h"
+#include "atn/ATNState.h"
 #include "support/BitSet.h"
 
 namespace antlr4 {
@@ -425,7 +430,7 @@ namespace atn {
     /// cref="ATNConfig#alt alt"/>
     /// </pre>
     /// </summary>
-    static std::map<ATNState*, antlrcpp::BitSet> getStateToAltMap(ATNConfigSet *configs);
+    static std::unordered_map<ATNState*, antlrcpp::BitSet> getStateToAltMap(ATNConfigSet *configs);
 
     static bool hasStateAssociatedWithOneAlt(ATNConfigSet *configs);
 

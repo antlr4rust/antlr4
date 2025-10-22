@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "antlr4-common.h"
+#include "atn/ATNStateType.h"
 #include "atn/ATNState.h"
 
 namespace antlr4 {
@@ -12,13 +14,14 @@ namespace atn {
 
   class ANTLR4CPP_PUBLIC RuleStartState final : public ATNState {
   public:
-    RuleStartState();
+    static bool is(const ATNState &atnState) { return atnState.getStateType() == ATNStateType::RULE_START; }
+
+    static bool is(const ATNState *atnState) { return atnState != nullptr && is(*atnState); }
 
     RuleStopState *stopState = nullptr;
     bool isLeftRecursiveRule = false;
 
-    virtual size_t getStateType() override;
-
+    RuleStartState() : ATNState(ATNStateType::RULE_START) {}
   };
 
 } // namespace atn

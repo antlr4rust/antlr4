@@ -12,12 +12,13 @@
 # as the EOF token for every call to {@link #nextToken} after the end of the
 # list is reached. Otherwise, an EOF token will be created.</p>
 #
-from antlr4.CommonTokenFactory import CommonTokenFactory
-from antlr4.Lexer import TokenSource
-from antlr4.Token import Token
+from .CommonTokenFactory import CommonTokenFactory
+from .Lexer import TokenSource
+from .Token import Token
 
 
 class ListTokenSource(TokenSource):
+    __slots__ = ('tokens', 'sourceName', 'pos', 'eofToken', '_factory')
 
     # Constructs a new {@link ListTokenSource} instance from the specified
     # collection of {@link Token} objects and source name.

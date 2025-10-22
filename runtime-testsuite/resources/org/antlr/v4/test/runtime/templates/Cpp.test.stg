@@ -47,7 +47,9 @@ TokenStartColumnEquals(i) ::= "tokenStartCharPositionInLine == <i>"
 
 ImportListener(X) ::= ""
 
-GetExpectedTokenNames() ::= "getExpectedTokens().toString(_tokenNames)"
+GetExpectedTokenNames() ::= "getExpectedTokens().toString(getVocabulary())"
+
+ImportRuleInvocationStack() ::= ""
 
 RuleInvocationStack() ::= "Arrays::listToString(getRuleInvocationStack(), \", \")"
 
@@ -92,8 +94,11 @@ protected:
 public:
   virtual std::unique_ptr\<antlr4::Token> nextToken() override {
     if (dynamic_cast\<PositionAdjustingLexerATNSimulator *>(_interpreter) == nullptr) {
+      const auto &atn = _interpreter->atn;
+      auto &decisionToDFA = dynamic_cast\<antlr4::atn::LexerATNSimulator*>(_interpreter)->_decisionToDFA;
+      auto &sharedContextCache = dynamic_cast\<antlr4::atn::LexerATNSimulator*>(_interpreter)->getSharedContextCache();
       delete _interpreter;
-      _interpreter = new PositionAdjustingLexerATNSimulator(this, _atn, _decisionToDFA, _sharedContextCache);
+      _interpreter = new PositionAdjustingLexerATNSimulator(this, atn, decisionToDFA, sharedContextCache);
     }
 
     return antlr4::Lexer::nextToken();
@@ -255,7 +260,7 @@ void foo() {
 >>
 
 Declare_foo() ::= <<void foo() {
-	std::cout \<\< "foo";
+	std::cout \<\< "foo" \<\< std::endl;
 }
 >>
 
@@ -271,5 +276,8 @@ bool pred(bool v) {
 Invoke_pred(v) ::= <<pred(<v>)>>
 
 ContextRuleFunction(ctx, rule) ::= "<ctx>-><rule>"
+ContextListFunction(ctx, rule) ::= "<ctx>-><rule>()"
 StringType() ::= "std::string"
-ContextMember(ctx, subctx, member) ::= "<ctx>-><subctx>-><member>"
+ContextMember(ctx, member) ::= "<ctx>-><member>"
+SubContextLocal(ctx, subctx, local) ::= "<ctx>-><subctx>-><local>"
+SubContextMember(ctx, subctx, member) ::= "<ctx>-><subctx>-><member>"

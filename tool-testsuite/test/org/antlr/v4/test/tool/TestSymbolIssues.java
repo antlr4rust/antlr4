@@ -8,14 +8,15 @@ package org.antlr.v4.test.tool;
 
 import org.antlr.v4.tool.ErrorType;
 import org.antlr.v4.tool.LexerGrammar;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.assertEquals;
+import static org.antlr.v4.test.tool.ToolTestUtils.realElements;
+import static org.antlr.v4.test.tool.ToolTestUtils.testErrors;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /** */
-public class TestSymbolIssues extends BaseJavaToolTest {
-    static String[] A = {
+public class TestSymbolIssues {
+    final static String[] A = {
         // INPUT
         "grammar A;\n" +
         "options { opt='sss'; k=3; }\n" +
@@ -43,7 +44,7 @@ public class TestSymbolIssues extends BaseJavaToolTest {
 			"error(" + ErrorType.MISSING_RULE_ARGS.code + "): A.g4:10:31: missing argument(s) on rule reference: a\n"
     };
 
-    static String[] B = {
+	final static String[] B = {
         // INPUT
         "parser grammar B;\n" +
         "tokens { ID, FOO, X, Y }\n" +
@@ -61,7 +62,7 @@ public class TestSymbolIssues extends BaseJavaToolTest {
 		"error(" + ErrorType.IMPLICIT_STRING_DEFINITION.code + "): B.g4:4:20: cannot create implicit token for string literal in non-combined grammar: '.'\n"
     };
 
-    static String[] D = {
+	final static String[] D = {
         // INPUT
         "parser grammar D;\n" +
 		"tokens{ID}\n" +
@@ -78,7 +79,7 @@ public class TestSymbolIssues extends BaseJavaToolTest {
 		"error(" + ErrorType.RETVAL_CONFLICTS_WITH_ARG.code + "): D.g4:6:22: return value i conflicts with parameter with same name\n"
     };
 
-	static String[] E = {
+	final static String[] E = {
 		// INPUT
 		"grammar E;\n" +
 		"tokens {\n" +
@@ -92,7 +93,7 @@ public class TestSymbolIssues extends BaseJavaToolTest {
 		"warning(" + ErrorType.TOKEN_NAME_REASSIGNMENT.code + "): E.g4:3:4: token name A is already defined\n"
 	};
 
-	static String[] F = {
+	final static String[] F = {
 		// INPUT
 		"lexer grammar F;\n" +
 		"A: 'a';\n" +
@@ -106,17 +107,11 @@ public class TestSymbolIssues extends BaseJavaToolTest {
 		"error(" + ErrorType.MODE_CONFLICTS_WITH_TOKEN.code + "): F.g4:3:0: mode M1 conflicts with token with same name\n"
 	};
 
-	@Before
-	@Override
-	public void testSetUp() throws Exception {
-		super.testSetUp();
-	}
-
-    @Test public void testA() { super.testErrors(A, false); }
-    @Test public void testB() { super.testErrors(B, false); }
-	@Test public void testD() { super.testErrors(D, false); }
-	@Test public void testE() { super.testErrors(E, false); }
-	@Test public void testF() { super.testErrors(F, false); }
+    @Test public void testA() { testErrors(A, false); }
+    @Test public void testB() { testErrors(B, false); }
+	@Test public void testD() { testErrors(D, false); }
+	@Test public void testE() { testErrors(E, false); }
+	@Test public void testF() { testErrors(F, false); }
 
 	@Test public void testStringLiteralRedefs() throws Exception {
 		String grammar =
@@ -392,13 +387,48 @@ public class TestSymbolIssues extends BaseJavaToolTest {
 				"TOKEN_RANGE_WITHOUT_COLLISION: '_' | [a-zA-Z];\n" +
 				"TOKEN_RANGE_WITH_ESCAPED_CHARS: [\\n-\\r] | '\\n'..'\\r';",
 
-				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4:2:18: chars 'a'..'f' used multiple times in set [aa-f]\n" +
-				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4:3:18: chars 'D'..'J' used multiple times in set [A-FD-J]\n" +
-				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4:4:13: chars 'O'..'V' used multiple times in set 'Z' | 'K'..'R' | 'O'..'V'\n" +
+				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4:2:18: chars a-f used multiple times in set [aa-f]\n" +
+				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4:3:18: chars D-J used multiple times in set [A-FD-J]\n" +
+				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4:4:38: chars O-V used multiple times in set 'Z' | 'K'..'R' | 'O'..'V'\n" +
 				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4::: chars 'g' used multiple times in set 'g'..'l'\n" +
 				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4::: chars '\\n' used multiple times in set '\\n'..'\\r'\n"
 		};
 
+		testErrors(test, false);
+	}
+
+	@Test public void testCaseInsensitiveCharsCollision() {
+		String[] test = {
+				"lexer grammar L;\n" +
+				"options { caseInsensitive = true; }\n" +
+				"TOKEN_RANGE:      [a-fA-F0-9];\n" +
+				"TOKEN_RANGE_2:    'g'..'l' | 'G'..'L';\n" +
+				"TOKEN_RANGE_3:    'm'..'q' | [M-Q];\n",
+
+				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4:3:18: chars a-f used multiple times in set [a-fA-F0-9]\n" +
+				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4:4:32: chars g-l used multiple times in set 'g'..'l' | 'G'..'L'\n" +
+				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4::: chars 'M' used multiple times in set 'M'..'Q' | 'm'..'q'\n" +
+				"warning(" + ErrorType.CHARACTERS_COLLISION_IN_SET.code + "): L.g4::: chars 'm' used multiple times in set 'M'..'Q' | 'm'..'q'\n"
+		};
+
+		testErrors(test, false);
+	}
+
+	@Test public void testCaseInsensitiveWithUnicodeRanges() {
+		String[] test = {
+				"lexer grammar L;\n" +
+				"options { caseInsensitive=true; }\n" +
+				"FullWidthLetter\n" +
+				"    : '\\u00c0'..'\\u00d6' // ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ\n" +
+				"    | '\\u00f8'..'\\u00ff' // øùúûüýþÿ\n" +
+				"    ;",
+
+				""
+		};
+
+		// Don't transform øùúûüýþÿ to uppercase
+		// ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸ
+		// because of different length of lower and UPPER range
 		testErrors(test, false);
 	}
 
@@ -432,6 +462,95 @@ public class TestSymbolIssues extends BaseJavaToolTest {
 				"warning(" + ErrorType.TOKEN_UNREACHABLE.code + "): Test.g4:12:0: One of the token TOKEN10 values unreachable. \\r\\n is always overlapped by token TOKEN10\n" +
 				"warning(" + ErrorType.TOKEN_UNREACHABLE.code + "): Test.g4:13:0: One of the token TOKEN11 values unreachable. \\r\\n is always overlapped by token TOKEN10\n" +
 				"warning(" + ErrorType.TOKEN_UNREACHABLE.code + "): Test.g4:13:0: One of the token TOKEN11 values unreachable. \\r\\n is always overlapped by token TOKEN10\n"
+		};
+
+		testErrors(test, false);
+	}
+
+	@Test public void testIllegalCaseInsensitiveOptionValue() {
+		String[] test = {
+				"lexer grammar L;\n" +
+				"options { caseInsensitive = badValue; }\n" +
+				"TOKEN_1 options { caseInsensitive = badValue; } : [A-F]+;\n",
+
+				"warning(" + ErrorType.ILLEGAL_OPTION_VALUE.code + "): L.g4:2:28: unsupported option value caseInsensitive=badValue\n" +
+				"warning(" + ErrorType.ILLEGAL_OPTION_VALUE.code + "): L.g4:3:36: unsupported option value caseInsensitive=badValue\n"
+		};
+
+		testErrors(test, false);
+	}
+
+	@Test public void testRedundantCaseInsensitiveLexerRuleOption() {
+		String[] test = {
+				"lexer grammar L;\n" +
+				"options { caseInsensitive = true; }\n" +
+				"TOKEN options { caseInsensitive = true; } : [A-F]+;\n",
+
+				"warning(" + ErrorType.REDUNDANT_CASE_INSENSITIVE_LEXER_RULE_OPTION.code + "): L.g4:3:16: caseInsensitive lexer rule option is redundant because its value equals to global value (true)\n"
+		};
+		testErrors(test, false);
+
+		String[] test2 = {
+				"lexer grammar L;\n" +
+				"options { caseInsensitive = false; }\n" +
+				"TOKEN options { caseInsensitive = false; } : [A-F]+;\n",
+
+				"warning(" + ErrorType.REDUNDANT_CASE_INSENSITIVE_LEXER_RULE_OPTION.code + "): L.g4:3:16: caseInsensitive lexer rule option is redundant because its value equals to global value (false)\n"
+		};
+		testErrors(test2, false);
+	}
+
+	@Test public void testCaseInsensitiveOptionInParseRule() {
+		String[] test = {
+				"grammar G;\n" +
+				"root options { caseInsensitive=true; } : 'token';",
+
+				"warning(" + ErrorType.ILLEGAL_OPTION.code + "): G.g4:2:15: unsupported option caseInsensitive\n"
+		};
+
+		testErrors(test, false);
+	}
+
+	@Test public void testNotImpliedCharacters() {
+		String[] test = {
+				"lexer grammar Test;\n" +
+				"TOKEN1: 'A'..'g';\n" +
+				"TOKEN2: [C-m];\n" +
+				"TOKEN3: [А-я]; // OK since range does not contain intermediate characters\n" +
+				"TOKEN4: '\\u0100'..'\\u1fff'; // OK since range borders are unicode characters",
+
+				"warning(" + ErrorType.RANGE_PROBABLY_CONTAINS_NOT_IMPLIED_CHARACTERS.code + "): Test.g4:2:8: Range A..g probably contains not implied characters [\\]^_`. Both bounds should be defined in lower or UPPER case\n" +
+				"warning(" + ErrorType.RANGE_PROBABLY_CONTAINS_NOT_IMPLIED_CHARACTERS.code + "): Test.g4:3:8: Range C..m probably contains not implied characters [\\]^_`. Both bounds should be defined in lower or UPPER case\n"
+		};
+
+		testErrors(test, false);
+	}
+
+	@Test public void testNotImpliedCharactersWithCaseInsensitiveOption() {
+		String[] test = {
+				"lexer grammar Test;\n" +
+				"options { caseInsensitive=true; }\n" +
+				"TOKEN: [A-z];",
+
+				"warning(" + ErrorType.RANGE_PROBABLY_CONTAINS_NOT_IMPLIED_CHARACTERS.code + "): Test.g4:3:7: Range A..z probably contains not implied characters [\\]^_`. Both bounds should be defined in lower or UPPER case\n"
+		};
+
+		testErrors(test, false);
+	}
+
+	// ISSUE: https://github.com/antlr/antlr4/issues/2788
+	@Test public void testUndefinedLabel() {
+		String[] test = {
+				"grammar Test;" +
+				"root\n" +
+				"    : root a\n" +
+				"    | b [error]\n" +
+				"    ;\n" +
+				"\n" +
+				"a: 'a';\n" +
+				"b: 'b';",
+
+				"error(" + ErrorType.INTERNAL_ERROR.code + "): Test.g4:2:30: internal error: Rule error undefined \n"
 		};
 
 		testErrors(test, false);

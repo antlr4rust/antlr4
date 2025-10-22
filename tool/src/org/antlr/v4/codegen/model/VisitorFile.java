@@ -12,14 +12,11 @@ import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.ActionAST;
 import org.antlr.v4.tool.ast.AltAST;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class VisitorFile extends OutputFile {
 	public String genPackage; // from -package cmd-line
+	public boolean genLean; // from -split-parser cmd-line
 	public String accessLevel; // from -DaccessLevel cmd-line
 	public String exportMacro; // from -DexportMacro cmd-line
 	public String grammarName;
@@ -41,7 +38,7 @@ public class VisitorFile extends OutputFile {
 	public VisitorFile(OutputModelFactory factory, String fileName) {
 		super(factory, fileName);
 		Grammar g = factory.getGrammar();
-		namedActions = buildNamedActions(g);
+		namedActions = buildNamedActions(g, ast -> ast.getScope()==null);
 		parserName = g.getRecognizerName();
 		grammarName = g.name;
 		for (Rule r : g.rules.values()) {
@@ -58,8 +55,10 @@ public class VisitorFile extends OutputFile {
 			}
 		}
 		ActionAST ast = g.namedActions.get("header");
-		if ( ast!=null ) header = new Action(factory, ast);
+		if ( ast!=null && ast.getScope()==null)
+			header = new Action(factory, ast);
 		genPackage = g.tool.genPackage;
+		genLean = g.tool.gen_split_parser;
 		accessLevel = g.getOptionString("accessLevel");
 		exportMacro = g.getOptionString("exportMacro");
 	}

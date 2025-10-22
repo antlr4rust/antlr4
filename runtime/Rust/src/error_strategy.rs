@@ -145,7 +145,7 @@ pub struct DefaultErrorStrategy<'input, Ctx: ParserNodeType<'input>> {
     error_recovery_mode: bool,
     last_error_index: isize,
     last_error_states: Option<IntervalSet>,
-    next_tokens_state: isize,
+    next_tokens_state: i32,
     next_tokens_ctx: Option<Rc<Ctx::Type>>,
 }
 
@@ -282,7 +282,7 @@ impl<'input, Ctx: ParserNodeType<'input>> DefaultErrorStrategy<'input, Ctx> {
             .unwrap()
             .get_target();
         let expect_at_ll2 = atn.next_tokens_in_ctx::<Ctx>(
-            atn.states[next].as_ref(),
+            atn.states[next as usize].as_ref(),
             Some(recognizer.get_parser_rule_context().deref()),
         );
         if expect_at_ll2.contains(current_token) {
@@ -314,7 +314,7 @@ impl<'input, Ctx: ParserNodeType<'input>> DefaultErrorStrategy<'input, Ctx> {
         recognizer: &mut T,
     ) -> <T::TF as TokenFactory<'input>>::Tok {
         let expected = self.get_expected_tokens(recognizer);
-        let expected_token_type = expected.get_min().unwrap_or(TOKEN_INVALID_TYPE);
+        let expected_token_type = expected.get_min().unwrap_or(TOKEN_INVALID_TYPE) as i32;
         let token_text = if expected_token_type == TOKEN_EOF {
             "<missing EOF>".to_owned()
         } else {
@@ -322,7 +322,7 @@ impl<'input, Ctx: ParserNodeType<'input>> DefaultErrorStrategy<'input, Ctx> {
                 "<missing {}>",
                 recognizer
                     .get_vocabulary()
-                    .get_display_name(expected_token_type)
+                    .get_display_name(expected_token_type as i32)
             )
         };
         let token_text = <T::TF as TokenFactory<'input>>::Data::from_text(&token_text);
@@ -378,7 +378,7 @@ impl<'input, Ctx: ParserNodeType<'input>> DefaultErrorStrategy<'input, Ctx> {
             let invoking_state = atn.states[c.get_invoking_state() as usize].as_ref();
             let tr = invoking_state.get_transitions().first().unwrap().as_ref();
             let tr = tr.cast::<RuleTransition>();
-            let follow = atn.next_tokens(atn.states[tr.follow_state].as_ref());
+            let follow = atn.next_tokens(atn.states[tr.follow_state as usize].as_ref());
             recover_set.add_set(follow);
             ctx = c.get_parent_ctx();
         }

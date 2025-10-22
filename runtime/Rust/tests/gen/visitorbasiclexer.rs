@@ -1,4 +1,4 @@
-// Generated from VisitorBasic.g4 by ANTLR 4.8
+// Generated from VisitorBasic.g4 by ANTLR 4.13.2
 #![allow(dead_code)]
 #![allow(nonstandard_style)]
 #![allow(unused_imports)]
@@ -6,6 +6,7 @@
 use antlr4rust::atn::ATN;
 use antlr4rust::char_stream::CharStream;
 use antlr4rust::int_stream::IntStream;
+use antlr4rust::tree::ParseTree;
 use antlr4rust::lexer::{BaseLexer, Lexer, LexerRecog};
 use antlr4rust::atn_deserializer::ATNDeserializer;
 use antlr4rust::dfa::DFA;
@@ -29,7 +30,7 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
 
-	pub const A:isize=1;
+	pub const A:i32=1;
 	pub const channelNames: [&'static str;0+2] = [
 		"DEFAULT_TOKEN_CHANNEL", "HIDDEN"
 	];
@@ -98,7 +99,7 @@ impl<'input, Input:CharStream<From<'input> >> VisitorBasicLexer<'input,Input>{
     }
 
 	pub fn new_with_token_factory(input: Input, tf: &'input LocalTokenFactory<'input>) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+		antlr4rust::recognizer::check_version("0","4");
     	Self {
 			base: BaseLexer::new_base_lexer(
 				input,
@@ -165,31 +166,31 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for VisitorBas
     fn get_token_factory(&self) -> &'input Self::TF {
         self.base.get_token_factory()
     }
+
+    fn get_dfa_string(&self) -> String {
+        self.base.get_dfa_string()
+    }
 }
 
 
-
-	lazy_static! {
+		lazy_static!{
 	    static ref _ATN: Arc<ATN> =
-	        Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
+	        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
 	    static ref _decision_to_DFA: Arc<Vec<antlr4rust::RwLock<DFA>>> = {
 	        let mut dfa = Vec::new();
-	        let size = _ATN.decision_to_state.len();
+	        let size = _ATN.decision_to_state.len() as i32;
 	        for i in 0..size {
 	            dfa.push(DFA::new(
 	                _ATN.clone(),
 	                _ATN.get_decision_state(i),
-	                i as isize,
+	                i,
 	            ).into())
 	        }
 	        Arc::new(dfa)
 	    };
+		static ref _serializedATN: Vec<i32> = vec![
+			4, 0, 1, 5, 6, -1, 2, 0, 7, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 4, 
+			0, 1, 1, 0, 0, 0, 1, 3, 1, 0, 0, 0, 3, 4, 5, 65, 0, 0, 4, 2, 1, 0, 0, 
+			0, 1, 0, 0
+		];
 	}
-
-
-
-	const _serializedATN:&'static str =
-		"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x02\
-		\x03\x07\x08\x01\x04\x02\x09\x02\x03\x02\x03\x02\x02\x02\x03\x03\x03\x03\
-		\x02\x02\x02\x06\x02\x03\x03\x02\x02\x02\x03\x05\x03\x02\x02\x02\x05\x06\
-		\x07\x43\x02\x02\x06\x04\x03\x02\x02\x02\x03\x02\x02";

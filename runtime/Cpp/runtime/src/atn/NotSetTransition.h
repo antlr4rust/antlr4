@@ -5,6 +5,12 @@
 
 #pragma once
 
+#include <string>
+#include <cstddef>
+#include "antlr4-common.h"
+#include "misc/IntervalSet.h"
+#include "atn/TransitionType.h"
+#include "atn/ATNState.h"
 #include "atn/SetTransition.h"
 
 namespace antlr4 {
@@ -12,13 +18,15 @@ namespace atn {
 
   class ANTLR4CPP_PUBLIC NotSetTransition final : public SetTransition {
   public:
-    NotSetTransition(ATNState *target, const misc::IntervalSet &set);
+    static bool is(const Transition &transition) { return transition.getTransitionType() == TransitionType::NOT_SET; }
 
-    virtual SerializationType getSerializationType() const override;
+    static bool is(const Transition *transition) { return transition != nullptr && is(*transition); }
 
-    virtual bool matches(size_t symbol, size_t minVocabSymbol, size_t maxVocabSymbol) const override;
+    NotSetTransition(ATNState *target, misc::IntervalSet set);
 
-    virtual std::string toString() const override;
+    bool matches(size_t symbol, size_t minVocabSymbol, size_t maxVocabSymbol) const override;
+
+    std::string toString() const override;
   };
 
 } // namespace atn

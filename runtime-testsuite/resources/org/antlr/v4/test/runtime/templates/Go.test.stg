@@ -18,7 +18,12 @@ AppendStr(a,b) ::= "<a> + <b>"
 
 Concat(a,b) ::= "<a><b>"
 
-AssertIsList(v) ::= ""
+AssertIsList(v) ::= <<
+// Go will not compile this generated code if the slice vs single value is wrong.
+for i := range localctx.(*ExpressionContext).GetArgs() {
+    _ = localctx.(*ExpressionContext).GetArgs()[i]
+}
+>>
 
 AssignLocal(s, v) ::= "<s> = <v>;"
 
@@ -78,6 +83,8 @@ ImportListener(X) ::= ""
 
 GetExpectedTokenNames() ::= "p.GetExpectedTokens().StringVerbose(p.GetTokenNames(), nil, false)"
 
+ImportRuleInvocationStack() ::= ""
+
 RuleInvocationStack() ::= "antlr.PrintArrayJavaStyle(p.GetRuleInvocationStack(nil))"
 
 LL_EXACT_AMBIG_DETECTION() ::= <<p.Interpreter.SetPredictionMode(antlr.PredictionModeLLExactAmbigDetection);>>
@@ -103,7 +110,7 @@ PositionAdjustingLexerDef() ::= ""
 PositionAdjustingLexer() ::= <<
 func (p *PositionAdjustingLexer) NextToken() antlr.Token {
 	if _, ok := p.Interpreter.(*PositionAdjustingLexerATNSimulator); !ok {
-		p.Interpreter = NewPositionAdjustingLexerATNSimulator(p, lexerAtn, p.Interpreter.DecisionToDFA(), p.Interpreter.SharedContextCache())
+		p.Interpreter = NewPositionAdjustingLexerATNSimulator(p, p.Interpreter.ATN(), p.Interpreter.DecisionToDFA(), p.Interpreter.SharedContextCache())
 		p.Virt = p
 	}
 
@@ -236,7 +243,7 @@ func NewLeafListener() *LeafListener {
 
 func (*LeafListener) ExitA(ctx *AContext) {
 	if ctx.GetChildCount() == 2 {
-		fmt.Printf("%s %s %s", ctx.INT(0).GetSymbol().GetText(), ctx.INT(1).GetSymbol().GetText(), antlr.PrintArrayJavaStyle(antlr.TerminalNodeToStringArray(ctx.AllINT())))
+		fmt.Printf("%s %s %s\n", ctx.INT(0).GetSymbol().GetText(), ctx.INT(1).GetSymbol().GetText(), antlr.PrintArrayJavaStyle(antlr.TerminalNodeToStringArray(ctx.AllINT())))
 	} else {
 		fmt.Println(ctx.ID().GetSymbol())
 	}
@@ -256,7 +263,7 @@ func NewLeafListener() *LeafListener {
 
 func (*LeafListener) ExitA(ctx *AContext) {
 	if ctx.GetChildCount() == 2 {
-		fmt.Printf("%s %s %s", ctx.B(0).GetStart().GetText(), ctx.B(1).GetStart().GetText(), ctx.AllB()[0].GetStart().GetText())
+		fmt.Printf("%s %s %s\n", ctx.B(0).GetStart().GetText(), ctx.B(1).GetStart().GetText(), ctx.AllB()[0].GetStart().GetText())
 	} else {
 		fmt.Println(ctx.B(0).GetStart().GetText())
 	}
@@ -295,7 +302,7 @@ func NewLeafListener() *LeafListener {
 }
 
 func (*LeafListener) ExitCall(ctx *CallContext) {
-	fmt.Printf("%s %s", ctx.E().GetStart().GetText(), ctx.EList().String(nil, nil))
+	fmt.Printf("%s %s\n", ctx.E().GetStart().GetText(), ctx.EList().String(nil, nil))
 }
 
 func (*LeafListener) ExitInt(ctx *IntContext) {
@@ -331,5 +338,8 @@ func pred(v bool) bool {
 
 Invoke_pred(v) ::= <<pred(<v>)>>
 ContextRuleFunction(ctx, rule) ::= "<ctx>.<rule>"
+ContextListFunction(ctx, rule) ::= "<ctx>.<rule>()"
 StringType() ::= "string"
-ContextMember(ctx, subctx, member) ::= "<ctx>.<subctx>.<member; format={cap}>"
+ContextMember(ctx, member) ::= "<ctx>.<member>"
+SubContextLocal(ctx, subctx, local) ::= "<ctx>.<subctx>.<local; format={cap}>"
+SubContextMember(ctx, subctx, member) ::= "<ctx>.<subctx>.<member; format={cap}>"

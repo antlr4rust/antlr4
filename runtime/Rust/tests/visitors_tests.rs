@@ -191,11 +191,11 @@ mod gen {
 
     #[test]
     fn test_visitor_with_return() {
-        struct CalcVisitor(isize);
+        struct CalcVisitor(i32);
 
         impl ParseTreeVisitorCompat<'_> for CalcVisitor {
             type Node = VisitorCalcParserContextType;
-            type Return = isize;
+            type Return = i32;
 
             fn temp_result(&mut self) -> &mut Self::Return {
                 &mut self.0
@@ -273,7 +273,7 @@ mod gen {
 
         impl<'i, T> ParseTreeVisitor<'i, CSVParserContextType> for MyCSVVisitor<'i, T> {
             fn visit_terminal(&mut self, node: &TerminalNode<'i, CSVParserContextType>) {
-                if node.symbol.get_token_type() == csvparser::TEXT {
+                if node.symbol.get_token_type() == csvparser::CSV_TEXT {
                     if let Cow::Borrowed(s) = node.symbol.text {
                         self.0.push(s);
                     }
@@ -333,7 +333,7 @@ mod gen {
                 &mut self,
                 node: &TerminalNode<'i, CSVParserContextType>,
             ) -> Self::Return {
-                if node.symbol.get_token_type() == csvparser::TEXT {
+                if node.symbol.get_token_type() == csvparser::CSV_TEXT {
                     if let Cow::Borrowed(s) = node.symbol.text {
                         return vec![s];
                     }

@@ -3,6 +3,8 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <string>
+#include <cstddef>
 #include "misc/Interval.h"
 #include "Token.h"
 #include "RuleContext.h"
@@ -13,10 +15,7 @@
 using namespace antlr4;
 using namespace antlr4::tree;
 
-TerminalNodeImpl::TerminalNodeImpl(Token *symbol_) : symbol(symbol_) {
-}
-
-Token* TerminalNodeImpl::getSymbol() {
+Token* TerminalNodeImpl::getSymbol() const {
   return symbol;
 }
 
@@ -33,7 +32,7 @@ misc::Interval TerminalNodeImpl::getSourceInterval() {
   return misc::Interval(tokenIndex, tokenIndex);
 }
 
-antlrcpp::Any TerminalNodeImpl::accept(ParseTreeVisitor *visitor) {
+std::any TerminalNodeImpl::accept(ParseTreeVisitor *visitor) {
   return visitor->visitTerminal(this);
 }
 

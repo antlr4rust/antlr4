@@ -10,10 +10,10 @@ use crate::dfa::ScopeExt;
 use crate::token::TOKEN_EOF;
 
 pub trait Vocabulary: Sync + Send + Debug {
-    fn get_max_token_type(&self) -> isize;
-    fn get_literal_name(&self, token_type: isize) -> Option<&str>;
-    fn get_symbolic_name(&self, token_type: isize) -> Option<&str>;
-    fn get_display_name(&self, token_type: isize) -> Cow<'_, str>;
+    fn get_max_token_type(&self) -> i32;
+    fn get_literal_name(&self, token_type: i32) -> Option<&str>;
+    fn get_symbolic_name(&self, token_type: i32) -> Option<&str>;
+    fn get_display_name(&self, token_type: i32) -> Cow<'_, str>;
 }
 
 #[derive(Debug)]
@@ -21,7 +21,7 @@ pub struct VocabularyImpl {
     literal_names: Vec<Option<String>>,
     symbolic_names: Vec<Option<String>>,
     display_names: Vec<Option<String>>,
-    max_token_type: isize,
+    max_token_type: i32,
 }
 
 fn collect_to_string<'b, T: Borrow<str> + 'b>(
@@ -49,7 +49,7 @@ impl VocabularyImpl {
             it.max_token_type = max(
                 it.literal_names.len(),
                 max(it.symbolic_names.len(), it.display_names.len()),
-            ) as isize
+            ) as i32
                 - 1
         })
     }
@@ -87,17 +87,17 @@ impl VocabularyImpl {
 }
 
 impl Vocabulary for VocabularyImpl {
-    fn get_max_token_type(&self) -> isize {
+    fn get_max_token_type(&self) -> i32 {
         self.max_token_type
     }
 
-    fn get_literal_name(&self, token_type: isize) -> Option<&str> {
+    fn get_literal_name(&self, token_type: i32) -> Option<&str> {
         self.literal_names
             .get(token_type as usize)
             .and_then(|x| x.as_deref())
     }
 
-    fn get_symbolic_name(&self, token_type: isize) -> Option<&str> {
+    fn get_symbolic_name(&self, token_type: i32) -> Option<&str> {
         if token_type == TOKEN_EOF {
             return Some("EOF");
         }
@@ -106,7 +106,7 @@ impl Vocabulary for VocabularyImpl {
             .and_then(|x| x.as_deref())
     }
 
-    fn get_display_name(&self, token_type: isize) -> Cow<'_, str> {
+    fn get_display_name(&self, token_type: i32) -> Cow<'_, str> {
         self.display_names
             .get(token_type as usize)
             .and_then(|x| x.as_deref())
@@ -123,19 +123,19 @@ pub(crate) static DUMMY_VOCAB: DummyVocab = DummyVocab;
 pub(crate) struct DummyVocab;
 
 impl Vocabulary for DummyVocab {
-    fn get_max_token_type(&self) -> isize {
+    fn get_max_token_type(&self) -> i32 {
         unimplemented!()
     }
 
-    fn get_literal_name(&self, _token_type: isize) -> Option<&str> {
+    fn get_literal_name(&self, _token_type: i32) -> Option<&str> {
         unimplemented!()
     }
 
-    fn get_symbolic_name(&self, _token_type: isize) -> Option<&str> {
+    fn get_symbolic_name(&self, _token_type: i32) -> Option<&str> {
         unimplemented!()
     }
 
-    fn get_display_name(&self, token_type: isize) -> Cow<'_, str> {
+    fn get_display_name(&self, token_type: i32) -> Cow<'_, str> {
         token_type.to_string().into()
     }
 }

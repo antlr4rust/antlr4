@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include "antlr4-common.h"
+#include "atn/ATNStateType.h"
 #include "atn/ATNState.h"
 
 namespace antlr4 {
@@ -13,9 +15,13 @@ namespace atn {
   /// Mark the end of a * or + loop.
   class ANTLR4CPP_PUBLIC LoopEndState final : public ATNState {
   public:
+    static bool is(const ATNState &atnState) { return atnState.getStateType() == ATNStateType::LOOP_END; }
+
+    static bool is(const ATNState *atnState) { return atnState != nullptr && is(*atnState); }
+
     ATNState *loopBackState = nullptr;
 
-    virtual size_t getStateType() override;
+    LoopEndState() : ATNState(ATNStateType::LOOP_END) {}
   };
 
 } // namespace atn

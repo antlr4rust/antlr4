@@ -13,20 +13,20 @@ use crate::token_factory::{INVALID_COMMON, INVALID_OWNING};
 use better_any::type_id;
 
 /// Type of tokens that parser considers invalid
-pub const TOKEN_INVALID_TYPE: isize = 0;
+pub const TOKEN_INVALID_TYPE: i32 = 0;
 /// Type of tokens that DFA can use to advance to next state without consuming actual input token.
 /// Should not be created by downstream implementations.
-pub const TOKEN_EPSILON: isize = -2;
+pub const TOKEN_EPSILON: i32 = -2;
 /// Min token type that can be assigned to tokens created by downstream implementations.
-pub const TOKEN_MIN_USER_TOKEN_TYPE: isize = 1;
+pub const TOKEN_MIN_USER_TOKEN_TYPE: i32 = 1;
 /// Type of EOF token
-pub const TOKEN_EOF: isize = EOF;
+pub const TOKEN_EOF: i32 = EOF;
 /// Default channel lexer emits tokens to
-pub const TOKEN_DEFAULT_CHANNEL: isize = 0;
+pub const TOKEN_DEFAULT_CHANNEL: i32 = 0;
 /// Predefined additional channel for lexer to assign tokens to
-pub const TOKEN_HIDDEN_CHANNEL: isize = 1;
+pub const TOKEN_HIDDEN_CHANNEL: i32 = 1;
 /// Shorthand for TOKEN_HIDDEN_CHANNEL
-pub const HIDDEN: isize = TOKEN_HIDDEN_CHANNEL;
+pub const HIDDEN: i32 = TOKEN_HIDDEN_CHANNEL;
 
 /// Implemented by tokens that are produced by a `TokenFactory`
 #[allow(missing_docs)]
@@ -34,8 +34,8 @@ pub trait Token: Debug + Display {
     /// Type of the underlying data this token refers to
     type Data: ?Sized + InputData;
     // fn get_source(&self) -> Option<(Box<dyn TokenSource>, Box<dyn CharStream>)>;
-    fn get_token_type(&self) -> isize;
-    fn get_channel(&self) -> isize {
+    fn get_token_type(&self) -> i32;
+    fn get_channel(&self) -> i32 {
         TOKEN_DEFAULT_CHANNEL
     }
     fn get_start(&self) -> isize {
@@ -91,8 +91,8 @@ type_id!(CommonToken<'a>);
 #[allow(missing_docs)]
 pub struct GenericToken<T> {
     //    source: Option<(Box<TokenSource>,Box<CharStream>)>,
-    pub token_type: isize,
-    pub channel: isize,
+    pub token_type: i32,
+    pub channel: i32,
     pub start: isize,
     pub stop: isize,
     pub token_index: AtomicIsize,
@@ -140,7 +140,7 @@ impl<T: Borrow<str> + Debug> Display for GenericToken<T> {
             txt,
             self.token_type,
             if self.channel > 0 {
-                self.channel.to_string()
+                ",channel=".to_string() + self.channel.to_string().as_str()
             } else {
                 String::new()
             },
@@ -155,11 +155,11 @@ impl<T: Borrow<str> + Debug> Display for GenericToken<T> {
 impl<T: Borrow<str> + Debug> Token for GenericToken<T> {
     type Data = str;
 
-    fn get_token_type(&self) -> isize {
+    fn get_token_type(&self) -> i32 {
         self.token_type
     }
 
-    fn get_channel(&self) -> isize {
+    fn get_channel(&self) -> i32 {
         self.channel
     }
 
@@ -234,8 +234,8 @@ impl Default for &'_ CommonToken<'_> {
 // impl CommonToken {
 //     fn new_common_token(
 //         _source: Option<(Box<dyn TokenSource>, Box<dyn CharStream>)>,
-//         _token_type: isize,
-//         _channel: isize,
+//         _token_type: i32,
+//         _channel: i32,
 //         _start: isize,
 //         _stop: isize,
 //     ) -> CommonToken {

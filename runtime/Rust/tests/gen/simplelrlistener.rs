@@ -1,5 +1,5 @@
 #![allow(nonstandard_style)]
-// Generated from SimpleLR.g4 by ANTLR 4.8
+// Generated from SimpleLR.g4 by ANTLR 4.13.2
 use antlr4rust::tree::ParseTreeListener;
 use super::simplelrparser::*;
 
@@ -14,6 +14,7 @@ fn enter_s(&mut self, _ctx: &SContext<'input>) { }
  * @param ctx the parse tree
  */
 fn exit_s(&mut self, _ctx: &SContext<'input>) { }
+
 /**
  * Enter a parse tree produced by {@link SimpleLRParser#a}.
  * @param ctx the parse tree

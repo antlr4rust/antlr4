@@ -1,4 +1,4 @@
-// Generated from VisitorCalc.g4 by ANTLR 4.8
+// Generated from VisitorCalc.g4 by ANTLR 4.13.2
 #![allow(dead_code)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
@@ -39,12 +39,13 @@ use std::ops::{DerefMut, Deref};
 use std::borrow::{Borrow,BorrowMut};
 use std::any::{Any,TypeId};
 
-		pub const INT:isize=1; 
-		pub const MUL:isize=2; 
-		pub const DIV:isize=3; 
-		pub const ADD:isize=4; 
-		pub const SUB:isize=5; 
-		pub const WS:isize=6;
+		pub const VisitorCalc_INT:i32=1; 
+		pub const VisitorCalc_MUL:i32=2; 
+		pub const VisitorCalc_DIV:i32=3; 
+		pub const VisitorCalc_ADD:i32=4; 
+		pub const VisitorCalc_SUB:i32=5; 
+		pub const VisitorCalc_WS:i32=6;
+	pub const VisitorCalc_EOF:i32=EOF;
 	pub const RULE_s:usize = 0; 
 	pub const RULE_expr:usize = 1;
 	pub const ruleNames: [&'static str; 2] =  [
@@ -75,30 +76,26 @@ pub type VisitorCalcTreeWalker<'input,'a> =
 	ParseTreeWalker<'input, 'a, VisitorCalcParserContextType , dyn VisitorCalcListener<'input> + 'a>;
 
 /// Parser for VisitorCalc grammar
-pub struct VisitorCalcParser<'input,I,H>
+pub struct VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	base:BaseParserType<'input,I>,
 	interpreter:Arc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
-    pub err_handler: H,
+    pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
 
-impl<'input, I, H> VisitorCalcParser<'input, I, H>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-	pub fn get_serialized_atn() -> &'static str { _serializedATN }
-
-    pub fn set_error_strategy(&mut self, strategy: H) {
+    pub fn set_error_strategy(&mut self, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) {
         self.err_handler = strategy
     }
 
-    pub fn with_strategy(input: I, strategy: H) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+    pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -122,7 +119,7 @@ where
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
 
-impl<'input, I> VisitorCalcParser<'input, I, DynStrategy<'input,I>>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -131,12 +128,12 @@ where
     }
 }
 
-impl<'input, I> VisitorCalcParser<'input, I, DefaultErrorStrategy<'input,VisitorCalcParserContextType>>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
     pub fn new(input: I) -> Self{
-    	Self::with_strategy(input,DefaultErrorStrategy::new())
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
     }
 }
 
@@ -173,10 +170,9 @@ impl<'input> ParserNodeType<'input> for VisitorCalcParserContextType{
 	type Type = dyn VisitorCalcParserContext<'input> + 'input;
 }
 
-impl<'input, I, H> Deref for VisitorCalcParser<'input, I, H>
+impl<'input, I> Deref for VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     type Target = BaseParserType<'input,I>;
 
@@ -185,10 +181,9 @@ where
     }
 }
 
-impl<'input, I, H> DerefMut for VisitorCalcParser<'input, I, H>
+impl<'input, I> DerefMut for VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
@@ -215,27 +210,28 @@ impl<'input,I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'i
    	fn get_rule_names(&self) -> &[& str] {&ruleNames}
 
    	fn get_vocabulary(&self) -> &dyn Vocabulary { &**VOCABULARY }
-	fn sempred(_localctx: Option<&(dyn VisitorCalcParserContext<'input> + 'input)>, rule_index: isize, pred_index: isize,
+	fn sempred(_localctx: Option<&(dyn VisitorCalcParserContext<'input> + 'input)>, rule_index: i32, pred_index: i32,
 			   recog:&mut BaseParserType<'input,I>
 	)->bool{
 		match rule_index {
-					1 => VisitorCalcParser::<'input,I,_>::expr_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),
+					1 => VisitorCalcParser::<'input,I>::expr_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),
 			_ => true
 		}
 	}
 }
 
-impl<'input, I> VisitorCalcParser<'input, I, DefaultErrorStrategy<'input,VisitorCalcParserContextType>>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
-	fn expr_sempred(_localctx: Option<&ExprContext<'input>>, pred_index:isize,
+	fn expr_sempred(_localctx: Option<&ExprContext<'input>>, pred_index:i32,
 						recog:&mut <Self as Deref>::Target
 		) -> bool {
 		match pred_index {
 				0=>{
 					recog.precpred(None, 2)
 				}
+
 				1=>{
 					recog.precpred(None, 1)
 				}
@@ -284,9 +280,10 @@ impl<'input> CustomRuleContext<'input> for SContextExt<'input>{
 antlr4rust::tid!{SContextExt<'a>}
 
 impl<'input> SContextExt<'input>{
-	fn new(parent: Option<Rc<dyn VisitorCalcParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<SContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn VisitorCalcParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<SContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,SContextExt{
+
 				ph:PhantomData
 			}),
 		)
@@ -301,17 +298,16 @@ fn expr(&self) -> Option<Rc<ExprContextAll<'input>>> where Self:Sized{
 /// Retrieves first TerminalNode corresponding to token EOF
 /// Returns `None` if there is no child corresponding to token EOF
 fn EOF(&self) -> Option<Rc<TerminalNode<'input,VisitorCalcParserContextType>>> where Self:Sized{
-	self.get_token(EOF, 0)
+	self.get_token(VisitorCalc_EOF, 0)
 }
 
 }
 
 impl<'input> SContextAttrs<'input> for SContext<'input>{}
 
-impl<'input, I, H> VisitorCalcParser<'input, I, H>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn s(&mut self,)
 	-> Result<Rc<SContextAll<'input>>,ANTLRError> {
@@ -330,7 +326,7 @@ where
 			recog.expr_rec(0)?;
 
 			recog.base.set_state(5);
-			recog.base.match_token(EOF,&mut recog.err_handler)?;
+			recog.base.match_token(VisitorCalc_EOF,&mut recog.err_handler)?;
 
 			}
 			Ok(())
@@ -409,10 +405,11 @@ impl<'input> CustomRuleContext<'input> for ExprContextExt<'input>{
 antlr4rust::tid!{ExprContextExt<'a>}
 
 impl<'input> ExprContextExt<'input>{
-	fn new(parent: Option<Rc<dyn VisitorCalcParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<ExprContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn VisitorCalcParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<ExprContextAll<'input>> {
 		Rc::new(
 		ExprContextAll::Error(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,ExprContextExt{
+
 				ph:PhantomData
 			}),
 		)
@@ -439,12 +436,12 @@ pub trait AddContextAttrs<'input>: VisitorCalcParserContext<'input>{
 	/// Retrieves first TerminalNode corresponding to token ADD
 	/// Returns `None` if there is no child corresponding to token ADD
 	fn ADD(&self) -> Option<Rc<TerminalNode<'input,VisitorCalcParserContextType>>> where Self:Sized{
-		self.get_token(ADD, 0)
+		self.get_token(VisitorCalc_ADD, 0)
 	}
 	/// Retrieves first TerminalNode corresponding to token SUB
 	/// Returns `None` if there is no child corresponding to token SUB
 	fn SUB(&self) -> Option<Rc<TerminalNode<'input,VisitorCalcParserContextType>>> where Self:Sized{
-		self.get_token(SUB, 0)
+		self.get_token(VisitorCalc_SUB, 0)
 	}
 }
 
@@ -513,7 +510,7 @@ pub trait NumberContextAttrs<'input>: VisitorCalcParserContext<'input>{
 	/// Retrieves first TerminalNode corresponding to token INT
 	/// Returns `None` if there is no child corresponding to token INT
 	fn INT(&self) -> Option<Rc<TerminalNode<'input,VisitorCalcParserContextType>>> where Self:Sized{
-		self.get_token(INT, 0)
+		self.get_token(VisitorCalc_INT, 0)
 	}
 }
 
@@ -588,12 +585,12 @@ pub trait MultiplyContextAttrs<'input>: VisitorCalcParserContext<'input>{
 	/// Retrieves first TerminalNode corresponding to token MUL
 	/// Returns `None` if there is no child corresponding to token MUL
 	fn MUL(&self) -> Option<Rc<TerminalNode<'input,VisitorCalcParserContextType>>> where Self:Sized{
-		self.get_token(MUL, 0)
+		self.get_token(VisitorCalc_MUL, 0)
 	}
 	/// Retrieves first TerminalNode corresponding to token DIV
 	/// Returns `None` if there is no child corresponding to token DIV
 	fn DIV(&self) -> Option<Rc<TerminalNode<'input,VisitorCalcParserContextType>>> where Self:Sized{
-		self.get_token(DIV, 0)
+		self.get_token(VisitorCalc_DIV, 0)
 	}
 }
 
@@ -656,17 +653,16 @@ impl<'input> MultiplyContextExt<'input>{
 	}
 }
 
-impl<'input, I, H> VisitorCalcParser<'input, I, H>
+impl<'input, I> VisitorCalcParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn  expr(&mut self,)
 	-> Result<Rc<ExprContextAll<'input>>,ANTLRError> {
 		self.expr_rec(0)
 	}
 
-	fn expr_rec(&mut self, _p: isize)
+	fn expr_rec(&mut self, _p: i32)
 	-> Result<Rc<ExprContextAll<'input>>,ANTLRError> {
 		let recog = self;
 		let _parentctx = recog.ctx.take();
@@ -676,9 +672,9 @@ where
 	    let mut _localctx: Rc<ExprContextAll> = _localctx;
         let mut _prevctx = _localctx.clone();
 		let _startState = 2;
-		let mut _la: isize = -1;
+		let mut _la: i32 = -1;
 		let result: Result<(), ANTLRError> = (|| {
-			let mut _alt: isize;
+			let mut _alt: i32;
 			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
 			recog.base.enter_outer_alt(None, 1)?;
 			{
@@ -688,12 +684,10 @@ where
 			_localctx = tmp;
 			_prevctx = _localctx.clone();
 
-
 			recog.base.set_state(8);
-			recog.base.match_token(INT,&mut recog.err_handler)?;
+			recog.base.match_token(VisitorCalc_INT,&mut recog.err_handler)?;
 
 			}
-
 			let tmp = recog.input.lt(-1).cloned();
 			recog.ctx.as_ref().unwrap().set_stop(tmp);
 			recog.base.set_state(18);
@@ -714,12 +708,13 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expr)?;
 							_localctx = tmp;
 							recog.base.set_state(10);
-							if !({recog.precpred(None, 2)}) {
+							if !({let _localctx = Some(_localctx.clone());
+							recog.precpred(None, 2)}) {
 								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 2)".to_owned()), None))?;
 							}
 							recog.base.set_state(11);
 							_la = recog.base.input.la(1);
-							if { !(_la==MUL || _la==DIV) } {
+							if { !(_la==VisitorCalc_MUL || _la==VisitorCalc_DIV) } {
 								recog.err_handler.recover_inline(&mut recog.base)?;
 
 							}
@@ -742,12 +737,13 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_expr)?;
 							_localctx = tmp;
 							recog.base.set_state(13);
-							if !({recog.precpred(None, 1)}) {
+							if !({let _localctx = Some(_localctx.clone());
+							recog.precpred(None, 1)}) {
 								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 1)".to_owned()), None))?;
 							}
 							recog.base.set_state(14);
 							_la = recog.base.input.la(1);
-							if { !(_la==ADD || _la==SUB) } {
+							if { !(_la==VisitorCalc_ADD || _la==VisitorCalc_SUB) } {
 								recog.err_handler.recover_inline(&mut recog.base)?;
 
 							}
@@ -787,37 +783,30 @@ where
 		Ok(_localctx)
 	}
 }
-
-lazy_static! {
+	lazy_static!{
     static ref _ATN: Arc<ATN> =
-        Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
+        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
     static ref _decision_to_DFA: Arc<Vec<antlr4rust::RwLock<DFA>>> = {
         let mut dfa = Vec::new();
-        let size = _ATN.decision_to_state.len();
+        let size = _ATN.decision_to_state.len() as i32;
         for i in 0..size {
             dfa.push(DFA::new(
                 _ATN.clone(),
                 _ATN.get_decision_state(i),
-                i as isize,
+                i,
             ).into())
         }
         Arc::new(dfa)
     };
+	static ref _serializedATN: Vec<i32> = vec![
+		4, 1, 6, 22, 2, 0, 7, 0, 2, 1, 7, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 1, 17, 8, 1, 10, 1, 12, 1, 20, 
+		9, 1, 1, 1, 0, 1, 2, 2, 0, 2, 0, 2, 1, 0, 2, 3, 1, 0, 4, 5, 21, 0, 4, 
+		1, 0, 0, 0, 2, 7, 1, 0, 0, 0, 4, 5, 3, 2, 1, 0, 5, 6, 5, 0, 0, 1, 6, 1, 
+		1, 0, 0, 0, 7, 8, 6, 1, -1, 0, 8, 9, 5, 1, 0, 0, 9, 18, 1, 0, 0, 0, 10, 
+		11, 10, 2, 0, 0, 11, 12, 7, 0, 0, 0, 12, 17, 3, 2, 1, 3, 13, 14, 10, 1, 
+		0, 0, 14, 15, 7, 1, 0, 0, 15, 17, 3, 2, 1, 2, 16, 10, 1, 0, 0, 0, 16, 
+		13, 1, 0, 0, 0, 17, 20, 1, 0, 0, 0, 18, 16, 1, 0, 0, 0, 18, 19, 1, 0, 
+		0, 0, 19, 3, 1, 0, 0, 0, 20, 18, 1, 0, 0, 0, 2, 16, 18
+	];
 }
-
-
-
-const _serializedATN:&'static str =
-	"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x03\
-	\x08\x18\x04\x02\x09\x02\x04\x03\x09\x03\x03\x02\x03\x02\x03\x02\x03\x03\
-	\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x07\x03\
-	\x13\x0a\x03\x0c\x03\x0e\x03\x16\x0b\x03\x03\x03\x02\x03\x04\x04\x02\x04\
-	\x02\x04\x03\x02\x04\x05\x03\x02\x06\x07\x02\x17\x02\x06\x03\x02\x02\x02\
-	\x04\x09\x03\x02\x02\x02\x06\x07\x05\x04\x03\x02\x07\x08\x07\x02\x02\x03\
-	\x08\x03\x03\x02\x02\x02\x09\x0a\x08\x03\x01\x02\x0a\x0b\x07\x03\x02\x02\
-	\x0b\x14\x03\x02\x02\x02\x0c\x0d\x0c\x04\x02\x02\x0d\x0e\x09\x02\x02\x02\
-	\x0e\x13\x05\x04\x03\x05\x0f\x10\x0c\x03\x02\x02\x10\x11\x09\x03\x02\x02\
-	\x11\x13\x05\x04\x03\x04\x12\x0c\x03\x02\x02\x02\x12\x0f\x03\x02\x02\x02\
-	\x13\x16\x03\x02\x02\x02\x14\x12\x03\x02\x02\x02\x14\x15\x03\x02\x02\x02\
-	\x15\x05\x03\x02\x02\x02\x16\x14\x03\x02\x02\x02\x04\x12\x14";
-

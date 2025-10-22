@@ -3,7 +3,15 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <exception>
+#include <map>
+#include <memory>
+#include <utility>
+#include <vector>
+#include <cstddef>
 #include "tree/pattern/ParseTreePattern.h"
+#include "Token.h"
+#include "antlr4-common.h"
 #include "tree/pattern/ParseTreeMatch.h"
 #include "tree/TerminalNode.h"
 #include "CommonTokenStream.h"
@@ -21,7 +29,6 @@
 #include "ANTLRInputStream.h"
 #include "support/Arrays.h"
 #include "Exceptions.h"
-#include "support/StringUtils.h"
 #include "support/CPPUtils.h"
 
 #include "tree/pattern/ParseTreePatternMatcher.h"
@@ -109,7 +116,7 @@ ParseTreePattern ParseTreePatternMatcher::compile(const std::string &pattern, in
     throw e;
 #else
   } catch (std::exception & /*e*/) {
-    std::throw_with_nested((const char*)"Cannot invoke start rule"); // Wrap any other exception. We should however probably use one of the ANTLR exceptions here.
+    std::throw_with_nested(RuntimeException("Cannot invoke start rule")); // Wrap any other exception.
 #endif
   }
 

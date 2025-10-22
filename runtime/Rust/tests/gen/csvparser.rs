@@ -1,4 +1,4 @@
-// Generated from CSV.g4 by ANTLR 4.8
+// Generated from CSV.g4 by ANTLR 4.13.2
 #![allow(dead_code)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
@@ -39,12 +39,13 @@ use std::ops::{DerefMut, Deref};
 use std::borrow::{Borrow,BorrowMut};
 use std::any::{Any,TypeId};
 
-		pub const T__0:isize=1; 
-		pub const T__1:isize=2; 
-		pub const T__2:isize=3; 
-		pub const WS:isize=4; 
-		pub const TEXT:isize=5; 
-		pub const STRING:isize=6;
+		pub const CSV_T__0:i32=1; 
+		pub const CSV_T__1:i32=2; 
+		pub const CSV_T__2:i32=3; 
+		pub const CSV_WS:i32=4; 
+		pub const CSV_TEXT:i32=5; 
+		pub const CSV_STRING:i32=6;
+	pub const CSV_EOF:i32=EOF;
 	pub const RULE_csvFile:usize = 0; 
 	pub const RULE_hdr:usize = 1; 
 	pub const RULE_row:usize = 2; 
@@ -55,7 +56,7 @@ use std::any::{Any,TypeId};
 
 
 	pub const _LITERAL_NAMES: [Option<&'static str>;4] = [
-		None, Some("','"), Some("'\r'"), Some("'\n'")
+		None, Some("','"), Some("'\\r'"), Some("'\\n'")
 	];
 	pub const _SYMBOLIC_NAMES: [Option<&'static str>;7]  = [
 		None, None, None, None, Some("WS"), Some("TEXT"), Some("STRING")
@@ -77,30 +78,26 @@ pub type CSVTreeWalker<'input,'a> =
 	ParseTreeWalker<'input, 'a, CSVParserContextType , dyn CSVListener<'input> + 'a>;
 
 /// Parser for CSV grammar
-pub struct CSVParser<'input,I,H>
+pub struct CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	base:BaseParserType<'input,I>,
 	interpreter:Arc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
-    pub err_handler: H,
+    pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
 
-impl<'input, I, H> CSVParser<'input, I, H>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-	pub fn get_serialized_atn() -> &'static str { _serializedATN }
-
-    pub fn set_error_strategy(&mut self, strategy: H) {
+    pub fn set_error_strategy(&mut self, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) {
         self.err_handler = strategy
     }
 
-    pub fn with_strategy(input: I, strategy: H) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+    pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -124,7 +121,7 @@ where
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
 
-impl<'input, I> CSVParser<'input, I, DynStrategy<'input,I>>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -133,12 +130,12 @@ where
     }
 }
 
-impl<'input, I> CSVParser<'input, I, DefaultErrorStrategy<'input,CSVParserContextType>>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
     pub fn new(input: I) -> Self{
-    	Self::with_strategy(input,DefaultErrorStrategy::new())
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
     }
 }
 
@@ -175,10 +172,9 @@ impl<'input> ParserNodeType<'input> for CSVParserContextType{
 	type Type = dyn CSVParserContext<'input> + 'input;
 }
 
-impl<'input, I, H> Deref for CSVParser<'input, I, H>
+impl<'input, I> Deref for CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     type Target = BaseParserType<'input,I>;
 
@@ -187,10 +183,9 @@ where
     }
 }
 
-impl<'input, I, H> DerefMut for CSVParser<'input, I, H>
+impl<'input, I> DerefMut for CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
@@ -259,9 +254,10 @@ impl<'input> CustomRuleContext<'input> for CsvFileContextExt<'input>{
 antlr4rust::tid!{CsvFileContextExt<'a>}
 
 impl<'input> CsvFileContextExt<'input>{
-	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<CsvFileContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<CsvFileContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,CsvFileContextExt{
+
 				ph:PhantomData
 			}),
 		)
@@ -284,10 +280,9 @@ fn row(&self, i: usize) -> Option<Rc<RowContextAll<'input>>> where Self:Sized{
 
 impl<'input> CsvFileContextAttrs<'input> for CsvFileContext<'input>{}
 
-impl<'input, I, H> CSVParser<'input, I, H>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn csvFile(&mut self,)
 	-> Result<Rc<CsvFileContextAll<'input>>,ANTLRError> {
@@ -296,7 +291,7 @@ where
 		let mut _localctx = CsvFileContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 0, RULE_csvFile);
         let mut _localctx: Rc<CsvFileContextAll> = _localctx;
-		let mut _la: isize = -1;
+		let mut _la: i32 = -1;
 		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
@@ -321,7 +316,7 @@ where
 				recog.base.set_state(12); 
 				recog.err_handler.sync(&mut recog.base)?;
 				_la = recog.base.input.la(1);
-				if !((((_la) & !0x3f) == 0 && ((1usize << _la) & ((1usize << T__0) | (1usize << T__1) | (1usize << T__2) | (1usize << TEXT) | (1usize << STRING))) != 0)) {break}
+				if !((((_la) & !0x3f) == 0 && ((1usize << _la) & 110) != 0)) {break}
 			}
 			}
 			Ok(())
@@ -381,9 +376,10 @@ impl<'input> CustomRuleContext<'input> for HdrContextExt<'input>{
 antlr4rust::tid!{HdrContextExt<'a>}
 
 impl<'input> HdrContextExt<'input>{
-	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<HdrContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<HdrContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,HdrContextExt{
+
 				ph:PhantomData
 			}),
 		)
@@ -400,10 +396,9 @@ fn row(&self) -> Option<Rc<RowContextAll<'input>>> where Self:Sized{
 
 impl<'input> HdrContextAttrs<'input> for HdrContext<'input>{}
 
-impl<'input, I, H> CSVParser<'input, I, H>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn hdr(&mut self,)
 	-> Result<Rc<HdrContextAll<'input>>,ANTLRError> {
@@ -479,9 +474,10 @@ impl<'input> CustomRuleContext<'input> for RowContextExt<'input>{
 antlr4rust::tid!{RowContextExt<'a>}
 
 impl<'input> RowContextExt<'input>{
-	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<RowContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<RowContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,RowContextExt{
+
 				ph:PhantomData
 			}),
 		)
@@ -501,10 +497,9 @@ fn field(&self, i: usize) -> Option<Rc<FieldContextAll<'input>>> where Self:Size
 
 impl<'input> RowContextAttrs<'input> for RowContext<'input>{}
 
-impl<'input, I, H> CSVParser<'input, I, H>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn row(&mut self,)
 	-> Result<Rc<RowContextAll<'input>>,ANTLRError> {
@@ -513,7 +508,7 @@ where
 		let mut _localctx = RowContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 4, RULE_row);
         let mut _localctx: Rc<RowContextAll> = _localctx;
-		let mut _la: isize = -1;
+		let mut _la: i32 = -1;
 		let result: Result<(), ANTLRError> = (|| {
 
 			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
@@ -526,11 +521,11 @@ where
 			recog.base.set_state(21);
 			recog.err_handler.sync(&mut recog.base)?;
 			_la = recog.base.input.la(1);
-			while _la==T__0 {
+			while _la==CSV_T__0 {
 				{
 				{
 				recog.base.set_state(17);
-				recog.base.match_token(T__0,&mut recog.err_handler)?;
+				recog.base.match_token(CSV_T__0,&mut recog.err_handler)?;
 
 				/*InvokeRule field*/
 				recog.base.set_state(18);
@@ -545,16 +540,16 @@ where
 			recog.base.set_state(25);
 			recog.err_handler.sync(&mut recog.base)?;
 			_la = recog.base.input.la(1);
-			if _la==T__1 {
+			if _la==CSV_T__1 {
 				{
 				recog.base.set_state(24);
-				recog.base.match_token(T__1,&mut recog.err_handler)?;
+				recog.base.match_token(CSV_T__1,&mut recog.err_handler)?;
 
 				}
 			}
 
 			recog.base.set_state(27);
-			recog.base.match_token(T__2,&mut recog.err_handler)?;
+			recog.base.match_token(CSV_T__2,&mut recog.err_handler)?;
 
 			}
 			Ok(())
@@ -614,9 +609,10 @@ impl<'input> CustomRuleContext<'input> for FieldContextExt<'input>{
 antlr4rust::tid!{FieldContextExt<'a>}
 
 impl<'input> FieldContextExt<'input>{
-	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<FieldContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn CSVParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<FieldContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,FieldContextExt{
+
 				ph:PhantomData
 			}),
 		)
@@ -628,22 +624,21 @@ pub trait FieldContextAttrs<'input>: CSVParserContext<'input> + BorrowMut<FieldC
 /// Retrieves first TerminalNode corresponding to token TEXT
 /// Returns `None` if there is no child corresponding to token TEXT
 fn TEXT(&self) -> Option<Rc<TerminalNode<'input,CSVParserContextType>>> where Self:Sized{
-	self.get_token(TEXT, 0)
+	self.get_token(CSV_TEXT, 0)
 }
 /// Retrieves first TerminalNode corresponding to token STRING
 /// Returns `None` if there is no child corresponding to token STRING
 fn STRING(&self) -> Option<Rc<TerminalNode<'input,CSVParserContextType>>> where Self:Sized{
-	self.get_token(STRING, 0)
+	self.get_token(CSV_STRING, 0)
 }
 
 }
 
 impl<'input> FieldContextAttrs<'input> for FieldContext<'input>{}
 
-impl<'input, I, H> CSVParser<'input, I, H>
+impl<'input, I> CSVParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn field(&mut self,)
 	-> Result<Rc<FieldContextAll<'input>>,ANTLRError> {
@@ -657,29 +652,29 @@ where
 			recog.base.set_state(32);
 			recog.err_handler.sync(&mut recog.base)?;
 			match recog.base.input.la(1) {
-			 TEXT 
+			CSV_TEXT 
 				=> {
 					//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
 					recog.base.enter_outer_alt(None, 1)?;
 					{
 					recog.base.set_state(29);
-					recog.base.match_token(TEXT,&mut recog.err_handler)?;
+					recog.base.match_token(CSV_TEXT,&mut recog.err_handler)?;
 
 					}
 				}
 
-			 STRING 
+			CSV_STRING 
 				=> {
 					//recog.base.enter_outer_alt(_localctx.clone(), 2)?;
 					recog.base.enter_outer_alt(None, 2)?;
 					{
 					recog.base.set_state(30);
-					recog.base.match_token(STRING,&mut recog.err_handler)?;
+					recog.base.match_token(CSV_STRING,&mut recog.err_handler)?;
 
 					}
 				}
 
-			 T__0 | T__1 | T__2 
+			CSV_T__0 |CSV_T__1 |CSV_T__2 
 				=> {
 					//recog.base.enter_outer_alt(_localctx.clone(), 3)?;
 					recog.base.enter_outer_alt(None, 3)?;
@@ -705,43 +700,35 @@ where
 		Ok(_localctx)
 	}
 }
-
-lazy_static! {
+	lazy_static!{
     static ref _ATN: Arc<ATN> =
-        Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
+        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
     static ref _decision_to_DFA: Arc<Vec<antlr4rust::RwLock<DFA>>> = {
         let mut dfa = Vec::new();
-        let size = _ATN.decision_to_state.len();
+        let size = _ATN.decision_to_state.len() as i32;
         for i in 0..size {
             dfa.push(DFA::new(
                 _ATN.clone(),
                 _ATN.get_decision_state(i),
-                i as isize,
+                i,
             ).into())
         }
         Arc::new(dfa)
     };
+	static ref _serializedATN: Vec<i32> = vec![
+		4, 1, 6, 35, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 1, 0, 1, 
+		0, 4, 0, 11, 8, 0, 11, 0, 12, 0, 12, 1, 1, 1, 1, 1, 2, 1, 2, 1, 2, 5, 
+		2, 20, 8, 2, 10, 2, 12, 2, 23, 9, 2, 1, 2, 3, 2, 26, 8, 2, 1, 2, 1, 2, 
+		1, 3, 1, 3, 1, 3, 3, 3, 33, 8, 3, 1, 3, 0, 0, 4, 0, 2, 4, 6, 0, 0, 35, 
+		0, 8, 1, 0, 0, 0, 2, 14, 1, 0, 0, 0, 4, 16, 1, 0, 0, 0, 6, 32, 1, 0, 0, 
+		0, 8, 10, 3, 2, 1, 0, 9, 11, 3, 4, 2, 0, 10, 9, 1, 0, 0, 0, 11, 12, 1, 
+		0, 0, 0, 12, 10, 1, 0, 0, 0, 12, 13, 1, 0, 0, 0, 13, 1, 1, 0, 0, 0, 14, 
+		15, 3, 4, 2, 0, 15, 3, 1, 0, 0, 0, 16, 21, 3, 6, 3, 0, 17, 18, 5, 1, 0, 
+		0, 18, 20, 3, 6, 3, 0, 19, 17, 1, 0, 0, 0, 20, 23, 1, 0, 0, 0, 21, 19, 
+		1, 0, 0, 0, 21, 22, 1, 0, 0, 0, 22, 25, 1, 0, 0, 0, 23, 21, 1, 0, 0, 0, 
+		24, 26, 5, 2, 0, 0, 25, 24, 1, 0, 0, 0, 25, 26, 1, 0, 0, 0, 26, 27, 1, 
+		0, 0, 0, 27, 28, 5, 3, 0, 0, 28, 5, 1, 0, 0, 0, 29, 33, 5, 5, 0, 0, 30, 
+		33, 5, 6, 0, 0, 31, 33, 1, 0, 0, 0, 32, 29, 1, 0, 0, 0, 32, 30, 1, 0, 
+		0, 0, 32, 31, 1, 0, 0, 0, 33, 7, 1, 0, 0, 0, 4, 12, 21, 25, 32
+	];
 }
-
-
-
-const _serializedATN:&'static str =
-	"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x03\
-	\x08\x25\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\x05\x09\x05\
-	\x03\x02\x03\x02\x06\x02\x0d\x0a\x02\x0d\x02\x0e\x02\x0e\x03\x03\x03\x03\
-	\x03\x04\x03\x04\x03\x04\x07\x04\x16\x0a\x04\x0c\x04\x0e\x04\x19\x0b\x04\
-	\x03\x04\x05\x04\x1c\x0a\x04\x03\x04\x03\x04\x03\x05\x03\x05\x03\x05\x05\
-	\x05\x23\x0a\x05\x03\x05\x02\x02\x06\x02\x04\x06\x08\x02\x02\x02\x25\x02\
-	\x0a\x03\x02\x02\x02\x04\x10\x03\x02\x02\x02\x06\x12\x03\x02\x02\x02\x08\
-	\x22\x03\x02\x02\x02\x0a\x0c\x05\x04\x03\x02\x0b\x0d\x05\x06\x04\x02\x0c\
-	\x0b\x03\x02\x02\x02\x0d\x0e\x03\x02\x02\x02\x0e\x0c\x03\x02\x02\x02\x0e\
-	\x0f\x03\x02\x02\x02\x0f\x03\x03\x02\x02\x02\x10\x11\x05\x06\x04\x02\x11\
-	\x05\x03\x02\x02\x02\x12\x17\x05\x08\x05\x02\x13\x14\x07\x03\x02\x02\x14\
-	\x16\x05\x08\x05\x02\x15\x13\x03\x02\x02\x02\x16\x19\x03\x02\x02\x02\x17\
-	\x15\x03\x02\x02\x02\x17\x18\x03\x02\x02\x02\x18\x1b\x03\x02\x02\x02\x19\
-	\x17\x03\x02\x02\x02\x1a\x1c\x07\x04\x02\x02\x1b\x1a\x03\x02\x02\x02\x1b\
-	\x1c\x03\x02\x02\x02\x1c\x1d\x03\x02\x02\x02\x1d\x1e\x07\x05\x02\x02\x1e\
-	\x07\x03\x02\x02\x02\x1f\x23\x07\x07\x02\x02\x20\x23\x07\x08\x02\x02\x21\
-	\x23\x03\x02\x02\x02\x22\x1f\x03\x02\x02\x02\x22\x20\x03\x02\x02\x02\x22\
-	\x21\x03\x02\x02\x02\x23\x09\x03\x02\x02\x02\x06\x0e\x17\x1b\x22";
-

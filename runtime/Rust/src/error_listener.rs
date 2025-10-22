@@ -70,7 +70,7 @@ pub trait ErrorListener<'a, T: Recognizer<'a>> {
         _dfa: &DFA,
         _start_index: isize,
         _stop_index: isize,
-        _prediction: isize,
+        _prediction: i32,
         _configs: &ATNConfigSet,
     ) {
     }
@@ -164,7 +164,7 @@ impl<'a, T: Recognizer<'a>> ErrorListener<'a, T> for ProxyErrorListener<'_, 'a, 
         dfa: &DFA,
         start_index: isize,
         stop_index: isize,
-        prediction: isize,
+        prediction: i32,
         configs: &ATNConfigSet,
     ) {
         for listener in self.delegates.deref() {
@@ -208,10 +208,10 @@ impl DiagnosticErrorListener {
 
     fn get_decision_description<'a, T: Parser<'a>>(&self, recog: &T, dfa: &DFA) -> String {
         let decision = dfa.decision;
-        let rule_index = recog.get_atn().states[dfa.atn_start_state].get_rule_index();
+        let rule_index = recog.get_atn().states[dfa.atn_start_state as usize].get_rule_index();
 
         let rule_names = recog.get_rule_names();
-        if let Some(&rule_name) = rule_names.get(rule_index) {
+        if let Some(&rule_name) = rule_names.get(rule_index as usize) {
             format!("{} ({})", decision, rule_name)
         } else {
             decision.to_string()
@@ -288,7 +288,7 @@ impl<'a, T: Parser<'a>> ErrorListener<'a, T> for DiagnosticErrorListener {
         dfa: &DFA,
         start_index: isize,
         stop_index: isize,
-        _prediction: isize,
+        _prediction: i32,
         _configs: &ATNConfigSet,
     ) {
         let msg = format!(

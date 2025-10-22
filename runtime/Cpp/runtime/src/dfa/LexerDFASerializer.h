@@ -5,18 +5,20 @@
 
 #pragma once
 
+#include <string>
+#include <cstddef>
+#include "antlr4-common.h"
 #include "dfa/DFASerializer.h"
 
 namespace antlr4 {
 namespace dfa {
 
-  class ANTLR4CPP_PUBLIC LexerDFASerializer : public DFASerializer {
+  class ANTLR4CPP_PUBLIC LexerDFASerializer final : public DFASerializer {
   public:
-    LexerDFASerializer(DFA *dfa);
-    virtual ~LexerDFASerializer();
+    explicit LexerDFASerializer(const DFA *dfa);
 
   protected:
-    virtual std::string getEdgeLabel(size_t i) const override;
+    std::string getEdgeLabel(size_t i) const override;
   };
 
 } // namespace atn

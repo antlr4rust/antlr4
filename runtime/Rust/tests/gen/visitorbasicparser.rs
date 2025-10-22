@@ -1,4 +1,4 @@
-// Generated from VisitorBasic.g4 by ANTLR 4.8
+// Generated from VisitorBasic.g4 by ANTLR 4.13.2
 #![allow(dead_code)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
@@ -39,7 +39,8 @@ use std::ops::{DerefMut, Deref};
 use std::borrow::{Borrow,BorrowMut};
 use std::any::{Any,TypeId};
 
-		pub const A:isize=1;
+		pub const VisitorBasic_A:i32=1;
+	pub const VisitorBasic_EOF:i32=EOF;
 	pub const RULE_s:usize = 0;
 	pub const ruleNames: [&'static str; 1] =  [
 		"s"
@@ -68,30 +69,26 @@ pub type VisitorBasicTreeWalker<'input,'a> =
 	ParseTreeWalker<'input, 'a, VisitorBasicParserContextType , dyn VisitorBasicListener<'input> + 'a>;
 
 /// Parser for VisitorBasic grammar
-pub struct VisitorBasicParser<'input,I,H>
+pub struct VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	base:BaseParserType<'input,I>,
 	interpreter:Arc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
-    pub err_handler: H,
+    pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
 
-impl<'input, I, H> VisitorBasicParser<'input, I, H>
+impl<'input, I> VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-	pub fn get_serialized_atn() -> &'static str { _serializedATN }
-
-    pub fn set_error_strategy(&mut self, strategy: H) {
+    pub fn set_error_strategy(&mut self, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) {
         self.err_handler = strategy
     }
 
-    pub fn with_strategy(input: I, strategy: H) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+    pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -115,7 +112,7 @@ where
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
 
-impl<'input, I> VisitorBasicParser<'input, I, DynStrategy<'input,I>>
+impl<'input, I> VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -124,12 +121,12 @@ where
     }
 }
 
-impl<'input, I> VisitorBasicParser<'input, I, DefaultErrorStrategy<'input,VisitorBasicParserContextType>>
+impl<'input, I> VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
     pub fn new(input: I) -> Self{
-    	Self::with_strategy(input,DefaultErrorStrategy::new())
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
     }
 }
 
@@ -166,10 +163,9 @@ impl<'input> ParserNodeType<'input> for VisitorBasicParserContextType{
 	type Type = dyn VisitorBasicParserContext<'input> + 'input;
 }
 
-impl<'input, I, H> Deref for VisitorBasicParser<'input, I, H>
+impl<'input, I> Deref for VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     type Target = BaseParserType<'input,I>;
 
@@ -178,10 +174,9 @@ where
     }
 }
 
-impl<'input, I, H> DerefMut for VisitorBasicParser<'input, I, H>
+impl<'input, I> DerefMut for VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
@@ -250,9 +245,10 @@ impl<'input> CustomRuleContext<'input> for SContextExt<'input>{
 antlr4rust::tid!{SContextExt<'a>}
 
 impl<'input> SContextExt<'input>{
-	fn new(parent: Option<Rc<dyn VisitorBasicParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<SContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn VisitorBasicParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<SContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,SContextExt{
+
 				ph:PhantomData
 			}),
 		)
@@ -264,22 +260,21 @@ pub trait SContextAttrs<'input>: VisitorBasicParserContext<'input> + BorrowMut<S
 /// Retrieves first TerminalNode corresponding to token A
 /// Returns `None` if there is no child corresponding to token A
 fn A(&self) -> Option<Rc<TerminalNode<'input,VisitorBasicParserContextType>>> where Self:Sized{
-	self.get_token(A, 0)
+	self.get_token(VisitorBasic_A, 0)
 }
 /// Retrieves first TerminalNode corresponding to token EOF
 /// Returns `None` if there is no child corresponding to token EOF
 fn EOF(&self) -> Option<Rc<TerminalNode<'input,VisitorBasicParserContextType>>> where Self:Sized{
-	self.get_token(EOF, 0)
+	self.get_token(VisitorBasic_EOF, 0)
 }
 
 }
 
 impl<'input> SContextAttrs<'input> for SContext<'input>{}
 
-impl<'input, I, H> VisitorBasicParser<'input, I, H>
+impl<'input, I> VisitorBasicParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn s(&mut self,)
 	-> Result<Rc<SContextAll<'input>>,ANTLRError> {
@@ -294,10 +289,10 @@ where
 			recog.base.enter_outer_alt(None, 1)?;
 			{
 			recog.base.set_state(2);
-			recog.base.match_token(A,&mut recog.err_handler)?;
+			recog.base.match_token(VisitorBasic_A,&mut recog.err_handler)?;
 
 			recog.base.set_state(3);
-			recog.base.match_token(EOF,&mut recog.err_handler)?;
+			recog.base.match_token(VisitorBasic_EOF,&mut recog.err_handler)?;
 
 			}
 			Ok(())
@@ -316,29 +311,23 @@ where
 		Ok(_localctx)
 	}
 }
-
-lazy_static! {
+	lazy_static!{
     static ref _ATN: Arc<ATN> =
-        Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
+        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
     static ref _decision_to_DFA: Arc<Vec<antlr4rust::RwLock<DFA>>> = {
         let mut dfa = Vec::new();
-        let size = _ATN.decision_to_state.len();
+        let size = _ATN.decision_to_state.len() as i32;
         for i in 0..size {
             dfa.push(DFA::new(
                 _ATN.clone(),
                 _ATN.get_decision_state(i),
-                i as isize,
+                i,
             ).into())
         }
         Arc::new(dfa)
     };
+	static ref _serializedATN: Vec<i32> = vec![
+		4, 1, 1, 6, 2, 0, 7, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 4, 0, 
+		2, 1, 0, 0, 0, 2, 3, 5, 1, 0, 0, 3, 4, 5, 0, 0, 1, 4, 1, 1, 0, 0, 0, 0
+	];
 }
-
-
-
-const _serializedATN:&'static str =
-	"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x03\
-	\x03\x08\x04\x02\x09\x02\x03\x02\x03\x02\x03\x02\x03\x02\x02\x02\x03\x02\
-	\x02\x02\x02\x06\x02\x04\x03\x02\x02\x02\x04\x05\x07\x03\x02\x02\x05\x06\
-	\x07\x02\x02\x03\x06\x03\x03\x02\x02\x02\x02";
-

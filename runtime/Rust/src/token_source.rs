@@ -43,6 +43,8 @@ pub trait TokenSource<'input> {
     ///
     /// Required by `Parser` for creating missing tokens.
     fn get_token_factory(&self) -> &'input Self::TF;
+
+    fn get_dfa_string(&self) -> String;
 }
 
 // allows user to call parser with &mut reference to Lexer
@@ -79,6 +81,11 @@ where
     #[inline(always)]
     fn get_token_factory(&self) -> &'input Self::TF {
         (**self).get_token_factory()
+    }
+
+    #[inline(always)]
+    fn get_dfa_string(&self) -> String {
+        (**self).get_dfa_string()
     }
 }
 

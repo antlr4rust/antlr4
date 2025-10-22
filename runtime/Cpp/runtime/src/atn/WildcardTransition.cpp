@@ -3,17 +3,16 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <string>
+#include <cstddef>
 #include "atn/ATNState.h"
 
+#include "atn/TransitionType.h"
 #include "atn/WildcardTransition.h"
 
 using namespace antlr4::atn;
 
-WildcardTransition::WildcardTransition(ATNState *target) : Transition(target) {
-}
-
-Transition::SerializationType WildcardTransition::getSerializationType() const {
-  return WILDCARD;
+WildcardTransition::WildcardTransition(ATNState *target) : Transition(TransitionType::WILDCARD, target) {
 }
 
 bool WildcardTransition::matches(size_t symbol, size_t minVocabSymbol, size_t maxVocabSymbol) const {

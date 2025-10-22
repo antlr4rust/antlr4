@@ -1,4 +1,4 @@
-// Generated from Labels.g4 by ANTLR 4.8
+// Generated from Labels.g4 by ANTLR 4.13.2
 #![allow(dead_code)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
@@ -37,15 +37,16 @@ use std::ops::{DerefMut, Deref};
 use std::borrow::{Borrow,BorrowMut};
 use std::any::{Any,TypeId};
 
-		pub const T__0:isize=1; 
-		pub const T__1:isize=2; 
-		pub const T__2:isize=3; 
-		pub const T__3:isize=4; 
-		pub const T__4:isize=5; 
-		pub const T__5:isize=6; 
-		pub const ID:isize=7; 
-		pub const INT:isize=8; 
-		pub const WS:isize=9;
+		pub const Labels_T__0:i32=1; 
+		pub const Labels_T__1:i32=2; 
+		pub const Labels_T__2:i32=3; 
+		pub const Labels_T__3:i32=4; 
+		pub const Labels_T__4:i32=5; 
+		pub const Labels_T__5:i32=6; 
+		pub const Labels_ID:i32=7; 
+		pub const Labels_INT:i32=8; 
+		pub const Labels_WS:i32=9;
+	pub const Labels_EOF:i32=EOF;
 	pub const RULE_s:usize = 0; 
 	pub const RULE_e:usize = 1;
 	pub const ruleNames: [&'static str; 2] =  [
@@ -76,30 +77,26 @@ pub type LabelsTreeWalker<'input,'a> =
 	ParseTreeWalker<'input, 'a, LabelsParserContextType , dyn LabelsListener<'input> + 'a>;
 
 /// Parser for Labels grammar
-pub struct LabelsParser<'input,I,H>
+pub struct LabelsParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	base:BaseParserType<'input,I>,
 	interpreter:Arc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
-    pub err_handler: H,
+    pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
 
-impl<'input, I, H> LabelsParser<'input, I, H>
+impl<'input, I> LabelsParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-	pub fn get_serialized_atn() -> &'static str { _serializedATN }
-
-    pub fn set_error_strategy(&mut self, strategy: H) {
+    pub fn set_error_strategy(&mut self, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) {
         self.err_handler = strategy
     }
 
-    pub fn with_strategy(input: I, strategy: H) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+    pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -123,7 +120,7 @@ where
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
 
-impl<'input, I> LabelsParser<'input, I, DynStrategy<'input,I>>
+impl<'input, I> LabelsParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -132,12 +129,12 @@ where
     }
 }
 
-impl<'input, I> LabelsParser<'input, I, DefaultErrorStrategy<'input,LabelsParserContextType>>
+impl<'input, I> LabelsParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
     pub fn new(input: I) -> Self{
-    	Self::with_strategy(input,DefaultErrorStrategy::new())
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
     }
 }
 
@@ -164,10 +161,9 @@ impl<'input> ParserNodeType<'input> for LabelsParserContextType{
 	type Type = dyn LabelsParserContext<'input> + 'input;
 }
 
-impl<'input, I, H> Deref for LabelsParser<'input, I, H>
+impl<'input, I> Deref for LabelsParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     type Target = BaseParserType<'input,I>;
 
@@ -176,10 +172,9 @@ where
     }
 }
 
-impl<'input, I, H> DerefMut for LabelsParser<'input, I, H>
+impl<'input, I> DerefMut for LabelsParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
@@ -206,33 +201,36 @@ impl<'input,I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'i
    	fn get_rule_names(&self) -> &[& str] {&ruleNames}
 
    	fn get_vocabulary(&self) -> &dyn Vocabulary { &**VOCABULARY }
-	fn sempred(_localctx: Option<&(dyn LabelsParserContext<'input> + 'input)>, rule_index: isize, pred_index: isize,
+	fn sempred(_localctx: Option<&(dyn LabelsParserContext<'input> + 'input)>, rule_index: i32, pred_index: i32,
 			   recog:&mut BaseParserType<'input,I>
 	)->bool{
 		match rule_index {
-					1 => LabelsParser::<'input,I,_>::e_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),
+					1 => LabelsParser::<'input,I>::e_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),
 			_ => true
 		}
 	}
 }
 
-impl<'input, I> LabelsParser<'input, I, DefaultErrorStrategy<'input,LabelsParserContextType>>
+impl<'input, I> LabelsParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
-	fn e_sempred(_localctx: Option<&EContext<'input>>, pred_index:isize,
+	fn e_sempred(_localctx: Option<&EContext<'input>>, pred_index:i32,
 						recog:&mut <Self as Deref>::Target
 		) -> bool {
 		match pred_index {
 				0=>{
 					recog.precpred(None, 7)
 				}
+
 				1=>{
 					recog.precpred(None, 6)
 				}
+
 				2=>{
 					recog.precpred(None, 3)
 				}
+
 				3=>{
 					recog.precpred(None, 2)
 				}
@@ -275,10 +273,11 @@ impl<'input> CustomRuleContext<'input> for SContextExt<'input>{
 antlr4rust::tid!{SContextExt<'a>}
 
 impl<'input> SContextExt<'input>{
-	fn new(parent: Option<Rc<dyn LabelsParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<SContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn LabelsParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<SContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,SContextExt{
 				q: None, 
+
 				ph:PhantomData
 			}),
 		)
@@ -295,10 +294,9 @@ fn e(&self) -> Option<Rc<EContextAll<'input>>> where Self:Sized{
 
 impl<'input> SContextAttrs<'input> for SContext<'input>{}
 
-impl<'input, I, H> LabelsParser<'input, I, H>
+impl<'input, I> LabelsParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn s(&mut self,)
 	-> Result<Rc<SContextAll<'input>>,ANTLRError> {
@@ -398,11 +396,14 @@ impl<'input> CustomRuleContext<'input> for EContextExt<'input>{
 antlr4rust::tid!{EContextExt<'a>}
 
 impl<'input> EContextExt<'input>{
-	fn new(parent: Option<Rc<dyn LabelsParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<EContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn LabelsParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<EContextAll<'input>> {
+		let mut _init_v = String::new();
+
 		Rc::new(
 		EContextAll::Error(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,EContextExt{
-				v: Default::default(),
+				v: _init_v, 
+
 				ph:PhantomData
 			}),
 		)
@@ -667,7 +668,7 @@ pub trait AnIDContextAttrs<'input>: LabelsParserContext<'input>{
 	/// Retrieves first TerminalNode corresponding to token ID
 	/// Returns `None` if there is no child corresponding to token ID
 	fn ID(&self) -> Option<Rc<TerminalNode<'input,LabelsParserContextType>>> where Self:Sized{
-		self.get_token(ID, 0)
+		self.get_token(Labels_ID, 0)
 	}
 }
 
@@ -727,7 +728,7 @@ pub trait AnIntContextAttrs<'input>: LabelsParserContext<'input>{
 	/// Retrieves first TerminalNode corresponding to token INT
 	/// Returns `None` if there is no child corresponding to token INT
 	fn INT(&self) -> Option<Rc<TerminalNode<'input,LabelsParserContextType>>> where Self:Sized{
-		self.get_token(INT, 0)
+		self.get_token(Labels_INT, 0)
 	}
 }
 
@@ -839,17 +840,16 @@ impl<'input> IncContextExt<'input>{
 	}
 }
 
-impl<'input, I, H> LabelsParser<'input, I, H>
+impl<'input, I> LabelsParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn  e(&mut self,)
 	-> Result<Rc<EContextAll<'input>>,ANTLRError> {
 		self.e_rec(0)
 	}
 
-	fn e_rec(&mut self, _p: isize)
+	fn e_rec(&mut self, _p: i32)
 	-> Result<Rc<EContextAll<'input>>,ANTLRError> {
 		let recog = self;
 		let _parentctx = recog.ctx.take();
@@ -860,14 +860,14 @@ where
         let mut _prevctx = _localctx.clone();
 		let _startState = 2;
 		let result: Result<(), ANTLRError> = (|| {
-			let mut _alt: isize;
+			let mut _alt: i32;
 			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
 			recog.base.enter_outer_alt(None, 1)?;
 			{
 			recog.base.set_state(16);
 			recog.err_handler.sync(&mut recog.base)?;
 			match recog.base.input.la(1) {
-			 INT 
+			Labels_INT 
 				=> {
 					{
 					let mut tmp = AnIntContextExt::new(&**_localctx);
@@ -875,12 +875,10 @@ where
 					_localctx = tmp;
 					_prevctx = _localctx.clone();
 
-
 					recog.base.set_state(7);
-					let tmp = recog.base.match_token(INT,&mut recog.err_handler)?;
+					let tmp = recog.base.match_token(Labels_INT,&mut recog.err_handler)?;
 					if let EContextAll::AnIntContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
 					ctx.INT = Some(tmp.clone()); } else {unreachable!("cant cast");}  
-
 
 					let tmp = { if let Some(it) = &if let EContextAll::AnIntContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 					ctx } else {unreachable!("cant cast")} .INT { it.get_text() } else { "null" } .to_owned()}.to_owned();
@@ -889,7 +887,7 @@ where
 					}
 				}
 
-			 T__2 
+			Labels_T__2 
 				=> {
 					{
 					let mut tmp = ParensContextExt::new(&**_localctx);
@@ -897,7 +895,7 @@ where
 					_localctx = tmp;
 					_prevctx = _localctx.clone();
 					recog.base.set_state(9);
-					recog.base.match_token(T__2,&mut recog.err_handler)?;
+					recog.base.match_token(Labels_T__2,&mut recog.err_handler)?;
 
 					/*InvokeRule e*/
 					recog.base.set_state(10);
@@ -906,8 +904,7 @@ where
 					ctx.x = Some(tmp.clone()); } else {unreachable!("cant cast");}  
 
 					recog.base.set_state(11);
-					recog.base.match_token(T__3,&mut recog.err_handler)?;
-
+					recog.base.match_token(Labels_T__3,&mut recog.err_handler)?;
 
 					let tmp = { if let EContextAll::ParensContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 					ctx } else {unreachable!("cant cast")} .x.as_ref().unwrap().get_v()}.to_owned();
@@ -916,7 +913,7 @@ where
 					}
 				}
 
-			 ID 
+			Labels_ID 
 				=> {
 					{
 					let mut tmp = AnIDContextExt::new(&**_localctx);
@@ -924,10 +921,9 @@ where
 					_localctx = tmp;
 					_prevctx = _localctx.clone();
 					recog.base.set_state(14);
-					let tmp = recog.base.match_token(ID,&mut recog.err_handler)?;
+					let tmp = recog.base.match_token(Labels_ID,&mut recog.err_handler)?;
 					if let EContextAll::AnIDContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
 					ctx.ID = Some(tmp.clone()); } else {unreachable!("cant cast");}  
-
 
 					let tmp = { if let Some(it) = &if let EContextAll::AnIDContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 					ctx } else {unreachable!("cant cast")} .ID { it.get_text() } else { "null" } .to_owned()}.to_owned();
@@ -938,7 +934,6 @@ where
 
 				_ => Err(ANTLRError::NoAltError(NoViableAltError::new(&mut recog.base)))?
 			}
-
 			let tmp = recog.input.lt(-1).cloned();
 			recog.ctx.as_ref().unwrap().set_stop(tmp);
 			recog.base.set_state(36);
@@ -962,11 +957,12 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
 							_localctx = tmp;
 							recog.base.set_state(18);
-							if !({recog.precpred(None, 7)}) {
+							if !({let _localctx = Some(_localctx.clone());
+							recog.precpred(None, 7)}) {
 								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 7)".to_owned()), None))?;
 							}
 							recog.base.set_state(19);
-							let tmp = recog.base.match_token(T__0,&mut recog.err_handler)?;
+							let tmp = recog.base.match_token(Labels_T__0,&mut recog.err_handler)?;
 							if let EContextAll::MultContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
 							ctx.op = Some(tmp.clone()); } else {unreachable!("cant cast");}  
 
@@ -975,7 +971,6 @@ where
 							let tmp = recog.e_rec(8)?;
 							if let EContextAll::MultContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
 							ctx.b = Some(tmp.clone()); } else {unreachable!("cant cast");}  
-
 
 							let tmp = { "* ".to_owned() + if let EContextAll::MultContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 							ctx } else {unreachable!("cant cast")} .a.as_ref().unwrap().get_v() + " " + if let EContextAll::MultContext(ctx) = cast::<_,EContextAll >(&*_localctx){
@@ -995,18 +990,18 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
 							_localctx = tmp;
 							recog.base.set_state(23);
-							if !({recog.precpred(None, 6)}) {
+							if !({let _localctx = Some(_localctx.clone());
+							recog.precpred(None, 6)}) {
 								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 6)".to_owned()), None))?;
 							}
 							recog.base.set_state(24);
-							recog.base.match_token(T__1,&mut recog.err_handler)?;
+							recog.base.match_token(Labels_T__1,&mut recog.err_handler)?;
 
 							/*InvokeRule e*/
 							recog.base.set_state(25);
 							let tmp = recog.e_rec(7)?;
 							if let EContextAll::AddContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
 							ctx.b = Some(tmp.clone()); } else {unreachable!("cant cast");}  
-
 
 							let tmp = { "+ ".to_owned() + if let EContextAll::AddContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 							ctx } else {unreachable!("cant cast")} .a.as_ref().unwrap().get_v() + " " + if let EContextAll::AddContext(ctx) = cast::<_,EContextAll >(&*_localctx){
@@ -1026,12 +1021,12 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
 							_localctx = tmp;
 							recog.base.set_state(28);
-							if !({recog.precpred(None, 3)}) {
+							if !({let _localctx = Some(_localctx.clone());
+							recog.precpred(None, 3)}) {
 								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 3)".to_owned()), None))?;
 							}
 							recog.base.set_state(29);
-							recog.base.match_token(T__4,&mut recog.err_handler)?;
-
+							recog.base.match_token(Labels_T__4,&mut recog.err_handler)?;
 
 							let tmp = { " ++".to_owned() + if let EContextAll::IncContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 							ctx } else {unreachable!("cant cast")} .x.as_ref().unwrap().get_v()}.to_owned();
@@ -1050,12 +1045,12 @@ where
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
 							_localctx = tmp;
 							recog.base.set_state(31);
-							if !({recog.precpred(None, 2)}) {
+							if !({let _localctx = Some(_localctx.clone());
+							recog.precpred(None, 2)}) {
 								Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 2)".to_owned()), None))?;
 							}
 							recog.base.set_state(32);
-							recog.base.match_token(T__5,&mut recog.err_handler)?;
-
+							recog.base.match_token(Labels_T__5,&mut recog.err_handler)?;
 
 							let tmp = { " --".to_owned() + if let EContextAll::DecContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 							ctx } else {unreachable!("cant cast")} .x.as_ref().unwrap().get_v()}.to_owned();
@@ -1088,46 +1083,38 @@ where
 		Ok(_localctx)
 	}
 }
-
-lazy_static! {
+	lazy_static!{
     static ref _ATN: Arc<ATN> =
-        Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
+        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
     static ref _decision_to_DFA: Arc<Vec<antlr4rust::RwLock<DFA>>> = {
         let mut dfa = Vec::new();
-        let size = _ATN.decision_to_state.len();
+        let size = _ATN.decision_to_state.len() as i32;
         for i in 0..size {
             dfa.push(DFA::new(
                 _ATN.clone(),
                 _ATN.get_decision_state(i),
-                i as isize,
+                i,
             ).into())
         }
         Arc::new(dfa)
     };
+	static ref _serializedATN: Vec<i32> = vec![
+		4, 1, 9, 40, 2, 0, 7, 0, 2, 1, 7, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3, 1, 17, 8, 1, 1, 1, 1, 1, 1, 
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 
+		1, 1, 1, 5, 1, 35, 8, 1, 10, 1, 12, 1, 38, 9, 1, 1, 1, 0, 1, 2, 2, 0, 
+		2, 0, 0, 43, 0, 4, 1, 0, 0, 0, 2, 16, 1, 0, 0, 0, 4, 5, 3, 2, 1, 0, 5, 
+		1, 1, 0, 0, 0, 6, 7, 6, 1, -1, 0, 7, 8, 5, 8, 0, 0, 8, 17, 6, 1, -1, 0, 
+		9, 10, 5, 3, 0, 0, 10, 11, 3, 2, 1, 0, 11, 12, 5, 4, 0, 0, 12, 13, 6, 
+		1, -1, 0, 13, 17, 1, 0, 0, 0, 14, 15, 5, 7, 0, 0, 15, 17, 6, 1, -1, 0, 
+		16, 6, 1, 0, 0, 0, 16, 9, 1, 0, 0, 0, 16, 14, 1, 0, 0, 0, 17, 36, 1, 0, 
+		0, 0, 18, 19, 10, 7, 0, 0, 19, 20, 5, 1, 0, 0, 20, 21, 3, 2, 1, 8, 21, 
+		22, 6, 1, -1, 0, 22, 35, 1, 0, 0, 0, 23, 24, 10, 6, 0, 0, 24, 25, 5, 2, 
+		0, 0, 25, 26, 3, 2, 1, 7, 26, 27, 6, 1, -1, 0, 27, 35, 1, 0, 0, 0, 28, 
+		29, 10, 3, 0, 0, 29, 30, 5, 5, 0, 0, 30, 35, 6, 1, -1, 0, 31, 32, 10, 
+		2, 0, 0, 32, 33, 5, 6, 0, 0, 33, 35, 6, 1, -1, 0, 34, 18, 1, 0, 0, 0, 
+		34, 23, 1, 0, 0, 0, 34, 28, 1, 0, 0, 0, 34, 31, 1, 0, 0, 0, 35, 38, 1, 
+		0, 0, 0, 36, 34, 1, 0, 0, 0, 36, 37, 1, 0, 0, 0, 37, 3, 1, 0, 0, 0, 38, 
+		36, 1, 0, 0, 0, 3, 16, 34, 36
+	];
 }
-
-
-
-const _serializedATN:&'static str =
-	"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x03\
-	\x0b\x2a\x04\x02\x09\x02\x04\x03\x09\x03\x03\x02\x03\x02\x03\x03\x03\x03\
-	\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x05\x03\
-	\x13\x0a\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\
-	\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x03\x07\
-	\x03\x25\x0a\x03\x0c\x03\x0e\x03\x28\x0b\x03\x03\x03\x02\x03\x04\x04\x02\
-	\x04\x02\x02\x02\x2d\x02\x06\x03\x02\x02\x02\x04\x12\x03\x02\x02\x02\x06\
-	\x07\x05\x04\x03\x02\x07\x03\x03\x02\x02\x02\x08\x09\x08\x03\x01\x02\x09\
-	\x0a\x07\x0a\x02\x02\x0a\x13\x08\x03\x01\x02\x0b\x0c\x07\x05\x02\x02\x0c\
-	\x0d\x05\x04\x03\x02\x0d\x0e\x07\x06\x02\x02\x0e\x0f\x08\x03\x01\x02\x0f\
-	\x13\x03\x02\x02\x02\x10\x11\x07\x09\x02\x02\x11\x13\x08\x03\x01\x02\x12\
-	\x08\x03\x02\x02\x02\x12\x0b\x03\x02\x02\x02\x12\x10\x03\x02\x02\x02\x13\
-	\x26\x03\x02\x02\x02\x14\x15\x0c\x09\x02\x02\x15\x16\x07\x03\x02\x02\x16\
-	\x17\x05\x04\x03\x0a\x17\x18\x08\x03\x01\x02\x18\x25\x03\x02\x02\x02\x19\
-	\x1a\x0c\x08\x02\x02\x1a\x1b\x07\x04\x02\x02\x1b\x1c\x05\x04\x03\x09\x1c\
-	\x1d\x08\x03\x01\x02\x1d\x25\x03\x02\x02\x02\x1e\x1f\x0c\x05\x02\x02\x1f\
-	\x20\x07\x07\x02\x02\x20\x25\x08\x03\x01\x02\x21\x22\x0c\x04\x02\x02\x22\
-	\x23\x07\x08\x02\x02\x23\x25\x08\x03\x01\x02\x24\x14\x03\x02\x02\x02\x24\
-	\x19\x03\x02\x02\x02\x24\x1e\x03\x02\x02\x02\x24\x21\x03\x02\x02\x02\x25\
-	\x28\x03\x02\x02\x02\x26\x24\x03\x02\x02\x02\x26\x27\x03\x02\x02\x02\x27\
-	\x05\x03\x02\x02\x02\x28\x26\x03\x02\x02\x02\x05\x12\x24\x26";
-

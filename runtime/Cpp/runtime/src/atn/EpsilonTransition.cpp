@@ -3,6 +3,11 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <string>
+#include <cstddef>
+#include "antlr4-common.h"
+#include "atn/TransitionType.h"
+#include "atn/ATNState.h"
 #include "atn/EpsilonTransition.h"
 
 using namespace antlr4::atn;
@@ -11,15 +16,11 @@ EpsilonTransition::EpsilonTransition(ATNState *target) : EpsilonTransition(targe
 }
 
 EpsilonTransition::EpsilonTransition(ATNState *target, size_t outermostPrecedenceReturn)
-  : Transition(target), _outermostPrecedenceReturn(outermostPrecedenceReturn) {
+  : Transition(TransitionType::EPSILON, target), _outermostPrecedenceReturn(outermostPrecedenceReturn) {
 }
 
-size_t EpsilonTransition::outermostPrecedenceReturn() {
+size_t EpsilonTransition::outermostPrecedenceReturn() const {
   return _outermostPrecedenceReturn;
-}
-
-Transition::SerializationType EpsilonTransition::getSerializationType() const {
-  return EPSILON;
 }
 
 bool EpsilonTransition::isEpsilon() const {

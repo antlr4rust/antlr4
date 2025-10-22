@@ -168,7 +168,7 @@ where
     }
 
     #[inline]
-    fn la(&mut self, mut offset: isize) -> isize {
+    fn la(&mut self, mut offset: isize) -> i32 {
         if offset == 1 {
             return self
                 .data_raw
@@ -229,18 +229,18 @@ mod test {
     fn test_str_input_stream() {
         let mut input = InputStream::new("V1は3");
         let input = &mut input as &mut dyn CharStream<String>;
-        assert_eq!(input.la(1), 'V' as isize);
+        assert_eq!(input.la(1), 'V' as i32);
         assert_eq!(input.index(), 0);
         input.consume();
-        assert_eq!(input.la(1), '1' as isize);
-        assert_eq!(input.la(-1), 'V' as isize);
+        assert_eq!(input.la(1), '1' as i32);
+        assert_eq!(input.la(-1), 'V' as i32);
         assert_eq!(input.index(), 1);
         input.consume();
         assert_eq!(input.la(1), 0x306F);
         assert_eq!(input.index(), 2);
         input.consume();
         assert_eq!(input.index(), 5);
-        assert_eq!(input.la(-2), '1' as isize);
+        assert_eq!(input.la(-2), '1' as i32);
         assert_eq!(input.la(2), EOF);
         assert_eq!(input.get_text(1, 1).deref(), "1");
         assert_eq!(input.get_text(1, 2).deref(), "1は");
@@ -252,7 +252,7 @@ mod test {
     #[test]
     fn test_byte_input_stream() {
         let mut input = InputStream::new(&b"V\xaa\xbb"[..]);
-        assert_eq!(input.la(1), 'V' as isize);
+        assert_eq!(input.la(1), 'V' as i32);
         input.seek(2);
         assert_eq!(input.la(1), 0xBB);
         assert_eq!(input.index(), 2);

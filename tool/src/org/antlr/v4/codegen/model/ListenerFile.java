@@ -12,17 +12,14 @@ import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.ActionAST;
 import org.antlr.v4.tool.ast.AltAST;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /** A model object representing a parse tree listener file.
  *  These are the rules specific events triggered by a parse tree visitor.
  */
 public class ListenerFile extends OutputFile {
 	public String genPackage; // from -package cmd-line
+	public boolean genLean; // from -split-parser cmd-line
 	public String accessLevel; // from -DaccessLevel cmd-line
 	public String exportMacro; // from -DexportMacro cmd-line
 	public String grammarName;
@@ -46,7 +43,7 @@ public class ListenerFile extends OutputFile {
 		Grammar g = factory.getGrammar();
 		parserName = g.getRecognizerName();
 		grammarName = g.name;
-		namedActions = buildNamedActions(factory.getGrammar());
+		namedActions = buildNamedActions(factory.getGrammar(), ast -> ast.getScope() == null);
 		for (Rule r : g.rules.values()) {
 			Map<String, List<Pair<Integer,AltAST>>> labels = r.getAltLabels();
 			if ( labels!=null ) {
@@ -61,8 +58,11 @@ public class ListenerFile extends OutputFile {
 			}
 		}
 		ActionAST ast = g.namedActions.get("header");
-		if ( ast!=null ) header = new Action(factory, ast);
+		if ( ast!=null && ast.getScope()==null ) {
+			header = new Action(factory, ast);
+		}
 		genPackage = g.tool.genPackage;
+		genLean = g.tool.gen_split_parser;
 		accessLevel = g.getOptionString("accessLevel");
 		exportMacro = g.getOptionString("exportMacro");
 	}

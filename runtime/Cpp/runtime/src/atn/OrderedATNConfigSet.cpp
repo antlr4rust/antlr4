@@ -3,10 +3,15 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <cstddef>
 #include "atn/OrderedATNConfigSet.h"
 
 using namespace antlr4::atn;
 
-size_t OrderedATNConfigSet::getHash(ATNConfig *c) {
-  return c->hashCode();
+size_t OrderedATNConfigSet::hashCode(const ATNConfig &atnConfig) const {
+  return atnConfig.hashCode();
+}
+
+bool OrderedATNConfigSet::equals(const ATNConfig &lhs, const ATNConfig &rhs) const {
+  return lhs == rhs;
 }

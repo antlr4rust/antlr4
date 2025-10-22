@@ -1,4 +1,4 @@
-// Generated from VisitorCalc.g4 by ANTLR 4.8
+// Generated from VisitorCalc.g4 by ANTLR 4.13.2
 #![allow(dead_code)]
 #![allow(nonstandard_style)]
 #![allow(unused_imports)]
@@ -6,6 +6,7 @@
 use antlr4rust::atn::ATN;
 use antlr4rust::char_stream::CharStream;
 use antlr4rust::int_stream::IntStream;
+use antlr4rust::tree::ParseTree;
 use antlr4rust::lexer::{BaseLexer, Lexer, LexerRecog};
 use antlr4rust::atn_deserializer::ATNDeserializer;
 use antlr4rust::dfa::DFA;
@@ -29,12 +30,12 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
 
-	pub const INT:isize=1; 
-	pub const MUL:isize=2; 
-	pub const DIV:isize=3; 
-	pub const ADD:isize=4; 
-	pub const SUB:isize=5; 
-	pub const WS:isize=6;
+	pub const INT:i32=1; 
+	pub const MUL:i32=2; 
+	pub const DIV:i32=3; 
+	pub const ADD:i32=4; 
+	pub const SUB:i32=5; 
+	pub const WS:i32=6;
 	pub const channelNames: [&'static str;0+2] = [
 		"DEFAULT_TOKEN_CHANNEL", "HIDDEN"
 	];
@@ -104,7 +105,7 @@ impl<'input, Input:CharStream<From<'input> >> VisitorCalcLexer<'input,Input>{
     }
 
 	pub fn new_with_token_factory(input: Input, tf: &'input LocalTokenFactory<'input>) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+		antlr4rust::recognizer::check_version("0","4");
     	Self {
 			base: BaseLexer::new_base_lexer(
 				input,
@@ -171,46 +172,43 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for VisitorCal
     fn get_token_factory(&self) -> &'input Self::TF {
         self.base.get_token_factory()
     }
+
+    fn get_dfa_string(&self) -> String {
+        self.base.get_dfa_string()
+    }
 }
 
 
-
-	lazy_static! {
+		lazy_static!{
 	    static ref _ATN: Arc<ATN> =
-	        Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
+	        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
 	    static ref _decision_to_DFA: Arc<Vec<antlr4rust::RwLock<DFA>>> = {
 	        let mut dfa = Vec::new();
-	        let size = _ATN.decision_to_state.len();
+	        let size = _ATN.decision_to_state.len() as i32;
 	        for i in 0..size {
 	            dfa.push(DFA::new(
 	                _ATN.clone(),
 	                _ATN.get_decision_state(i),
-	                i as isize,
+	                i,
 	            ).into())
 	        }
 	        Arc::new(dfa)
 	    };
+		static ref _serializedATN: Vec<i32> = vec![
+			4, 0, 6, 33, 6, -1, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 2, 3, 7, 3, 2, 
+			4, 7, 4, 2, 5, 7, 5, 1, 0, 4, 0, 15, 8, 0, 11, 0, 12, 0, 16, 1, 1, 1, 
+			1, 1, 2, 1, 2, 1, 3, 1, 3, 1, 4, 1, 4, 1, 5, 4, 5, 28, 8, 5, 11, 5, 12, 
+			5, 29, 1, 5, 1, 5, 0, 0, 6, 1, 1, 3, 2, 5, 3, 7, 4, 9, 5, 11, 6, 1, 0, 
+			2, 1, 0, 48, 57, 2, 0, 9, 9, 32, 32, 34, 0, 1, 1, 0, 0, 0, 0, 3, 1, 0, 
+			0, 0, 0, 5, 1, 0, 0, 0, 0, 7, 1, 0, 0, 0, 0, 9, 1, 0, 0, 0, 0, 11, 1, 
+			0, 0, 0, 1, 14, 1, 0, 0, 0, 3, 18, 1, 0, 0, 0, 5, 20, 1, 0, 0, 0, 7, 
+			22, 1, 0, 0, 0, 9, 24, 1, 0, 0, 0, 11, 27, 1, 0, 0, 0, 13, 15, 7, 0, 
+			0, 0, 14, 13, 1, 0, 0, 0, 15, 16, 1, 0, 0, 0, 16, 14, 1, 0, 0, 0, 16, 
+			17, 1, 0, 0, 0, 17, 2, 1, 0, 0, 0, 18, 19, 5, 42, 0, 0, 19, 4, 1, 0, 
+			0, 0, 20, 21, 5, 47, 0, 0, 21, 6, 1, 0, 0, 0, 22, 23, 5, 43, 0, 0, 23, 
+			8, 1, 0, 0, 0, 24, 25, 5, 45, 0, 0, 25, 10, 1, 0, 0, 0, 26, 28, 7, 1, 
+			0, 0, 27, 26, 1, 0, 0, 0, 28, 29, 1, 0, 0, 0, 29, 27, 1, 0, 0, 0, 29, 
+			30, 1, 0, 0, 0, 30, 31, 1, 0, 0, 0, 31, 32, 6, 5, 0, 0, 32, 12, 1, 0, 
+			0, 0, 3, 0, 16, 29, 1, 0, 1, 0
+		];
 	}
-
-
-
-	const _serializedATN:&'static str =
-		"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x02\
-		\x08\x23\x08\x01\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x04\x05\
-		\x09\x05\x04\x06\x09\x06\x04\x07\x09\x07\x03\x02\x06\x02\x11\x0a\x02\x0d\
-		\x02\x0e\x02\x12\x03\x03\x03\x03\x03\x04\x03\x04\x03\x05\x03\x05\x03\x06\
-		\x03\x06\x03\x07\x06\x07\x1e\x0a\x07\x0d\x07\x0e\x07\x1f\x03\x07\x03\x07\
-		\x02\x02\x08\x03\x03\x05\x04\x07\x05\x09\x06\x0b\x07\x0d\x08\x03\x02\x04\
-		\x03\x02\x32\x3b\x04\x02\x0b\x0b\x22\x22\x02\x24\x02\x03\x03\x02\x02\x02\
-		\x02\x05\x03\x02\x02\x02\x02\x07\x03\x02\x02\x02\x02\x09\x03\x02\x02\x02\
-		\x02\x0b\x03\x02\x02\x02\x02\x0d\x03\x02\x02\x02\x03\x10\x03\x02\x02\x02\
-		\x05\x14\x03\x02\x02\x02\x07\x16\x03\x02\x02\x02\x09\x18\x03\x02\x02\x02\
-		\x0b\x1a\x03\x02\x02\x02\x0d\x1d\x03\x02\x02\x02\x0f\x11\x09\x02\x02\x02\
-		\x10\x0f\x03\x02\x02\x02\x11\x12\x03\x02\x02\x02\x12\x10\x03\x02\x02\x02\
-		\x12\x13\x03\x02\x02\x02\x13\x04\x03\x02\x02\x02\x14\x15\x07\x2c\x02\x02\
-		\x15\x06\x03\x02\x02\x02\x16\x17\x07\x31\x02\x02\x17\x08\x03\x02\x02\x02\
-		\x18\x19\x07\x2d\x02\x02\x19\x0a\x03\x02\x02\x02\x1a\x1b\x07\x2f\x02\x02\
-		\x1b\x0c\x03\x02\x02\x02\x1c\x1e\x09\x03\x02\x02\x1d\x1c\x03\x02\x02\x02\
-		\x1e\x1f\x03\x02\x02\x02\x1f\x1d\x03\x02\x02\x02\x1f\x20\x03\x02\x02\x02\
-		\x20\x21\x03\x02\x02\x02\x21\x22\x08\x07\x02\x02\x22\x0e\x03\x02\x02\x02\
-		\x05\x02\x12\x1f\x03\x02\x03\x02";

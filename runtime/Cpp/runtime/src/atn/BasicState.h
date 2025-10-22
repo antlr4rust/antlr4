@@ -5,16 +5,20 @@
 
 #pragma once
 
+#include "antlr4-common.h"
+#include "atn/ATNStateType.h"
 #include "atn/ATNState.h"
 
 namespace antlr4 {
 namespace atn {
 
   class ANTLR4CPP_PUBLIC BasicState final : public ATNState {
-
   public:
-    virtual size_t getStateType() override;
+    static bool is(const ATNState &atnState) { return atnState.getStateType() == ATNStateType::BASIC; }
 
+    static bool is(const ATNState *atnState) { return atnState != nullptr && is(*atnState); }
+
+    BasicState() : ATNState(ATNStateType::BASIC) {}
   };
 
 } // namespace atn

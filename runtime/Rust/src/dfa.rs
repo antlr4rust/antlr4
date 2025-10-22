@@ -38,7 +38,7 @@ pub struct DFA {
     /// ATN state from which this DFA creation was started from
     pub atn_start_state: ATNStateRef,
 
-    pub decision: isize,
+    pub decision: i32,
 
     /// Set of all dfa states.
     pub states: Vec<DFAState>,
@@ -54,7 +54,7 @@ pub struct DFA {
 }
 
 impl DFA {
-    pub fn new(atn: Arc<ATN>, atn_start_state: ATNStateRef, decision: isize) -> DFA {
+    pub fn new(atn: Arc<ATN>, atn_start_state: ATNStateRef, decision: i32) -> DFA {
         let mut dfa = DFA {
             atn_start_state,
             decision,
@@ -77,7 +77,7 @@ impl DFA {
                     ..
                 },
             ..
-        } = atn.states[atn_start_state].get_state_type()
+        } = atn.states[atn_start_state as usize].get_state_type()
         {
             dfa.is_precedence_dfa = true;
             let mut precedence_state = DFAState::new_dfastate(
@@ -94,7 +94,7 @@ impl DFA {
         dfa
     }
 
-    pub fn get_precedence_start_state(&self, _precedence: isize) -> Option<DFAStateRef> {
+    pub fn get_precedence_start_state(&self, _precedence: i32) -> Option<DFAStateRef> {
         if !self.is_precedence_dfa {
             panic!("dfa is supposed to be precedence here");
         }
@@ -110,7 +110,7 @@ impl DFA {
         })
     }
 
-    pub fn set_precedence_start_state(&mut self, precedence: isize, _start_state: DFAStateRef) {
+    pub fn set_precedence_start_state(&mut self, precedence: i32, _start_state: DFAStateRef) {
         if !self.is_precedence_dfa {
             panic!("set_precedence_start_state called for not precedence dfa")
         }
@@ -146,7 +146,7 @@ impl DFA {
         format!(
             "{}",
             DFASerializer::new(self, &|x| vocabulary
-                .get_display_name(x as isize - 1)
+                .get_display_name(x as i32 - 1)
                 .into_owned(),)
         )
     }

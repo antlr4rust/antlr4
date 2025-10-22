@@ -5,7 +5,11 @@
 
 #pragma once
 
+#include <string>
 #include "tree/ErrorNode.h"
+#include "tree/ParseTreeType.h"
+#include "Token.h"
+#include "antlr4-common.h"
 #include "tree/TerminalNodeImpl.h"
 #include "misc/Interval.h"
 
@@ -21,12 +25,22 @@ namespace tree {
   ///  and deletion as well as during "consume until error recovery set"
   ///  upon no viable alternative exceptions.
   /// </summary>
-  class ANTLR4CPP_PUBLIC ErrorNodeImpl : public virtual TerminalNodeImpl, public virtual ErrorNode {
+  class ANTLR4CPP_PUBLIC ErrorNodeImpl : public ErrorNode {
   public:
-    ErrorNodeImpl(Token *token);
-    ~ErrorNodeImpl() override;
+    Token *symbol;
 
-    virtual antlrcpp::Any accept(ParseTreeVisitor *visitor) override;
+    explicit ErrorNodeImpl(Token *symbol) : ErrorNode(ParseTreeType::ERROR), symbol(symbol) {}
+
+    Token* getSymbol() const override;
+    void setParent(RuleContext *parent) override;
+    misc::Interval getSourceInterval() override;
+
+    std::any accept(ParseTreeVisitor *visitor) override;
+
+    std::string getText() override;
+    std::string toStringTree(Parser *parser, bool pretty = false) override;
+    std::string toString() override;
+    std::string toStringTree(bool pretty = false) override;
   };
 
 } // namespace tree

@@ -3,7 +3,13 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <exception>
+#include <string>
+#include <cstddef>
 #include "NoViableAltException.h"
+#include "atn/ATNStateType.h"
+#include "Token.h"
+#include "antlr4-common.h"
 #include "misc/IntervalSet.h"
 #include "atn/ParserATNSimulator.h"
 #include "InputMismatchException.h"
@@ -12,10 +18,11 @@
 #include "atn/RuleTransition.h"
 #include "atn/ATN.h"
 #include "atn/ATNState.h"
+#include "support/StringUtils.h"
+#include "support/Casts.h"
 #include "Parser.h"
 #include "CommonToken.h"
 #include "Vocabulary.h"
-#include "support/StringUtils.h"
 
 #include "DefaultErrorStrategy.h"
 
@@ -106,10 +113,10 @@ void DefaultErrorStrategy::sync(Parser *recognizer) {
   }
 
   switch (s->getStateType()) {
-    case atn::ATNState::BLOCK_START:
-    case atn::ATNState::STAR_BLOCK_START:
-    case atn::ATNState::PLUS_BLOCK_START:
-    case atn::ATNState::STAR_LOOP_ENTRY:
+    case atn::ATNStateType::BLOCK_START:
+    case atn::ATNStateType::STAR_BLOCK_START:
+    case atn::ATNStateType::PLUS_BLOCK_START:
+    case atn::ATNStateType::STAR_LOOP_ENTRY:
       // report error and recover if possible
       if (singleTokenDeletion(recognizer) != nullptr) {
         return;
@@ -117,8 +124,8 @@ void DefaultErrorStrategy::sync(Parser *recognizer) {
 
       throw InputMismatchException(recognizer);
 
-    case atn::ATNState::PLUS_LOOP_BACK:
-    case atn::ATNState::STAR_LOOP_BACK: {
+    case atn::ATNStateType::PLUS_LOOP_BACK:
+    case atn::ATNStateType::STAR_LOOP_BACK: {
       reportUnwantedToken(recognizer);
       misc::IntervalSet expecting = recognizer->getExpectedTokens();
       misc::IntervalSet whatFollowsLoopIterationOrRule = expecting.Or(getErrorRecoverySet(recognizer));
@@ -292,11 +299,13 @@ size_t DefaultErrorStrategy::getSymbolType(Token *symbol) {
 }
 
 std::string DefaultErrorStrategy::escapeWSAndQuote(const std::string &s) const {
-  std::string result = s;
-  antlrcpp::replaceAll(result, "\n", "\\n");
-  antlrcpp::replaceAll(result, "\r","\\r");
-  antlrcpp::replaceAll(result, "\t","\\t");
-  return "'" + result + "'";
+  std::string result;
+  result.reserve(s.size() + 2);
+  result.push_back('\'');
+  antlrcpp::escapeWhitespace(result, s);
+  result.push_back('\'');
+  result.shrink_to_fit();
+  return result;
 }
 
 misc::IntervalSet DefaultErrorStrategy::getErrorRecoverySet(Parser *recognizer) {
@@ -306,7 +315,7 @@ misc::IntervalSet DefaultErrorStrategy::getErrorRecoverySet(Parser *recognizer) 
   while (ctx->invokingState != ATNState::INVALID_STATE_NUMBER) {
     // compute what follows who invoked us
     atn::ATNState *invokingState = atn.states[ctx->invokingState];
-    atn::RuleTransition *rt = dynamic_cast<atn::RuleTransition*>(invokingState->transitions[0]);
+    const atn::RuleTransition *rt = downCast<const atn::RuleTransition*>(invokingState->transitions[0].get());
     misc::IntervalSet follow = atn.nextTokens(rt->followState);
     recoverSet.addAll(follow);
 

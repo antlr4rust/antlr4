@@ -30,7 +30,7 @@ pub trait InputData:
     fn offset(&self, index: isize, item_offset: isize) -> Option<isize>;
 
     #[doc(hidden)]
-    fn item(&self, index: isize) -> Option<isize>;
+    fn item(&self, index: isize) -> Option<i32>;
 
     #[doc(hidden)]
     fn len(&self) -> usize;
@@ -67,8 +67,8 @@ where
     }
 
     #[inline]
-    fn item(&self, index: isize) -> Option<isize> {
-        self.get(index as usize).map(|&it| it.into() as isize)
+    fn item(&self, index: isize) -> Option<i32> {
+        self.get(index as usize).map(|&it| it.into() as i32)
     }
 
     #[inline]
@@ -138,10 +138,10 @@ impl InputData for str {
     }
 
     #[inline]
-    fn item(&self, index: isize) -> Option<isize> {
+    fn item(&self, index: isize) -> Option<i32> {
         self.get(index as usize..)
             .and_then(|it| it.chars().next())
-            .map(|it| it as isize)
+            .map(|it| it as i32)
     }
 
     #[inline]

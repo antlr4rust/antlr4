@@ -1,0 +1,95 @@
+use std::env;
+use antlr4rust::parser::ParserNodeType;
+use antlr4rust::{InputStream, Lexer, Parser};
+use antlr4rust::common_token_stream::CommonTokenStream;
+use antlr4rust::error_listener::DiagnosticErrorListener;
+use antlr4rust::int_stream::IntStream;
+use antlr4rust::lexer::LEXER_DEFAULT_MODE;
+use antlr4rust::PredictionMode;
+use antlr4rust::token_stream::TokenStream;
+use antlr4rust::tree::{IsError, LeafNode, NoError, ParseTreeListener, ParseTreeWalker, TerminalNode};
+mod <lexerName; format="lower">;
+use <lexerName; format="lower">::<lexerName>;
+<if(parserName)>
+mod <parserName; format="lower">;
+use <parserName; format="lower">::<parserName>;
+use <parserName; format="lower">::<grammarName>ParserContextType;
+use antlr4rust::errors::ANTLRError;
+<endif>
+<if(useListener)>
+mod <grammarName; format="lower">baselistener;
+use <grammarName; format="lower">baselistener::<grammarName>BaseListener;
+mod <grammarName; format="lower">listener;
+use <grammarName; format="lower">listener::<grammarName>Listener;
+<endif>
+<if(useVisitor)>
+mod <grammarName; format="lower">basevisitor;
+use <grammarName; format="lower">basevisitor::<grammarName>BaseVisitor;
+mod <grammarName; format="lower">visitor;
+use <grammarName; format="lower">visitor::<grammarName>Visitor;
+<endif>
+
+fn main() {
+	let args: Vec\<String> = env::args().collect();
+	let string = &args[1];
+	let result = std::fs::read_to_string(string);
+	let data = result.unwrap();
+	let input = InputStream::new(data.as_str());
+    let lex = <lexerName>::new(input);
+  	let mut tokens = CommonTokenStream::new(lex);
+<if(parserName)>
+	let mut parser = <parserName>::new(tokens);
+<if(showDiagnosticErrors)>
+  	parser.add_error_listener(Box::new(DiagnosticErrorListener::new(true)));
+<endif>
+<if(profile)>
+  let profiler = ProfilingATNSimulator::new(parser);
+  parser.setInterpreter(profiler);
+<endif>
+	parser.get_interpreter().set_prediction_mode(PredictionMode::<predictionMode>);
+<if(!buildParseTree)>
+  	parser.build_parse_trees = false;
+<endif>
+  	let tree = parser.<parserStartRuleName>();
+<if(profile)>
+  	println!('[${profiler.getDecisionInfo().join(', ')}]');
+<endif>
+  	//ParseTreeWalker::walk(Box::new(TreeShapeListener::new()), &tree);
+<else>
+  	//tokens.fill();
+  	for t in tokens.iter() {
+	}
+	for idx in 0..tokens.size() {
+		let mut x1 = tokens.get(idx);
+		println!("{}", x1);
+	}
+<if(showDFA)>
+  	print!("{}", tokens.get_dfa_string());
+<endif>
+<endif>
+}
+
+<if(parserName)>
+struct TreeShapeListener {
+}
+
+impl\<'input> ParseTreeListener\<'_, <grammarName>ParserContextType> for TreeShapeListener {
+    fn visit_terminal(&mut self, _node: &LeafNode\<'_, <grammarName>ParserContextType, NoError>) {}
+
+    fn visit_error_node(&mut self, _node: &LeafNode\<'_, <grammarName>ParserContextType, IsError>) {}
+
+    fn enter_every_rule(
+        &mut self,
+        _ctx: &\<<grammarName>ParserContextType as ParserNodeType>::Type,
+    ) -> Result\<(), ANTLRError> {
+        Ok(())
+    }
+
+    fn exit_every_rule(
+        &mut self,
+        _ctx: &\<<grammarName>ParserContextType as ParserNodeType>::Type,
+    ) -> Result\<(), ANTLRError> {
+        Ok(())
+    }
+}
+<endif>

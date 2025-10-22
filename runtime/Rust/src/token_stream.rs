@@ -76,6 +76,7 @@ pub struct UnbufferedTokenStream<'input, T: TokenSource<'input>> {
     pub(crate) current_token_index: isize,
     markers_count: isize,
     pub(crate) p: isize,
+    fetched_eof: bool,
 }
 better_any::tid! { impl<'input,T> TidAble<'input> for UnbufferedTokenStream<'input, T> where T: TokenSource<'input>}
 
@@ -93,7 +94,7 @@ impl<'input, T: TokenSource<'input>> Debug for UnbufferedTokenStream<'input, T> 
 impl<'input, T: TokenSource<'input>> UnbufferedTokenStream<'input, T> {
     /// Creates iterator over this token stream
     pub fn iter(&mut self) -> IterWrapper<'_, Self> {
-        IterWrapper(self)
+        IterWrapper(self, false)
     }
 
     /// Creates iterator over tokens in this token stream
@@ -116,7 +117,12 @@ impl<'input, T: TokenSource<'input>> UnbufferedTokenStream<'input, T> {
             current_token_index: 0,
             markers_count: 0,
             p: 0,
+            fetched_eof: false,
         }
+    }
+
+    pub fn get_dfa_string(&self) -> String {
+        self.token_source.get_dfa_string()
     }
 
     fn sync(&mut self, want: isize) {
@@ -203,8 +209,11 @@ impl<'input, T: TokenSource<'input>> TokenStream<'input> for UnbufferedTokenStre
 impl<'input, T: TokenSource<'input>> IntStream for UnbufferedTokenStream<'input, T> {
     #[inline]
     fn consume(&mut self) {
-        if self.la(1) == TOKEN_EOF {
+        if self.fetched_eof {
             panic!("cannot consume EOF");
+        }
+        if self.la(1) == TOKEN_EOF {
+            self.fetched_eof = true;
         }
 
         if self.p == self.tokens.len() as isize && self.markers_count == 0 {
@@ -220,7 +229,7 @@ impl<'input, T: TokenSource<'input>> IntStream for UnbufferedTokenStream<'input,
     }
 
     #[inline]
-    fn la(&mut self, i: isize) -> isize {
+    fn la(&mut self, i: isize) -> i32 {
         self.lt(i)
             .map(|t| t.borrow().get_token_type())
             .unwrap_or(TOKEN_INVALID_TYPE)

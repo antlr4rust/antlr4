@@ -25,15 +25,15 @@
 #  @see ParserRuleContext
 #/
 from io import StringIO
-from antlr4.tree.Tree import RuleNode, INVALID_INTERVAL, ParseTreeVisitor
-from antlr4.tree.Trees import Trees
+from .tree.Tree import RuleNode, INVALID_INTERVAL, ParseTreeVisitor
+from .tree.Trees import Trees
 
 # need forward declarations
 RuleContext = None
 Parser = None
 
 class RuleContext(RuleNode):
-
+    __slots__ = ('parentCtx', 'invokingState')
     EMPTY = None
 
     def __init__(self, parent:RuleContext=None, invokingState:int=-1):
@@ -225,4 +225,3 @@ class RuleContext(RuleNode):
 
             buf.write("]")
             return buf.getvalue()
-

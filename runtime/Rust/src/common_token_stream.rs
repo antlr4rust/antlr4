@@ -11,7 +11,13 @@ use crate::token_stream::{TokenStream, UnbufferedTokenStream};
 #[derive(Debug)]
 pub struct CommonTokenStream<'input, T: TokenSource<'input>> {
     base: UnbufferedTokenStream<'input, T>,
-    channel: isize,
+    channel: i32,
+}
+
+impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
+    pub fn base(&self) -> &UnbufferedTokenStream<'input, T> {
+        &self.base
+    }
 }
 
 better_any::tid! { impl<'input,T> TidAble<'input> for CommonTokenStream<'input, T> where T: TokenSource<'input>}
@@ -28,7 +34,7 @@ impl<'input, T: TokenSource<'input>> IntStream for CommonTokenStream<'input, T> 
     }
 
     #[inline]
-    fn la(&mut self, i: isize) -> isize {
+    fn la(&mut self, i: isize) -> i32 {
         self.lt(i)
             .map(|t| t.borrow().get_token_type())
             .unwrap_or(TOKEN_INVALID_TYPE)
@@ -100,13 +106,17 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
     }
 
     /// Creates CommonTokenStream that produces tokens from `channel`
-    pub fn with_channel(lexer: T, channel: isize) -> CommonTokenStream<'input, T> {
+    pub fn with_channel(lexer: T, channel: i32) -> CommonTokenStream<'input, T> {
         let mut r = CommonTokenStream {
             base: UnbufferedTokenStream::new_buffered(lexer),
             channel,
         };
         r.sync(0);
         r
+    }
+    
+    pub fn get_dfa_string(&self) -> String {
+        self.base.get_dfa_string()
     }
 
     fn lt_inner(&mut self, k: isize) -> Option<&<T::TF as TokenFactory<'input>>::Tok> {
@@ -132,7 +142,7 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
 
     /// Creates iterator over this token stream
     pub fn iter(&mut self) -> IterWrapper<'_, Self> {
-        IterWrapper(self)
+        IterWrapper(self, false)
     }
 
     fn sync(&mut self, i: isize) -> bool {
@@ -158,7 +168,7 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
     //    fn set_token_source(&self, tokenSource: TokenSource) { unimplemented!() }
 
     //todo make this const generic over direction
-    fn next_token_on_channel(&mut self, mut i: isize, channel: isize, direction: isize) -> isize {
+    fn next_token_on_channel(&mut self, mut i: isize, channel: i32, direction: isize) -> isize {
         self.sync(i);
         if i >= self.size() {
             return self.size() - 1;
@@ -224,4 +234,5 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
     }
 
     //    fn get_number_of_on_channel_tokens(&self) -> int { unimplemented!() }
+    
 }

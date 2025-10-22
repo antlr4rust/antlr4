@@ -3,7 +3,12 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <sstream>
+#include <vector>
+#include <string>
+#include <cstddef>
 #include "tree/ErrorNode.h"
+#include "antlr4-common.h"
 #include "Parser.h"
 #include "ParserRuleContext.h"
 #include "support/CPPUtils.h"
@@ -192,7 +197,7 @@ std::vector<ParseTree *> Trees::getDescendants(ParseTree *t) {
   std::size_t n = t->children.size();
   for (size_t i = 0 ; i < n ; i++) {
     auto descentants = getDescendants(t->children[i]);
-    for (auto entry: descentants) {
+    for (auto *entry: descentants) {
       nodes.push_back(entry);
     }
   }

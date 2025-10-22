@@ -1,4 +1,4 @@
-// Generated from ReferenceToATN.g4 by ANTLR 4.8
+// Generated from ReferenceToATN.g4 by ANTLR 4.13.2
 #![allow(dead_code)]
 #![allow(nonstandard_style)]
 #![allow(unused_imports)]
@@ -6,6 +6,7 @@
 use antlr4rust::atn::ATN;
 use antlr4rust::char_stream::CharStream;
 use antlr4rust::int_stream::IntStream;
+use antlr4rust::tree::ParseTree;
 use antlr4rust::lexer::{BaseLexer, Lexer, LexerRecog};
 use antlr4rust::atn_deserializer::ATNDeserializer;
 use antlr4rust::dfa::DFA;
@@ -29,9 +30,9 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
 
-	pub const ID:isize=1; 
-	pub const ATN:isize=2; 
-	pub const WS:isize=3;
+	pub const ID:i32=1; 
+	pub const ATN:i32=2; 
+	pub const WS:i32=3;
 	pub const channelNames: [&'static str;0+2] = [
 		"DEFAULT_TOKEN_CHANNEL", "HIDDEN"
 	];
@@ -58,7 +59,7 @@ use std::ops::{Deref, DerefMut};
 
 pub type LexerContext<'input> = BaseRuleContext<'input,EmptyCustomRuleContext<'input,LocalTokenFactory<'input> >>;
 
-pub type LocalTokenFactory<'input> = antlr4rust::token_factory::OwningTokenFactory;
+pub type LocalTokenFactory<'input> = antlr4rust::token_factory::OwningTokenFactory; // need single quote here '
 
 type From<'a> = <LocalTokenFactory<'a> as TokenFactory<'a> >::From;
 
@@ -100,7 +101,7 @@ impl<'input, Input:CharStream<From<'input> >> ReferenceToATNLexer<'input,Input>{
     }
 
 	pub fn new_with_token_factory(input: Input, tf: &'input LocalTokenFactory<'input>) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+		antlr4rust::recognizer::check_version("0","4");
     	Self {
 			base: BaseLexer::new_base_lexer(
 				input,
@@ -167,40 +168,38 @@ impl<'input, Input:CharStream<From<'input> >> TokenSource<'input> for ReferenceT
     fn get_token_factory(&self) -> &'input Self::TF {
         self.base.get_token_factory()
     }
+
+    fn get_dfa_string(&self) -> String {
+        self.base.get_dfa_string()
+    }
 }
 
 
-
-	lazy_static! {
+		lazy_static!{
 	    static ref _ATN: Arc<ATN> =
-	        Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
+	        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
 	    static ref _decision_to_DFA: Arc<Vec<antlr4rust::RwLock<DFA>>> = {
 	        let mut dfa = Vec::new();
-	        let size = _ATN.decision_to_state.len();
+	        let size = _ATN.decision_to_state.len() as i32;
 	        for i in 0..size {
 	            dfa.push(DFA::new(
 	                _ATN.clone(),
 	                _ATN.get_decision_state(i),
-	                i as isize,
+	                i,
 	            ).into())
 	        }
 	        Arc::new(dfa)
 	    };
+		static ref _serializedATN: Vec<i32> = vec![
+			4, 0, 3, 21, 6, -1, 2, 0, 7, 0, 2, 1, 7, 1, 2, 2, 7, 2, 1, 0, 4, 0, 9, 
+			8, 0, 11, 0, 12, 0, 10, 1, 1, 4, 1, 14, 8, 1, 11, 1, 12, 1, 15, 1, 2, 
+			1, 2, 1, 2, 1, 2, 0, 0, 3, 1, 1, 3, 2, 5, 3, 1, 0, 1, 2, 0, 10, 10, 32, 
+			32, 22, 0, 1, 1, 0, 0, 0, 0, 3, 1, 0, 0, 0, 0, 5, 1, 0, 0, 0, 1, 8, 1, 
+			0, 0, 0, 3, 13, 1, 0, 0, 0, 5, 17, 1, 0, 0, 0, 7, 9, 2, 97, 122, 0, 8, 
+			7, 1, 0, 0, 0, 9, 10, 1, 0, 0, 0, 10, 8, 1, 0, 0, 0, 10, 11, 1, 0, 0, 
+			0, 11, 2, 1, 0, 0, 0, 12, 14, 2, 48, 57, 0, 13, 12, 1, 0, 0, 0, 14, 15, 
+			1, 0, 0, 0, 15, 13, 1, 0, 0, 0, 15, 16, 1, 0, 0, 0, 16, 4, 1, 0, 0, 0, 
+			17, 18, 7, 0, 0, 0, 18, 19, 1, 0, 0, 0, 19, 20, 6, 2, 0, 0, 20, 6, 1, 
+			0, 0, 0, 3, 0, 10, 15, 1, 6, 0, 0
+		];
 	}
-
-
-
-	const _serializedATN:&'static str =
-		"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x02\
-		\x05\x17\x08\x01\x04\x02\x09\x02\x04\x03\x09\x03\x04\x04\x09\x04\x03\x02\
-		\x06\x02\x0b\x0a\x02\x0d\x02\x0e\x02\x0c\x03\x03\x06\x03\x10\x0a\x03\x0d\
-		\x03\x0e\x03\x11\x03\x04\x03\x04\x03\x04\x03\x04\x02\x02\x05\x03\x03\x05\
-		\x04\x07\x05\x03\x02\x03\x04\x02\x0c\x0c\x22\x22\x02\x18\x02\x03\x03\x02\
-		\x02\x02\x02\x05\x03\x02\x02\x02\x02\x07\x03\x02\x02\x02\x03\x0a\x03\x02\
-		\x02\x02\x05\x0f\x03\x02\x02\x02\x07\x13\x03\x02\x02\x02\x09\x0b\x04\x63\
-		\x7c\x02\x0a\x09\x03\x02\x02\x02\x0b\x0c\x03\x02\x02\x02\x0c\x0a\x03\x02\
-		\x02\x02\x0c\x0d\x03\x02\x02\x02\x0d\x04\x03\x02\x02\x02\x0e\x10\x04\x32\
-		\x3b\x02\x0f\x0e\x03\x02\x02\x02\x10\x11\x03\x02\x02\x02\x11\x0f\x03\x02\
-		\x02\x02\x11\x12\x03\x02\x02\x02\x12\x06\x03\x02\x02\x02\x13\x14\x09\x02\
-		\x02\x02\x14\x15\x03\x02\x02\x02\x15\x16\x08\x04\x02\x02\x16\x08\x03\x02\
-		\x02\x02\x05\x02\x0c\x11\x03\x08\x02\x02";

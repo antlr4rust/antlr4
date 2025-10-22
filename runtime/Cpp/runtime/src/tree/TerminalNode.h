@@ -5,6 +5,9 @@
 
 #pragma once
 
+#include "antlr4-common.h"
+#include "tree/ParseTreeType.h"
+#include "Token.h"
 #include "tree/ParseTree.h"
 
 namespace antlr4 {
@@ -12,9 +15,14 @@ namespace tree {
 
   class ANTLR4CPP_PUBLIC TerminalNode : public ParseTree {
   public:
-    ~TerminalNode() override;
+    static bool is(const tree::ParseTree &parseTree) {
+      const auto treeType = parseTree.getTreeType();
+      return treeType == ParseTreeType::TERMINAL || treeType == ParseTreeType::ERROR;
+    }
 
-    virtual Token* getSymbol() = 0;
+    static bool is(const tree::ParseTree *parseTree) { return parseTree != nullptr && is(*parseTree); }
+
+    virtual Token* getSymbol() const = 0;
 
     /** Set the parent for this leaf node.
      *
@@ -26,6 +34,9 @@ namespace tree {
      *  @since 4.7
      */
     virtual void setParent(RuleContext *parent) = 0;
+
+  protected:
+    using ParseTree::ParseTree;
   };
 
 } // namespace tree

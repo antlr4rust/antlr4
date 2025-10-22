@@ -3,7 +3,13 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <sstream>
+#include <vector>
+#include <string>
+#include <cstddef>
 #include "tree/Trees.h"
+#include "tree/ParseTreeType.h"
+#include "antlr4-common.h"
 #include "misc/Interval.h"
 #include "Parser.h"
 #include "atn/ATN.h"
@@ -14,12 +20,13 @@
 
 using namespace antlr4;
 using namespace antlr4::atn;
+using namespace antlr4::tree;
 
-RuleContext::RuleContext() {
+RuleContext::RuleContext() : ParseTree(ParseTreeType::RULE) {
   InitializeInstanceFields();
 }
 
-RuleContext::RuleContext(RuleContext *parent_, size_t invokingState_) {
+RuleContext::RuleContext(RuleContext *parent_, size_t invokingState_) : ParseTree(ParseTreeType::RULE) {
   InitializeInstanceFields();
   this->parent = parent_;
   this->invokingState = invokingState_;
@@ -71,7 +78,7 @@ size_t RuleContext::getAltNumber() const {
 void RuleContext::setAltNumber(size_t /*altNumber*/) {
 }
 
-antlrcpp::Any RuleContext::accept(tree::ParseTreeVisitor *visitor) {
+std::any RuleContext::accept(tree::ParseTreeVisitor *visitor) {
   return visitor->visitChildren(this);
 }
 

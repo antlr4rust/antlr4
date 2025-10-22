@@ -91,8 +91,8 @@ impl LL1Analyzer<'_> {
                     return;
                 }
                 Some(ctx) if ctx != *EMPTY_PREDICTION_CONTEXT => {
-                    let removed = called_rule_stack.contains(s.get_rule_index());
-                    called_rule_stack.remove(s.get_rule_index());
+                    let removed = called_rule_stack.contains(s.get_rule_index() as usize);
+                    called_rule_stack.remove(s.get_rule_index() as usize);
                     for i in 0..ctx.length() {
                         self.look_work(
                             self.atn.states[ctx.get_return_state(i) as usize].as_ref(),
@@ -106,7 +106,7 @@ impl LL1Analyzer<'_> {
                         )
                     }
                     if removed {
-                        called_rule_stack.insert(s.get_rule_index());
+                        called_rule_stack.insert(s.get_rule_index() as usize);
                     }
 
                     return;
@@ -116,20 +116,20 @@ impl LL1Analyzer<'_> {
         }
 
         for tr in s.get_transitions() {
-            let target = self.atn.states[tr.get_target()].as_ref();
+            let target = self.atn.states[tr.get_target() as usize].as_ref();
             match tr.get_serialization_type() {
                 TransitionType::TRANSITION_RULE => {
                     let rule_tr = tr.as_ref().cast::<RuleTransition>();
-                    if called_rule_stack.contains(target.get_rule_index()) {
+                    if called_rule_stack.contains(target.get_rule_index() as usize) {
                         continue;
                     }
 
                     let new_ctx = Arc::new(PredictionContext::new_singleton(
                         ctx.clone(),
-                        rule_tr.follow_state as isize,
+                        rule_tr.follow_state as i32,
                     ));
 
-                    called_rule_stack.insert(target.get_rule_index());
+                    called_rule_stack.insert(target.get_rule_index() as usize);
                     self.look_work(
                         target,
                         stop_state,
@@ -140,7 +140,7 @@ impl LL1Analyzer<'_> {
                         see_thru_preds,
                         add_eof,
                     );
-                    called_rule_stack.remove(target.get_rule_index());
+                    called_rule_stack.remove(target.get_rule_index() as usize);
                 }
                 TransitionType::TRANSITION_PREDICATE | TransitionType::TRANSITION_PRECEDENCE => {
                     if see_thru_preds {
@@ -155,7 +155,7 @@ impl LL1Analyzer<'_> {
                             add_eof,
                         )
                     } else {
-                        look.add_one(TOKEN_INVALID_TYPE)
+                        look.add_one(TOKEN_INVALID_TYPE);
                     }
                 }
                 TransitionType::TRANSITION_WILDCARD => {

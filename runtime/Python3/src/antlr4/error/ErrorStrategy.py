@@ -4,11 +4,11 @@
 # can be found in the LICENSE.txt file in the project root.
 #
 import sys
-from antlr4.IntervalSet import IntervalSet
+from ..IntervalSet import IntervalSet
 
-from antlr4.Token import Token
-from antlr4.atn.ATNState import ATNState
-from antlr4.error.Errors import RecognitionException, NoViableAltException, InputMismatchException, \
+from ..Token import Token
+from ..atn.ATNState import ATNState
+from ..error.Errors import RecognitionException, NoViableAltException, InputMismatchException, \
     FailedPredicateException, ParseCancellationException
 
 # need forward declaration
@@ -58,6 +58,8 @@ class DefaultErrorStrategy(ErrorStrategy):
         #
         self.lastErrorIndex = -1
         self.lastErrorStates = None
+        self.nextTokensContext = None
+        self.nextTokenState = 0
 
     # <p>The default implementation simply calls {@link #endErrorCondition} to
     # ensure that the handler is not in error recovery mode.</p>
@@ -208,7 +210,16 @@ class DefaultErrorStrategy(ErrorStrategy):
         la = recognizer.getTokenStream().LA(1)
         # try cheaper subset first; might get lucky. seems to shave a wee bit off
         nextTokens = recognizer.atn.nextTokens(s)
-        if Token.EPSILON in nextTokens or la in nextTokens:
+        if la in nextTokens:
+            self.nextTokensContext = None
+            self.nextTokenState = ATNState.INVALID_STATE_NUMBER
+            return
+        elif Token.EPSILON in nextTokens:
+            if self.nextTokensContext is None:
+                # It's possible the next token won't match information tracked
+                # by sync is restricted for performance.
+                self.nextTokensContext = recognizer._ctx
+                self.nextTokensState = recognizer._stateNumber
             return
 
         if s.stateType in [ATNState.BLOCK_START, ATNState.STAR_BLOCK_START,

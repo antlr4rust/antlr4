@@ -3,15 +3,12 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <string>
+#include "atn/ATNState.h"
 #include "atn/DecisionState.h"
 
 using namespace antlr4::atn;
 
-void DecisionState::InitializeInstanceFields() {
-  decision = -1;
-  nonGreedy = false;
-}
-
 std::string DecisionState::toString() const {
-  return "DECISION " + ATNState::toString();
+  return ATNState::toString();
 }

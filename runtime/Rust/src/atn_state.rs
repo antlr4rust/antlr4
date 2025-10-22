@@ -5,20 +5,20 @@ use once_cell::sync::OnceCell;
 use crate::interval_set::IntervalSet;
 use crate::transition::Transition;
 
-pub(crate) const ATNSTATE_INVALID_TYPE: isize = 0;
-pub(crate) const ATNSTATE_BASIC: isize = 1;
-pub(crate) const ATNSTATE_RULE_START: isize = 2;
-pub(crate) const ATNSTATE_BLOCK_START: isize = 3;
-pub(crate) const ATNSTATE_PLUS_BLOCK_START: isize = 4;
-pub(crate) const ATNSTATE_STAR_BLOCK_START: isize = 5;
-pub(crate) const ATNSTATE_TOKEN_START: isize = 6;
-pub(crate) const ATNSTATE_RULE_STOP: isize = 7;
-pub(crate) const ATNSTATE_BLOCK_END: isize = 8;
-pub(crate) const ATNSTATE_STAR_LOOP_BACK: isize = 9;
-pub(crate) const ATNSTATE_STAR_LOOP_ENTRY: isize = 10;
-pub(crate) const ATNSTATE_PLUS_LOOP_BACK: isize = 11;
-pub(crate) const ATNSTATE_LOOP_END: isize = 12;
-pub(crate) const ATNSTATE_INVALID_STATE_NUMBER: isize = -1;
+pub(crate) const ATNSTATE_INVALID_TYPE: i32 = 0;
+pub(crate) const ATNSTATE_BASIC: i32 = 1;
+pub(crate) const ATNSTATE_RULE_START: i32 = 2;
+pub(crate) const ATNSTATE_BLOCK_START: i32 = 3;
+pub(crate) const ATNSTATE_PLUS_BLOCK_START: i32 = 4;
+pub(crate) const ATNSTATE_STAR_BLOCK_START: i32 = 5;
+pub(crate) const ATNSTATE_TOKEN_START: i32 = 6;
+pub(crate) const ATNSTATE_RULE_STOP: i32 = 7;
+pub(crate) const ATNSTATE_BLOCK_END: i32 = 8;
+pub(crate) const ATNSTATE_STAR_LOOP_BACK: i32 = 9;
+pub(crate) const ATNSTATE_STAR_LOOP_ENTRY: i32 = 10;
+pub(crate) const ATNSTATE_PLUS_LOOP_BACK: i32 = 11;
+pub(crate) const ATNSTATE_LOOP_END: i32 = 12;
+pub(crate) const ATNSTATE_INVALID_STATE_NUMBER: i32 = -1;
 
 //might be changed later
 #[doc(hidden)]
@@ -34,7 +34,7 @@ pub enum ATNStateType {
     StarLoopbackState,
     BasicState,
     DecisionState {
-        decision: isize,
+        decision: i32,
         nongreedy: bool,
         state: ATNDecisionState,
     },
@@ -64,14 +64,14 @@ pub enum ATNBlockStart {
     PlusBlockStart(ATNStateRef),
 }
 
-pub type ATNStateRef = usize;
+pub type ATNStateRef = i32;
 
 // todo no need for trait here, it is too slow for hot code
 pub trait ATNState: Sync + Send + Debug {
     fn has_epsilon_only_transitions(&self) -> bool;
 
-    fn get_rule_index(&self) -> usize;
-    fn set_rule_index(&self, v: usize);
+    fn get_rule_index(&self) -> i32;
+    fn set_rule_index(&self, v: i32);
 
     fn get_next_tokens_within_rule(&self) -> &OnceCell<IntervalSet>;
     //    fn set_next_token_within_rule(&mut self, v: IntervalSet);
@@ -79,10 +79,10 @@ pub trait ATNState: Sync + Send + Debug {
     fn get_state_type(&self) -> &ATNStateType;
     fn get_state_type_mut(&mut self) -> &mut ATNStateType;
 
-    fn get_state_type_id(&self) -> isize;
+    fn get_state_type_id(&self) -> i32;
 
-    fn get_state_number(&self) -> usize;
-    fn set_state_number(&self, state_number: isize);
+    fn get_state_number(&self) -> i32;
+    fn set_state_number(&self, state_number: i32);
 
     fn get_transitions(&self) -> &Vec<Box<dyn Transition>>;
     fn set_transitions(&self, t: Vec<Box<dyn Transition>>);
@@ -96,11 +96,11 @@ pub struct BaseATNState {
     //    atn: Box<ATN>,
     epsilon_only_transitions: bool,
 
-    pub rule_index: usize,
+    pub rule_index: i32,
 
-    pub state_number: usize,
+    pub state_number: i32,
 
-    pub state_type_id: isize,
+    pub state_type_id: i32,
 
     pub state_type: ATNStateType,
 
@@ -125,11 +125,11 @@ impl ATNState for BaseATNState {
     fn has_epsilon_only_transitions(&self) -> bool {
         self.epsilon_only_transitions
     }
-    fn get_rule_index(&self) -> usize {
+    fn get_rule_index(&self) -> i32 {
         self.rule_index
     }
 
-    fn set_rule_index(&self, _v: usize) {
+    fn set_rule_index(&self, _v: i32) {
         unimplemented!()
     }
 
@@ -145,15 +145,15 @@ impl ATNState for BaseATNState {
         &mut self.state_type
     }
 
-    fn get_state_type_id(&self) -> isize {
+    fn get_state_type_id(&self) -> i32 {
         self.state_type_id
     }
 
-    fn get_state_number(&self) -> usize {
+    fn get_state_number(&self) -> i32 {
         self.state_number
     }
 
-    fn set_state_number(&self, _state_number: isize) {
+    fn set_state_number(&self, _state_number: i32) {
         unimplemented!()
     }
 
@@ -200,8 +200,8 @@ impl ATNState for BaseATNState {
 //
 //pub trait DecisionState:ATNState {
 //
-//    fn get_decision(&self) -> isize;
-//    fn set_decision(&self, b: isize);
+//    fn get_decision(&self) -> i32;
+//    fn set_decision(&self, b: i32);
 //
 //    fn get_non_greedy(&self) -> bool;
 //    fn set_non_greedy(&self, b: bool);
@@ -209,16 +209,16 @@ impl ATNState for BaseATNState {
 //
 //pub struct BaseDecisionState {
 //    base: BaseATNState,
-//    decision: isize,
+//    decision: i32,
 //    non_greedy: bool,
 //}
 
 //
 //fn new_base_decision_state() -> BaseDecisionState { unimplemented!() }
 //impl DecisionState for BaseDecisionState {
-//    fn get_decision(&self) -> isize { unimplemented!() }
+//    fn get_decision(&self) -> i32 { unimplemented!() }
 //
-//    fn set_decision(&self, b: isize) { unimplemented!() }
+//    fn set_decision(&self, b: i32) { unimplemented!() }
 //
 //    fn get_non_greedy(&self) -> bool { unimplemented!() }
 //
@@ -230,11 +230,11 @@ impl ATNState for BaseATNState {
 //        self.base.get_epsilon_only_transitions()
 //    }
 //
-//    fn get_rule_index(&self) -> isize {
+//    fn get_rule_index(&self) -> i32 {
 //        self.base.get_rule_index()
 //    }
 //
-//    fn set_rule_index(&self, v: isize) {
+//    fn set_rule_index(&self, v: i32) {
 //        self.base.set_rule_index(v)
 //    }
 //
@@ -258,11 +258,11 @@ impl ATNState for BaseATNState {
 //        self.base.get_state_type()
 //    }
 //
-//    fn get_state_number(&self) -> isize {
+//    fn get_state_number(&self) -> i32 {
 //        self.base.get_state_number()
 //    }
 //
-//    fn set_state_number(&self, stateNumber: isize) {
+//    fn set_state_number(&self, stateNumber: i32) {
 //        self.base.set_state_number(stateNumber)
 //    }
 //
@@ -274,7 +274,7 @@ impl ATNState for BaseATNState {
 //        self.base.set_transitions(t)
 //    }
 //
-//    fn add_transition(&self, trans: Box<Transition>, index: isize) {
+//    fn add_transition(&self, trans: Box<Transition>, index: i32) {
 //        self.base.add_transition(trans, index)
 //    }
 //}
@@ -298,11 +298,11 @@ impl ATNState for BaseATNState {
 //}
 //
 //impl DecisionState for BaseBlockStartState{
-//    fn get_decision(&self) -> isize {
+//    fn get_decision(&self) -> i32 {
 //        self.base.get_decision()
 //    }
 //
-//    fn set_decision(&self, b: isize) {
+//    fn set_decision(&self, b: i32) {
 //        self.base.set_decision(b)
 //    }
 //
@@ -320,11 +320,11 @@ impl ATNState for BaseATNState {
 //        self.base.get_epsilon_only_transitions()
 //    }
 //
-//    fn get_rule_index(&self) -> isize {
+//    fn get_rule_index(&self) -> i32 {
 //        self.base.get_rule_index()
 //    }
 //
-//    fn set_rule_index(&self, v: isize) {
+//    fn set_rule_index(&self, v: i32) {
 //        self.base.set_rule_index(v)
 //    }
 //
@@ -348,11 +348,11 @@ impl ATNState for BaseATNState {
 //        self.base.get_state_type()
 //    }
 //
-//    fn get_state_number(&self) -> isize {
+//    fn get_state_number(&self) -> i32 {
 //        self.base.get_state_number()
 //    }
 //
-//    fn set_state_number(&self, stateNumber: isize) {
+//    fn set_state_number(&self, stateNumber: i32) {
 //        self.base.set_state_number(stateNumber)
 //    }
 //
@@ -364,7 +364,7 @@ impl ATNState for BaseATNState {
 //        self.base.set_transitions(t)
 //    }
 //
-//    fn add_transition(&self, trans: Box<Transition>, index: isize) {
+//    fn add_transition(&self, trans: Box<Transition>, index: i32) {
 //        self.base.add_transition(trans, index)
 //    }
 //}

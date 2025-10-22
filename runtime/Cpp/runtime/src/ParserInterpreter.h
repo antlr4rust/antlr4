@@ -5,10 +5,19 @@
 
 #pragma once
 
+#include <utility>
+#include <memory>
+#include <vector>
+#include <string>
+#include <cstddef>
 #include "Parser.h"
+#include "Token.h"
+#include "atn/ATNState.h"
+#include "antlr4-common.h"
 #include "atn/ATN.h"
 #include "support/BitSet.h"
 #include "atn/PredictionContext.h"
+#include "atn/PredictionContextCache.h"
 #include "Vocabulary.h"
 
 namespace antlr4 {
@@ -29,29 +38,23 @@ namespace antlr4 {
   /// </summary>
   class ANTLR4CPP_PUBLIC ParserInterpreter : public Parser {
   public:
-    // @deprecated
-    ParserInterpreter(const std::string &grammarFileName, const std::vector<std::string>& tokenNames,
-      const std::vector<std::string>& ruleNames, const atn::ATN &atn, TokenStream *input);
     ParserInterpreter(const std::string &grammarFileName, const dfa::Vocabulary &vocabulary,
                       const std::vector<std::string> &ruleNames, const atn::ATN &atn, TokenStream *input);
-    ~ParserInterpreter();
+    ~ParserInterpreter() override;
 
-    virtual void reset() override;
+    void reset() override;
 
-    virtual const atn::ATN& getATN() const override;
+    const atn::ATN& getATN() const override;
 
-    // @deprecated
-    virtual const std::vector<std::string>& getTokenNames() const override;
+    const dfa::Vocabulary& getVocabulary() const override;
 
-    virtual const dfa::Vocabulary& getVocabulary() const override;
-
-    virtual const std::vector<std::string>& getRuleNames() const override;
-    virtual std::string getGrammarFileName() const override;
+    const std::vector<std::string>& getRuleNames() const override;
+    std::string getGrammarFileName() const override;
 
     /// Begin parsing at startRuleIndex
     virtual ParserRuleContext* parse(size_t startRuleIndex);
 
-    virtual void enterRecursionRule(ParserRuleContext *localctx, size_t state, size_t ruleIndex, int precedence) override;
+    void enterRecursionRule(ParserRuleContext *localctx, size_t state, size_t ruleIndex, int precedence) override;
 
 
     /** Override this parser interpreters normal decision-making process
@@ -110,7 +113,6 @@ namespace antlr4 {
 
   protected:
     const std::string _grammarFileName;
-    std::vector<std::string> _tokenNames;
     const atn::ATN &_atn;
 
     std::vector<std::string> _ruleNames;

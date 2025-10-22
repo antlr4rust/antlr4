@@ -9,11 +9,11 @@
 # {@code <ID>}. These tokens are created for {@link TagChunk} chunks where the
 # tag corresponds to a lexer rule or token type.
 #
-from antlr4.Token import CommonToken
+from ..Token import CommonToken
 
 
 class TokenTagToken(CommonToken):
-
+    __slots__ = ('tokenName', 'label')
     # Constructs a new instance of {@link TokenTagToken} with the specified
     # token name, type, and label.
     #

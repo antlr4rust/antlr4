@@ -6,11 +6,14 @@
 
 package org.antlr.v4.misc;
 
+import org.antlr.v4.runtime.misc.IntegerList;
 import org.antlr.v4.tool.ast.GrammarAST;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
 /** */
 public class Utils {
@@ -27,8 +30,6 @@ public class Utils {
 	public interface Func1<T1, TResult> {
 		TResult exec(T1 arg1);
 	}
-
-	static Integer[] ints = new Integer[INTEGER_POOL_MAX_VALUE+1];
 
     public static String stripFileExtension(String name) {
         if ( name==null ) return null;
@@ -75,6 +76,31 @@ public class Utils {
 //		}
 //		return x;
 //	}
+
+	public static void writeSerializedATNIntegerHistogram(String filename, IntegerList serializedATN) {
+		HashMap<Integer, Integer> histo = new HashMap<>();
+		for (int i : serializedATN.toArray()) {
+			if ( histo.containsKey(i) ) {
+				histo.put(i, histo.get(i) + 1);
+			}
+			else {
+				histo.put(i, 1);
+			}
+		}
+		TreeMap<Integer,Integer> sorted = new TreeMap<>(histo);
+
+		String output = "";
+		output += "value,count\n";
+		for (int key : sorted.keySet()) {
+			output += key+","+sorted.get(key)+"\n";
+		}
+		try {
+			Files.write(Paths.get(filename), output.getBytes(StandardCharsets.UTF_8));
+		}
+		catch (IOException ioe) {
+			System.err.println(ioe);
+		}
+	}
 
 	public static String capitalize(String s) {
 		return Character.toUpperCase(s.charAt(0)) + s.substring(1);

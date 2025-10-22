@@ -34,7 +34,7 @@ pub struct ATNConfigSet {
 
     read_only: bool,
 
-    unique_alt: isize,
+    unique_alt: i32,
 
     /// creates key for lookup
     /// Key::Full - for Lexer
@@ -45,7 +45,7 @@ pub struct ATNConfigSet {
 #[derive(Eq, PartialEq)]
 enum Key {
     Full(ATNConfig),
-    Partial(i32, ATNStateRef, isize, SemanticContext),
+    Partial(i32, ATNStateRef, i32, SemanticContext),
 }
 
 impl Hash for Key {
@@ -239,11 +239,11 @@ impl ATNConfigSet {
         })
     }
 
-    pub fn get_unique_alt(&self) -> isize {
+    pub fn get_unique_alt(&self) -> i32 {
         self.unique_alt
     }
 
-    pub fn set_unique_alt(&mut self, _v: isize) {
+    pub fn set_unique_alt(&mut self, _v: i32) {
         self.unique_alt = _v
     }
 

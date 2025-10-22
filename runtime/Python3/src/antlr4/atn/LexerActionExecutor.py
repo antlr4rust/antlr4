@@ -12,14 +12,15 @@
 # not cause bloating of the {@link DFA} created for the lexer.</p>
 
 
-from antlr4.InputStream import InputStream
-from antlr4.atn.LexerAction import LexerAction, LexerIndexedCustomAction
+from ..InputStream import InputStream
+from ..atn.LexerAction import LexerAction, LexerIndexedCustomAction
 
 # need a forward declaration
 Lexer = None
 LexerActionExecutor = None
 
 class LexerActionExecutor(object):
+    __slots__ = ('lexerActions', 'hashCode')
 
     def __init__(self, lexerActions:list=list()):
         self.lexerActions = lexerActions

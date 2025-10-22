@@ -3,7 +3,11 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <string>
+#include <cstddef>
 #include "misc/IntervalSet.h"
+#include "atn/TransitionType.h"
+#include "atn/ATNState.h"
 #include "atn/Transition.h"
 
 #include "atn/AtomTransition.h"
@@ -11,11 +15,7 @@
 using namespace antlr4::misc;
 using namespace antlr4::atn;
 
-AtomTransition::AtomTransition(ATNState *target, size_t label) : Transition(target), _label(label) {
-}
-
-Transition::SerializationType AtomTransition::getSerializationType() const {
-  return ATOM;
+AtomTransition::AtomTransition(ATNState *target, size_t label) : Transition(TransitionType::ATOM, target), _label(label) {
 }
 
 IntervalSet AtomTransition::label() const {

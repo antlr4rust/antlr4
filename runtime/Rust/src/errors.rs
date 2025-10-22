@@ -118,8 +118,8 @@ pub struct BaseRecognitionError {
     pub message: String,
     //    recognizer: Box<Recognizer>,
     pub offending_token: OwningToken,
-    pub offending_state: isize,
-    states_stack: Vec<isize>, // ctx: Rc<dyn ParserRuleContext>
+    pub offending_state: i32,
+    states_stack: Vec<i32>, // ctx: Rc<dyn ParserRuleContext>
                               //    input: Box<IntStream>
 }
 
@@ -203,7 +203,7 @@ impl InputMisMatchError {
 
     pub fn with_state<'a, T: Parser<'a>>(
         recognizer: &mut T,
-        offending_state: isize,
+        offending_state: i32,
         ctx: Rc<<T::Node as ParserNodeType<'a>>::Type>,
     ) -> InputMisMatchError {
         let mut a = Self::new(recognizer);
@@ -221,7 +221,7 @@ impl InputMisMatchError {
 #[allow(missing_docs)]
 pub struct FailedPredicateError {
     pub base: BaseRecognitionError,
-    pub rule_index: isize,
+    pub rule_index: i32,
     pub predicate: String,
 }
 

@@ -5,6 +5,12 @@
 
 #pragma once
 
+#include <string>
+#include <cstddef>
+#include "antlr4-common.h"
+#include "misc/IntervalSet.h"
+#include "atn/TransitionType.h"
+#include "atn/ATNState.h"
 #include "atn/Transition.h"
 
 namespace antlr4 {
@@ -12,17 +18,19 @@ namespace atn {
 
   class ANTLR4CPP_PUBLIC RangeTransition final : public Transition {
   public:
+    static bool is(const Transition &transition) { return transition.getTransitionType() == TransitionType::RANGE; }
+
+    static bool is(const Transition *transition) { return transition != nullptr && is(*transition); }
+
     const size_t from;
     const size_t to;
 
     RangeTransition(ATNState *target, size_t from, size_t to);
 
-    virtual SerializationType getSerializationType() const override;
+    misc::IntervalSet label() const override;
+    bool matches(size_t symbol, size_t minVocabSymbol, size_t maxVocabSymbol) const override;
 
-    virtual misc::IntervalSet label() const override;
-    virtual bool matches(size_t symbol, size_t minVocabSymbol, size_t maxVocabSymbol) const override;
-
-    virtual std::string toString() const override;
+    std::string toString() const override;
   };
 
 } // namespace atn

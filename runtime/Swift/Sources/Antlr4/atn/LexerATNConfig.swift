@@ -1,14 +1,14 @@
-/// 
+///
 /// Copyright (c) 2012-2017 The ANTLR Project. All rights reserved.
 /// Use of this file is governed by the BSD 3-clause license that
 /// can be found in the LICENSE.txt file in the project root.
-/// 
+///
 
 
 public class LexerATNConfig: ATNConfig {
-    /// 
+    ///
     /// This is the backing field for _#getLexerActionExecutor_.
-    /// 
+    ///
     private let lexerActionExecutor: LexerActionExecutor?
 
     fileprivate let passedThroughNonGreedyDecision: Bool
@@ -19,7 +19,7 @@ public class LexerATNConfig: ATNConfig {
 
         self.passedThroughNonGreedyDecision = false
         self.lexerActionExecutor = nil
-        super.init(state, alt, context, SemanticContext.NONE)
+        super.init(state, alt, context, SemanticContext.Empty.Instance)
     }
 
     public init(_ state: ATNState,
@@ -29,7 +29,7 @@ public class LexerATNConfig: ATNConfig {
 
         self.lexerActionExecutor = lexerActionExecutor
         self.passedThroughNonGreedyDecision = false
-        super.init(state, alt, context, SemanticContext.NONE)
+        super.init(state, alt, context, SemanticContext.Empty.Instance)
     }
 
     public init(_ c: LexerATNConfig, _ state: ATNState) {
@@ -60,10 +60,10 @@ public class LexerATNConfig: ATNConfig {
         return source.passedThroughNonGreedyDecision
                 || target is DecisionState && (target as! DecisionState).nonGreedy
     }
-    /// 
+    ///
     /// Gets the _org.antlr.v4.runtime.atn.LexerActionExecutor_ capable of executing the embedded
     /// action(s) for the current configuration.
-    /// 
+    ///
     public final func getLexerActionExecutor() -> LexerActionExecutor? {
         return lexerActionExecutor
     }
@@ -108,30 +108,11 @@ public func ==(lhs: LexerATNConfig, rhs: LexerATNConfig) -> Bool {
         return false
     }
 
-    if lhs.getLexerActionExecutor() == nil && rhs.getLexerActionExecutor() != nil {
-        return false
-    } else if lhs.getLexerActionExecutor() != nil && rhs.getLexerActionExecutor() == nil {
-        return false
-    } else if lhs.getLexerActionExecutor() == nil && rhs.getLexerActionExecutor() == nil {
-
-    } else if !(lhs.getLexerActionExecutor()! == rhs.getLexerActionExecutor()!) {
+    if lhs.getLexerActionExecutor() != rhs.getLexerActionExecutor() {
         return false
     }
 
-
-    var contextCompare = false
-
-    if lhs.context == nil && rhs.context == nil {
-        contextCompare = true
-    } else if lhs.context == nil && rhs.context != nil {
-        contextCompare = false
-    } else if lhs.context != nil && rhs.context == nil {
-        contextCompare = false
-    } else {
-        contextCompare = (lhs.context! == rhs.context!)
-    }
-
-    if !contextCompare{
+    if lhs.context != rhs.context {
         return false
     }
 

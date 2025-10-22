@@ -3,16 +3,17 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <memory>
+#include <string>
+#include <cstddef>
+#include "atn/ATNState.h"
+#include "atn/TransitionType.h"
 #include "atn/PredicateTransition.h"
 
 using namespace antlr4::atn;
 
-PredicateTransition::PredicateTransition(ATNState *target, size_t ruleIndex, size_t predIndex, bool isCtxDependent) : AbstractPredicateTransition(target), ruleIndex(ruleIndex), predIndex(predIndex), isCtxDependent(isCtxDependent) {
-}
-
-Transition::SerializationType PredicateTransition::getSerializationType() const {
-  return PREDICATE;
-}
+PredicateTransition::PredicateTransition(ATNState *target, size_t ruleIndex, size_t predIndex, bool isCtxDependent)
+    : Transition(TransitionType::PREDICATE, target), _predicate(std::make_shared<SemanticContext::Predicate>(ruleIndex, predIndex, isCtxDependent)) {}
 
 bool PredicateTransition::isEpsilon() const {
   return true;
@@ -22,13 +23,7 @@ bool PredicateTransition::matches(size_t /*symbol*/, size_t /*minVocabSymbol*/, 
   return false;
 }
 
-Ref<SemanticContext::Predicate> PredicateTransition::getPredicate() const {
-  return std::make_shared<SemanticContext::Predicate>(ruleIndex, predIndex, isCtxDependent);
-}
-
 std::string PredicateTransition::toString() const {
-  return "PREDICATE " + Transition::toString() + " { ruleIndex: " + std::to_string(ruleIndex) +
-    ", predIndex: " + std::to_string(predIndex) + ", isCtxDependent: " + std::to_string(isCtxDependent) + " }";
-
-  // Generate and add a predicate context here?
+  return "PREDICATE " + Transition::toString() + " { ruleIndex: " + std::to_string(getRuleIndex()) +
+    ", predIndex: " + std::to_string(getPredIndex()) + ", isCtxDependent: " + std::to_string(isCtxDependent()) + " }";
 }

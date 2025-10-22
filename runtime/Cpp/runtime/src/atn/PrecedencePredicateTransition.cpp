@@ -3,17 +3,17 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <memory>
+#include <string>
+#include <cstddef>
+#include "atn/ATNState.h"
+#include "atn/TransitionType.h"
 #include "atn/PrecedencePredicateTransition.h"
 
 using namespace antlr4::atn;
 
 PrecedencePredicateTransition::PrecedencePredicateTransition(ATNState *target, int precedence)
-  : AbstractPredicateTransition(target), precedence(precedence) {
-}
-
-Transition::SerializationType PrecedencePredicateTransition::getSerializationType() const {
-  return PRECEDENCE;
-}
+  : Transition(TransitionType::PRECEDENCE, target), _predicate(std::make_shared<SemanticContext::PrecedencePredicate>(precedence)) {}
 
 bool PrecedencePredicateTransition::isEpsilon() const {
   return true;
@@ -23,10 +23,6 @@ bool PrecedencePredicateTransition::matches(size_t /*symbol*/, size_t /*minVocab
   return false;
 }
 
-Ref<SemanticContext::PrecedencePredicate> PrecedencePredicateTransition::getPredicate() const {
-  return std::make_shared<SemanticContext::PrecedencePredicate>(precedence);
-}
-
 std::string PrecedencePredicateTransition::toString() const {
-  return "PRECEDENCE " + Transition::toString() + " { precedence: " + std::to_string(precedence) + " }";
+  return "PRECEDENCE " + Transition::toString() + " { precedence: " + std::to_string(getPrecedence()) + " }";
 }

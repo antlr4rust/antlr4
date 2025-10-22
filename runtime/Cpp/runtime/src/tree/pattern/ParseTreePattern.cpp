@@ -3,6 +3,8 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <vector>
+#include <string>
 #include "tree/ParseTree.h"
 #include "tree/pattern/ParseTreePatternMatcher.h"
 #include "tree/pattern/ParseTreeMatch.h"
@@ -37,7 +39,7 @@ std::vector<ParseTreeMatch> ParseTreePattern::findAll(ParseTree *tree, const std
   xpath::XPath finder(_matcher->getParser(), xpath);
   std::vector<ParseTree *> subtrees = finder.evaluate(tree);
   std::vector<ParseTreeMatch> matches;
-  for (auto t : subtrees) {
+  for (auto *t : subtrees) {
     ParseTreeMatch aMatch = match(t);
     if (aMatch.succeeded()) {
       matches.push_back(aMatch);

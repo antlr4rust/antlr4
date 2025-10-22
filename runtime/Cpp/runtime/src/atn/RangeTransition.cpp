@@ -3,18 +3,18 @@
  * can be found in the LICENSE.txt file in the project root.
  */
 
+#include <string>
+#include <cstddef>
 #include "misc/IntervalSet.h"
 
+#include "atn/TransitionType.h"
+#include "atn/ATNState.h"
 #include "atn/RangeTransition.h"
 
 using namespace antlr4;
 using namespace antlr4::atn;
 
-RangeTransition::RangeTransition(ATNState *target, size_t from, size_t to) : Transition(target), from(from), to(to) {
-}
-
-Transition::SerializationType RangeTransition::getSerializationType() const {
-  return RANGE;
+RangeTransition::RangeTransition(ATNState *target, size_t from, size_t to) : Transition(TransitionType::RANGE, target), from(from), to(to) {
 }
 
 misc::IntervalSet RangeTransition::label() const {

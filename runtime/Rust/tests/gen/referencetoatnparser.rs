@@ -1,4 +1,4 @@
-// Generated from ReferenceToATN.g4 by ANTLR 4.8
+// Generated from ReferenceToATN.g4 by ANTLR 4.13.2
 #![allow(dead_code)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
@@ -37,9 +37,10 @@ use std::ops::{DerefMut, Deref};
 use std::borrow::{Borrow,BorrowMut};
 use std::any::{Any,TypeId};
 
-		pub const ID:isize=1; 
-		pub const ATN:isize=2; 
-		pub const WS:isize=3;
+		pub const ReferenceToATN_ID:i32=1; 
+		pub const ReferenceToATN_ATN:i32=2; 
+		pub const ReferenceToATN_WS:i32=3;
+	pub const ReferenceToATN_EOF:i32=EOF;
 	pub const RULE_a:usize = 0;
 	pub const ruleNames: [&'static str; 1] =  [
 		"a"
@@ -62,36 +63,32 @@ type BaseParserType<'input, I> =
 
 type TokenType<'input> = <LocalTokenFactory<'input> as TokenFactory<'input>>::Tok;
 
-pub type LocalTokenFactory<'input> = antlr4rust::token_factory::OwningTokenFactory;
+pub type LocalTokenFactory<'input> = antlr4rust::token_factory::OwningTokenFactory; // need single quote here '
 
 pub type ReferenceToATNTreeWalker<'input,'a> =
 	ParseTreeWalker<'input, 'a, ReferenceToATNParserContextType , dyn ReferenceToATNListener<'input> + 'a>;
 
 /// Parser for ReferenceToATN grammar
-pub struct ReferenceToATNParser<'input,I,H>
+pub struct ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	base:BaseParserType<'input,I>,
 	interpreter:Arc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
-    pub err_handler: H,
+    pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
 
-impl<'input, I, H> ReferenceToATNParser<'input, I, H>
+impl<'input, I> ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-	pub fn get_serialized_atn() -> &'static str { _serializedATN }
-
-    pub fn set_error_strategy(&mut self, strategy: H) {
+    pub fn set_error_strategy(&mut self, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) {
         self.err_handler = strategy
     }
 
-    pub fn with_strategy(input: I, strategy: H) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+    pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -115,7 +112,7 @@ where
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
 
-impl<'input, I> ReferenceToATNParser<'input, I, DynStrategy<'input,I>>
+impl<'input, I> ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -124,12 +121,12 @@ where
     }
 }
 
-impl<'input, I> ReferenceToATNParser<'input, I, DefaultErrorStrategy<'input,ReferenceToATNParserContextType>>
+impl<'input, I> ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
     pub fn new(input: I) -> Self{
-    	Self::with_strategy(input,DefaultErrorStrategy::new())
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
     }
 }
 
@@ -156,10 +153,9 @@ impl<'input> ParserNodeType<'input> for ReferenceToATNParserContextType{
 	type Type = dyn ReferenceToATNParserContext<'input> + 'input;
 }
 
-impl<'input, I, H> Deref for ReferenceToATNParser<'input, I, H>
+impl<'input, I> Deref for ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     type Target = BaseParserType<'input,I>;
 
@@ -168,10 +164,9 @@ where
     }
 }
 
-impl<'input, I, H> DerefMut for ReferenceToATNParser<'input, I, H>
+impl<'input, I> DerefMut for ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
@@ -233,9 +228,10 @@ impl<'input> CustomRuleContext<'input> for AContextExt<'input>{
 antlr4rust::tid!{AContextExt<'a>}
 
 impl<'input> AContextExt<'input>{
-	fn new(parent: Option<Rc<dyn ReferenceToATNParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<AContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn ReferenceToATNParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<AContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,AContextExt{
+
 				ph:PhantomData
 			}),
 		)
@@ -251,7 +247,7 @@ fn ATN_all(&self) -> Vec<Rc<TerminalNode<'input,ReferenceToATNParserContextType>
 /// Retrieves 'i's TerminalNode corresponding to token ATN, starting from 0.
 /// Returns `None` if number of children corresponding to token ATN is less or equal than `i`.
 fn ATN(&self, i: usize) -> Option<Rc<TerminalNode<'input,ReferenceToATNParserContextType>>> where Self:Sized{
-	self.get_token(ATN, i)
+	self.get_token(ReferenceToATN_ATN, i)
 }
 /// Retrieves all `TerminalNode`s corresponding to token ID in current rule
 fn ID_all(&self) -> Vec<Rc<TerminalNode<'input,ReferenceToATNParserContextType>>>  where Self:Sized{
@@ -260,17 +256,16 @@ fn ID_all(&self) -> Vec<Rc<TerminalNode<'input,ReferenceToATNParserContextType>>
 /// Retrieves 'i's TerminalNode corresponding to token ID, starting from 0.
 /// Returns `None` if number of children corresponding to token ID is less or equal than `i`.
 fn ID(&self, i: usize) -> Option<Rc<TerminalNode<'input,ReferenceToATNParserContextType>>> where Self:Sized{
-	self.get_token(ID, i)
+	self.get_token(ReferenceToATN_ID, i)
 }
 
 }
 
 impl<'input> AContextAttrs<'input> for AContext<'input>{}
 
-impl<'input, I, H> ReferenceToATNParser<'input, I, H>
+impl<'input, I> ReferenceToATNParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn a(&mut self,)
 	-> Result<Rc<AContextAll<'input>>,ANTLRError> {
@@ -279,10 +274,10 @@ where
 		let mut _localctx = AContextExt::new(_parentctx.clone(), recog.base.get_state());
         recog.base.enter_rule(_localctx.clone(), 0, RULE_a);
         let mut _localctx: Rc<AContextAll> = _localctx;
-		let mut _la: isize = -1;
+		let mut _la: i32 = -1;
 		let result: Result<(), ANTLRError> = (|| {
 
-			let mut _alt: isize;
+			let mut _alt: i32;
 			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
 			recog.base.enter_outer_alt(None, 1)?;
 			{
@@ -295,7 +290,7 @@ where
 					{
 					recog.base.set_state(2);
 					_la = recog.base.input.la(1);
-					if { !(_la==ID || _la==ATN) } {
+					if { !(_la==ReferenceToATN_ID || _la==ReferenceToATN_ATN) } {
 						recog.err_handler.recover_inline(&mut recog.base)?;
 
 					}
@@ -314,10 +309,10 @@ where
 			recog.base.set_state(9);
 			recog.err_handler.sync(&mut recog.base)?;
 			_la = recog.base.input.la(1);
-			if _la==ATN {
+			if _la==ReferenceToATN_ATN {
 				{
 				recog.base.set_state(8);
-				recog.base.match_token(ATN,&mut recog.err_handler)?;
+				recog.base.match_token(ReferenceToATN_ATN,&mut recog.err_handler)?;
 
 				}
 			}
@@ -340,34 +335,27 @@ where
 		Ok(_localctx)
 	}
 }
-
-lazy_static! {
+	lazy_static!{
     static ref _ATN: Arc<ATN> =
-        Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
+        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
     static ref _decision_to_DFA: Arc<Vec<antlr4rust::RwLock<DFA>>> = {
         let mut dfa = Vec::new();
-        let size = _ATN.decision_to_state.len();
+        let size = _ATN.decision_to_state.len() as i32;
         for i in 0..size {
             dfa.push(DFA::new(
                 _ATN.clone(),
                 _ATN.get_decision_state(i),
-                i as isize,
+                i,
             ).into())
         }
         Arc::new(dfa)
     };
+	static ref _serializedATN: Vec<i32> = vec![
+		4, 1, 3, 14, 2, 0, 7, 0, 1, 0, 5, 0, 4, 8, 0, 10, 0, 12, 0, 7, 9, 0, 1, 
+		0, 3, 0, 10, 8, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 2, 14, 
+		0, 5, 1, 0, 0, 0, 2, 4, 7, 0, 0, 0, 3, 2, 1, 0, 0, 0, 4, 7, 1, 0, 0, 0, 
+		5, 3, 1, 0, 0, 0, 5, 6, 1, 0, 0, 0, 6, 9, 1, 0, 0, 0, 7, 5, 1, 0, 0, 0, 
+		8, 10, 5, 2, 0, 0, 9, 8, 1, 0, 0, 0, 9, 10, 1, 0, 0, 0, 10, 11, 1, 0, 
+		0, 0, 11, 12, 6, 0, -1, 0, 12, 1, 1, 0, 0, 0, 2, 5, 9
+	];
 }
-
-
-
-const _serializedATN:&'static str =
-	"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x03\
-	\x05\x10\x04\x02\x09\x02\x03\x02\x07\x02\x06\x0a\x02\x0c\x02\x0e\x02\x09\
-	\x0b\x02\x03\x02\x05\x02\x0c\x0a\x02\x03\x02\x03\x02\x03\x02\x02\x02\x03\
-	\x02\x02\x03\x03\x02\x03\x04\x02\x10\x02\x07\x03\x02\x02\x02\x04\x06\x09\
-	\x02\x02\x02\x05\x04\x03\x02\x02\x02\x06\x09\x03\x02\x02\x02\x07\x05\x03\
-	\x02\x02\x02\x07\x08\x03\x02\x02\x02\x08\x0b\x03\x02\x02\x02\x09\x07\x03\
-	\x02\x02\x02\x0a\x0c\x07\x04\x02\x02\x0b\x0a\x03\x02\x02\x02\x0b\x0c\x03\
-	\x02\x02\x02\x0c\x0d\x03\x02\x02\x02\x0d\x0e\x08\x02\x01\x02\x0e\x03\x03\
-	\x02\x02\x02\x04\x07\x0b";
-

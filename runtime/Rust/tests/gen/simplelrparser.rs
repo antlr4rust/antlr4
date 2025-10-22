@@ -1,4 +1,4 @@
-// Generated from SimpleLR.g4 by ANTLR 4.8
+// Generated from SimpleLR.g4 by ANTLR 4.13.2
 #![allow(dead_code)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
@@ -37,8 +37,9 @@ use std::ops::{DerefMut, Deref};
 use std::borrow::{Borrow,BorrowMut};
 use std::any::{Any,TypeId};
 
-		pub const ID:isize=1; 
-		pub const WS:isize=2;
+		pub const SimpleLR_ID:i32=1; 
+		pub const SimpleLR_WS:i32=2;
+	pub const SimpleLR_EOF:i32=EOF;
 	pub const RULE_s:usize = 0; 
 	pub const RULE_a:usize = 1;
 	pub const ruleNames: [&'static str; 2] =  [
@@ -67,30 +68,26 @@ pub type SimpleLRTreeWalker<'input,'a> =
 	ParseTreeWalker<'input, 'a, SimpleLRParserContextType , dyn SimpleLRListener<'input> + 'a>;
 
 /// Parser for SimpleLR grammar
-pub struct SimpleLRParser<'input,I,H>
+pub struct SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	base:BaseParserType<'input,I>,
 	interpreter:Arc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
-    pub err_handler: H,
+    pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
 
-impl<'input, I, H> SimpleLRParser<'input, I, H>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
-	pub fn get_serialized_atn() -> &'static str { _serializedATN }
-
-    pub fn set_error_strategy(&mut self, strategy: H) {
+    pub fn set_error_strategy(&mut self, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) {
         self.err_handler = strategy
     }
 
-    pub fn with_strategy(input: I, strategy: H) -> Self {
-		antlr4rust::recognizer::check_version("0","3");
+    pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
+		antlr4rust::recognizer::check_version("0","4");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -114,7 +111,7 @@ where
 
 type DynStrategy<'input,I> = Box<dyn ErrorStrategy<'input,BaseParserType<'input,I>> + 'input>;
 
-impl<'input, I> SimpleLRParser<'input, I, DynStrategy<'input,I>>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
@@ -123,12 +120,12 @@ where
     }
 }
 
-impl<'input, I> SimpleLRParser<'input, I, DefaultErrorStrategy<'input,SimpleLRParserContextType>>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
     pub fn new(input: I) -> Self{
-    	Self::with_strategy(input,DefaultErrorStrategy::new())
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
     }
 }
 
@@ -155,10 +152,9 @@ impl<'input> ParserNodeType<'input> for SimpleLRParserContextType{
 	type Type = dyn SimpleLRParserContext<'input> + 'input;
 }
 
-impl<'input, I, H> Deref for SimpleLRParser<'input, I, H>
+impl<'input, I> Deref for SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     type Target = BaseParserType<'input,I>;
 
@@ -167,10 +163,9 @@ where
     }
 }
 
-impl<'input, I, H> DerefMut for SimpleLRParser<'input, I, H>
+impl<'input, I> DerefMut for SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.base
@@ -197,21 +192,21 @@ impl<'input,I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'i
    	fn get_rule_names(&self) -> &[& str] {&ruleNames}
 
    	fn get_vocabulary(&self) -> &dyn Vocabulary { &**VOCABULARY }
-	fn sempred(_localctx: Option<&(dyn SimpleLRParserContext<'input> + 'input)>, rule_index: isize, pred_index: isize,
+	fn sempred(_localctx: Option<&(dyn SimpleLRParserContext<'input> + 'input)>, rule_index: i32, pred_index: i32,
 			   recog:&mut BaseParserType<'input,I>
 	)->bool{
 		match rule_index {
-					1 => SimpleLRParser::<'input,I,_>::a_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),
+					1 => SimpleLRParser::<'input,I>::a_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),
 			_ => true
 		}
 	}
 }
 
-impl<'input, I> SimpleLRParser<'input, I, DefaultErrorStrategy<'input,SimpleLRParserContextType>>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
-	fn a_sempred(_localctx: Option<&AContext<'input>>, pred_index:isize,
+	fn a_sempred(_localctx: Option<&AContext<'input>>, pred_index:i32,
 						recog:&mut <Self as Deref>::Target
 		) -> bool {
 		match pred_index {
@@ -256,9 +251,10 @@ impl<'input> CustomRuleContext<'input> for SContextExt<'input>{
 antlr4rust::tid!{SContextExt<'a>}
 
 impl<'input> SContextExt<'input>{
-	fn new(parent: Option<Rc<dyn SimpleLRParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<SContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn SimpleLRParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<SContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,SContextExt{
+
 				ph:PhantomData
 			}),
 		)
@@ -275,10 +271,9 @@ fn a(&self) -> Option<Rc<AContextAll<'input>>> where Self:Sized{
 
 impl<'input> SContextAttrs<'input> for SContext<'input>{}
 
-impl<'input, I, H> SimpleLRParser<'input, I, H>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn s(&mut self,)
 	-> Result<Rc<SContextAll<'input>>,ANTLRError> {
@@ -350,9 +345,10 @@ impl<'input> CustomRuleContext<'input> for AContextExt<'input>{
 antlr4rust::tid!{AContextExt<'a>}
 
 impl<'input> AContextExt<'input>{
-	fn new(parent: Option<Rc<dyn SimpleLRParserContext<'input> + 'input > >, invoking_state: isize) -> Rc<AContextAll<'input>> {
+	fn new(parent: Option<Rc<dyn SimpleLRParserContext<'input> + 'input > >, invoking_state: i32) -> Rc<AContextAll<'input>> {
 		Rc::new(
 			BaseParserRuleContext::new_parser_ctx(parent, invoking_state,AContextExt{
+
 				ph:PhantomData
 			}),
 		)
@@ -364,7 +360,7 @@ pub trait AContextAttrs<'input>: SimpleLRParserContext<'input> + BorrowMut<ACont
 /// Retrieves first TerminalNode corresponding to token ID
 /// Returns `None` if there is no child corresponding to token ID
 fn ID(&self) -> Option<Rc<TerminalNode<'input,SimpleLRParserContextType>>> where Self:Sized{
-	self.get_token(ID, 0)
+	self.get_token(SimpleLR_ID, 0)
 }
 fn a(&self) -> Option<Rc<AContextAll<'input>>> where Self:Sized{
 	self.child_of_type(0)
@@ -374,17 +370,16 @@ fn a(&self) -> Option<Rc<AContextAll<'input>>> where Self:Sized{
 
 impl<'input> AContextAttrs<'input> for AContext<'input>{}
 
-impl<'input, I, H> SimpleLRParser<'input, I, H>
+impl<'input, I> SimpleLRParser<'input, I>
 where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
-    H: ErrorStrategy<'input,BaseParserType<'input,I>>
 {
 	pub fn  a(&mut self,)
 	-> Result<Rc<AContextAll<'input>>,ANTLRError> {
 		self.a_rec(0)
 	}
 
-	fn a_rec(&mut self, _p: isize)
+	fn a_rec(&mut self, _p: i32)
 	-> Result<Rc<AContextAll<'input>>,ANTLRError> {
 		let recog = self;
 		let _parentctx = recog.ctx.take();
@@ -395,16 +390,15 @@ where
         let mut _prevctx = _localctx.clone();
 		let _startState = 2;
 		let result: Result<(), ANTLRError> = (|| {
-			let mut _alt: isize;
+			let mut _alt: i32;
 			//recog.base.enter_outer_alt(_localctx.clone(), 1)?;
 			recog.base.enter_outer_alt(None, 1)?;
 			{
 			{
 			recog.base.set_state(7);
-			recog.base.match_token(ID,&mut recog.err_handler)?;
+			recog.base.match_token(SimpleLR_ID,&mut recog.err_handler)?;
 
 			}
-
 			let tmp = recog.input.lt(-1).cloned();
 			recog.ctx.as_ref().unwrap().set_stop(tmp);
 			recog.base.set_state(13);
@@ -421,11 +415,12 @@ where
 					recog.push_new_recursion_context(tmp.clone(), _startState, RULE_a)?;
 					_localctx = tmp;
 					recog.base.set_state(9);
-					if !({recog.precpred(None, 2)}) {
+					if !({let _localctx = Some(_localctx.clone());
+					recog.precpred(None, 2)}) {
 						Err(FailedPredicateError::new(&mut recog.base, Some("recog.precpred(None, 2)".to_owned()), None))?;
 					}
 					recog.base.set_state(10);
-					recog.base.match_token(ID,&mut recog.err_handler)?;
+					recog.base.match_token(SimpleLR_ID,&mut recog.err_handler)?;
 
 					}
 					} 
@@ -450,34 +445,28 @@ where
 		Ok(_localctx)
 	}
 }
-
-lazy_static! {
+	lazy_static!{
     static ref _ATN: Arc<ATN> =
-        Arc::new(ATNDeserializer::new(None).deserialize(_serializedATN.chars()));
+        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
     static ref _decision_to_DFA: Arc<Vec<antlr4rust::RwLock<DFA>>> = {
         let mut dfa = Vec::new();
-        let size = _ATN.decision_to_state.len();
+        let size = _ATN.decision_to_state.len() as i32;
         for i in 0..size {
             dfa.push(DFA::new(
                 _ATN.clone(),
                 _ATN.get_decision_state(i),
-                i as isize,
+                i,
             ).into())
         }
         Arc::new(dfa)
     };
+	static ref _serializedATN: Vec<i32> = vec![
+		4, 1, 2, 17, 2, 0, 7, 0, 2, 1, 7, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 
+		1, 1, 1, 5, 1, 12, 8, 1, 10, 1, 12, 1, 15, 9, 1, 1, 1, 0, 1, 2, 2, 0, 
+		2, 0, 0, 15, 0, 4, 1, 0, 0, 0, 2, 6, 1, 0, 0, 0, 4, 5, 3, 2, 1, 0, 5, 
+		1, 1, 0, 0, 0, 6, 7, 6, 1, -1, 0, 7, 8, 5, 1, 0, 0, 8, 13, 1, 0, 0, 0, 
+		9, 10, 10, 2, 0, 0, 10, 12, 5, 1, 0, 0, 11, 9, 1, 0, 0, 0, 12, 15, 1, 
+		0, 0, 0, 13, 11, 1, 0, 0, 0, 13, 14, 1, 0, 0, 0, 14, 3, 1, 0, 0, 0, 15, 
+		13, 1, 0, 0, 0, 1, 13
+	];
 }
-
-
-
-const _serializedATN:&'static str =
-	"\x03\u{608b}\u{a72a}\u{8133}\u{b9ed}\u{417c}\u{3be7}\u{7786}\u{5964}\x03\
-	\x04\x13\x04\x02\x09\x02\x04\x03\x09\x03\x03\x02\x03\x02\x03\x03\x03\x03\
-	\x03\x03\x03\x03\x03\x03\x07\x03\x0e\x0a\x03\x0c\x03\x0e\x03\x11\x0b\x03\
-	\x03\x03\x02\x03\x04\x04\x02\x04\x02\x02\x02\x11\x02\x06\x03\x02\x02\x02\
-	\x04\x08\x03\x02\x02\x02\x06\x07\x05\x04\x03\x02\x07\x03\x03\x02\x02\x02\
-	\x08\x09\x08\x03\x01\x02\x09\x0a\x07\x03\x02\x02\x0a\x0f\x03\x02\x02\x02\
-	\x0b\x0c\x0c\x04\x02\x02\x0c\x0e\x07\x03\x02\x02\x0d\x0b\x03\x02\x02\x02\
-	\x0e\x11\x03\x02\x02\x02\x0f\x0d\x03\x02\x02\x02\x0f\x10\x03\x02\x02\x02\
-	\x10\x05\x03\x02\x02\x02\x11\x0f\x03\x02\x02\x02\x03\x0f";
-

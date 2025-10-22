@@ -166,11 +166,6 @@ impl<'input, Node: ParserNodeType<'input>, T: 'static> RuleContext<'input>
 impl<'input, Node: ParserNodeType<'input>, T: 'static> ParseTree<'input>
     for LeafNode<'input, Node, T>
 {
-    fn get_source_interval(&self) -> Interval {
-        let i = self.symbol.borrow().get_token_index();
-        Interval { a: i, b: i }
-    }
-
     fn get_text(&self) -> String {
         self.symbol.borrow().get_text().to_display()
     }
