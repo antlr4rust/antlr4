@@ -1,9 +1,6 @@
 # antlr4rust
-[![Crate](https://flat.badgen.net/crates/v/antlr-rust)](https://crates.io/crates/antlr4rust/0.3.0)
-[![docs](https://flat.badgen.net/badge/docs.rs/v0.3.0-beta)](https://docs.rs/antlr-rust/0.3.0-beta)
-![ANTLR4 testsuite](https://github.com/rrevenantt/antlr4rust/workflows/ANTLR4%20testsuite/badge.svg?event=push)
-![cargo test](https://github.com/rrevenantt/antlr4rust/workflows/cargo%20test/badge.svg)
-[![](https://tokei.rs/b1/github/rrevenantt/antlr4rust)](https://github.com/rrevenantt/antlr4rust)
+[![Crate](https://flat.badgen.net/crates/v/antlr4rust)](https://crates.io/crates/antlr4rust/0.5.0)
+[![docs](https://flat.badgen.net/badge/docs.rs/v0.5.0)](https://docs.rs/antlr4rust/0.5.0)
 
 
 > [!IMPORTANT]  
@@ -20,15 +17,7 @@ and [tests/my_tests.rs](tests/my_test.rs) for actual usage examples
 
 ## ANTLR4 Tool(parser generator)
 
-Generator part is currently located in rust-target branch of my antlr4 fork [rrevenantt/antlr4/tree/rust-target](https://github.com/rrevenantt/antlr4/tree/rust-target)
-Latest version is automatically built to [releases](https://github.com/rrevenantt/antlr4rust/releases) on this repository.
-So if you just want to generate parser 
-or if you want to contribute to only runtime part you don't have to do build it yourself. 
-
-But if you want to build or change generator yourself:
-* `git clone -b rust-target https://github.com/rrevenantt/antlr4` - clone my antlr4 fork  
-* `git submodule update --init --recursive --remote` - update Rust target submodule
-* `mvn -DskipTests install` - build generator
+Can be built using maven, or downloaded from [github.com/antlr4rust/antlr4](https://github.com/antlr4rust/antlr4/releases/)
 
 ### Implementation status
 
@@ -56,7 +45,7 @@ Then add following to `Cargo.toml` of the crate from which generated parser
 is going to be used:
 ```toml 
 [dependencies]
-antlr-rust = "0.3"
+antlr-rust = "0.5"
 ```
  
 ### Parse Tree structure
@@ -96,26 +85,6 @@ there are quite some differences because Rust is not an OOP language and is much
  Also in Rust target `TokenFactory` is the way to specify token type. As example you can see [CSV](grammars/CSV.g4) test grammar.
  - All rule context variables (rule argument or rule return) should implement `Default + Clone`.
  
-### Benchmarks
-Here is comparison of antlr generated XML lexer and parser
-(from default XML grammar but with custom minimal Token/TokenFactory/InputStream/RuleContext) to hand-written implementations in rust ecosystem.
-Keep in mind that `xmlparser` and `quick_xml` are much closer to being lexer than parser, so they should be compared with antlr lexer.
-Also while structs used by generated lexer and parser were customized to track as minimum data as required 
-(which is possible by any user of antlr-rust), 
-internals of the lexer cannot be customized enough yet and still track quite a lot of data that might not be used in particular case. 
-So there is still room for improvement.
-```text
-lexers:
-large/large_xmlparser        time:   [1.8598 ms 1.8607 ms 1.8619 ms]                                   
-large/large_quick_xml        time:   [1.4623 ms 1.4645 ms 1.4675 ms]                                   
-large/large_antlr_xml_lexer  time:   [5.7866 ms 5.7877 ms 5.7891 ms]
-parsers:
-large/large_xmlrs            time:   [16.734 ms 16.748 ms 16.766 ms]
-large/large_minidom          time:   [7.0639 ms 7.0792 ms 7.0975 ms]                                
-large/large_roxmltree        time:   [4.9341 ms 4.9360 ms 4.9380 ms]                                   
-large/large_antlr_xml_full   time:   [10.243 ms 10.248 ms 10.252 ms]                                  
-```
-
 ### Unsafe
 Currently, unsafe is used only for downcasting (through separate crate) 
 and to update data inside Rc via `get_mut_unchecked`(returned mutable reference is used immediately and not stored anywhere)
