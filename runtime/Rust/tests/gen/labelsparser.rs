@@ -222,15 +222,12 @@ where
 				0=>{
 					recog.precpred(None, 7)
 				}
-
 				1=>{
 					recog.precpred(None, 6)
 				}
-
 				2=>{
 					recog.precpred(None, 3)
 				}
-
 				3=>{
 					recog.precpred(None, 2)
 				}

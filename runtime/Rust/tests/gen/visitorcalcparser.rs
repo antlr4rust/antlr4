@@ -231,7 +231,6 @@ where
 				0=>{
 					recog.precpred(None, 2)
 				}
-
 				1=>{
 					recog.precpred(None, 1)
 				}

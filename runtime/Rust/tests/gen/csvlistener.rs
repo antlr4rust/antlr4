@@ -14,7 +14,6 @@ fn enter_csvFile(&mut self, _ctx: &CsvFileContext<'input>) { }
  * @param ctx the parse tree
  */
 fn exit_csvFile(&mut self, _ctx: &CsvFileContext<'input>) { }
-
 /**
  * Enter a parse tree produced by {@link CSVParser#hdr}.
  * @param ctx the parse tree
@@ -25,7 +24,6 @@ fn enter_hdr(&mut self, _ctx: &HdrContext<'input>) { }
  * @param ctx the parse tree
  */
 fn exit_hdr(&mut self, _ctx: &HdrContext<'input>) { }
-
 /**
  * Enter a parse tree produced by {@link CSVParser#row}.
  * @param ctx the parse tree
@@ -36,7 +34,6 @@ fn enter_row(&mut self, _ctx: &RowContext<'input>) { }
  * @param ctx the parse tree
  */
 fn exit_row(&mut self, _ctx: &RowContext<'input>) { }
-
 /**
  * Enter a parse tree produced by {@link CSVParser#field}.
  * @param ctx the parse tree
