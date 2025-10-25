@@ -123,7 +123,7 @@ impl<'input, Input:CharStream<From<'input> >> XMLLexer<'input,Input>{
     }
 
 	pub fn new_with_token_factory(input: Input, tf: &'input LocalTokenFactory<'input>) -> Self {
-		antlr4rust::recognizer::check_version("0","4");
+		antlr4rust::recognizer::check_version("0","5");
     	Self {
 			base: BaseLexer::new_base_lexer(
 				input,

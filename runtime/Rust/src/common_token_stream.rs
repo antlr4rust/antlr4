@@ -73,11 +73,8 @@ impl<'input, T: TokenSource<'input>> TokenStream<'input> for CommonTokenStream<'
 
     #[inline(always)]
     fn lt(&mut self, k: isize) -> Option<&<Self::TF as TokenFactory<'input>>::Tok> {
-        if k == 1 {
-            return self.base.tokens.get(self.base.p as usize);
-        }
         if k == 0 {
-            panic!();
+            return None;
         }
         if k < 0 {
             return self.lb(-k);
@@ -112,6 +109,12 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
             channel,
         };
         r.sync(0);
+        // todo this is definitively not optimal
+        if let Some(tok) = r.lt(1) {
+            if tok.borrow().get_channel() != channel {
+                r.consume();
+            }
+        }
         r
     }
     
