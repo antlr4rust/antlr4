@@ -4,7 +4,6 @@ use std::cell::Cell;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::Arc;
-use std::usize;
 
 use crate::atn::ATN;
 use crate::atn_config::{ATNConfig, ATNConfigType};
@@ -404,7 +403,7 @@ impl LexerATNSimulator {
         }
     }
 
-    fn accept<'input>(&mut self, input: &mut impl IntStream) {
+    fn accept(&mut self, input: &mut impl IntStream) {
         input.seek(self.prev_accept.index);
         self.current_pos.line.set(self.prev_accept.line);
         self.current_pos

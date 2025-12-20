@@ -186,15 +186,15 @@ impl<'a, T: Recognizer<'a>> ErrorListener<'a, T> for ProxyErrorListener<'_, 'a, 
 /// message.
 ///
 ///  - Ambiguities: These are cases where more than one path through the
-/// grammar can match the input.
+///    grammar can match the input.
 ///  - Weak context sensitivity</b>: These are cases where full-context
-/// prediction resolved an SLL conflict to a unique alternative which equaled the
-/// minimum alternative of the SLL conflict.
+///    prediction resolved an SLL conflict to a unique alternative which equaled the
+///    minimum alternative of the SLL conflict.
 ///  - Strong (forced) context sensitivity: These are cases where the
-/// full-context prediction resolved an SLL conflict to a unique alternative,
-/// *and* the minimum alternative of the SLL conflict was found to not be
-/// a truly viable alternative. Two-stage parsing cannot be used for inputs where
-/// this situation occurs.
+///    full-context prediction resolved an SLL conflict to a unique alternative,
+///    *and* the minimum alternative of the SLL conflict was found to not be
+///    a truly viable alternative. Two-stage parsing cannot be used for inputs where
+///    this situation occurs.
 #[derive(Debug)]
 pub struct DiagnosticErrorListener {
     exact_only: bool,

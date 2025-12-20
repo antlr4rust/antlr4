@@ -65,7 +65,7 @@ impl ATNDeserializer {
 
         self.read_edges(&mut atn, data, &sets);
         self.read_decisions(&mut atn, data);
-        if atn.grammar_type == ATNType::LEXER {
+        if atn.grammar_type == ATNType::Lexer {
             self.read_lexer_actions(&mut atn, data);
         }
         self.mark_precedence_decisions(&mut atn, data);
@@ -95,8 +95,8 @@ impl ATNDeserializer {
     fn read_atn(&self, data: &mut Iter<i32>) -> ATN {
         ATN::new_atn(
             match data.next() {
-                Some(0) => ATNType::LEXER,
-                Some(1) => ATNType::PARSER,
+                Some(0) => ATNType::Lexer,
+                Some(1) => ATNType::Parser,
                 _ => panic!("invalid ATN type"),
             },
             *data.next().unwrap(),
@@ -170,7 +170,7 @@ impl ATNDeserializer {
         for i in 0..nrules {
             let s = *data.next().unwrap();
             atn.rule_to_start_state[i] = s;
-            if atn.grammar_type == ATNType::LEXER {
+            if atn.grammar_type == ATNType::Lexer {
                 let token_type = *data.next().unwrap();
 
                 atn.rule_to_token_type.push(token_type);
@@ -417,7 +417,7 @@ impl ATNDeserializer {
         arg1: i32,
         arg2: i32,
         arg3: i32,
-        sets: &Vec<IntervalSet>,
+        sets: &[IntervalSet],
     ) -> Box<dyn Transition> {
         //        //        let target = atn.states.get
         //        let mut base = BaseTransition {

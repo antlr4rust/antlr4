@@ -175,13 +175,12 @@ impl ATNState for BaseATNState {
         let mut already_present = false;
         for existing in self.transitions.iter() {
             if existing.get_target() == trans.get_target() {
-                if existing.get_label().is_some()
+                if (existing.get_label().is_some()
                     && trans.get_label().is_some()
-                    && existing.get_label() == trans.get_label()
+                    && existing.get_label() == trans.get_label())
+                    ||
+                    (existing.is_epsilon() && trans.is_epsilon())
                 {
-                    already_present = true;
-                    break;
-                } else if existing.is_epsilon() && trans.is_epsilon() {
                     already_present = true;
                     break;
                 }

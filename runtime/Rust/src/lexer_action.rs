@@ -36,11 +36,8 @@ impl LexerAction {
     ////        unsafe {discriminant_value(self)} as i32
     //    }
     pub fn is_position_dependent(&self) -> bool {
-        match self {
-            LexerAction::LexerCustomAction { .. }
-            | LexerAction::LexerIndexedCustomAction { .. } => true,
-            _ => false,
-        }
+        matches!(self, LexerAction::LexerCustomAction { .. }
+             | LexerAction::LexerIndexedCustomAction { .. })
     }
     pub(crate) fn execute<'input, T: Lexer<'input>>(&self, lexer: &mut T) {
         match self {
