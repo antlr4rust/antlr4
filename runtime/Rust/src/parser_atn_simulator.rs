@@ -203,7 +203,7 @@ impl ParserATNSimulator {
                 if local.dfa_mut().is_precedence_dfa() {
                     s0 = local.dfa_mut().s0.unwrap();
                     let s0_closure_updated = self.apply_precedence_filter(&s0_closure, &mut local);
-                    local.dfa_mut().states[s0].configs = Box::new(s0_closure);
+                    *local.dfa_mut().states[s0].configs = s0_closure;
 
                     s0 = self.add_dfastate(
                         local.dfa_mut(),
@@ -1355,7 +1355,7 @@ impl ParserATNSimulator {
         assert!(config.get_context().is_some());
         let new_ctx = PredictionContext::new_singleton(
             config.get_context().cloned(),
-            t.follow_state as i32,
+            t.follow_state,
         );
         config.cloned_with_new_ctx(self.atn().states[t.target as usize].as_ref(), Some(new_ctx.into()))
     }

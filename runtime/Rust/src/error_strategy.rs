@@ -314,7 +314,7 @@ impl<'input, Ctx: ParserNodeType<'input>> DefaultErrorStrategy<'input, Ctx> {
         recognizer: &mut T,
     ) -> <T::TF as TokenFactory<'input>>::Tok {
         let expected = self.get_expected_tokens(recognizer);
-        let expected_token_type = expected.get_min().unwrap_or(TOKEN_INVALID_TYPE) as i32;
+        let expected_token_type = expected.get_min().unwrap_or(TOKEN_INVALID_TYPE);
         let token_text = if expected_token_type == TOKEN_EOF {
             "<missing EOF>".to_owned()
         } else {
@@ -322,7 +322,7 @@ impl<'input, Ctx: ParserNodeType<'input>> DefaultErrorStrategy<'input, Ctx> {
                 "<missing {}>",
                 recognizer
                     .get_vocabulary()
-                    .get_display_name(expected_token_type as i32)
+                    .get_display_name(expected_token_type)
             )
         };
         let token_text = <T::TF as TokenFactory<'input>>::Data::from_text(&token_text);

@@ -546,7 +546,7 @@ impl LexerATNSimulator {
                 //println!("rule transition follow state{}", rt.follow_state);
                 let pred_ctx = PredictionContext::new_singleton(
                     Some(_config.get_context().unwrap().clone()),
-                    rt.follow_state as i32,
+                    rt.follow_state,
                 );
                 result = Some(_config.cloned_with_new_ctx(target, Some(pred_ctx.into())));
             }

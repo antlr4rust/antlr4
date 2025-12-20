@@ -272,7 +272,7 @@ impl ATNDeserializer {
                             .get_state_type()
                         {
                             if tr.precedence == 0 {
-                                target.get_rule_index() as i32
+                                target.get_rule_index()
                             } else {
                                 -1
                             }

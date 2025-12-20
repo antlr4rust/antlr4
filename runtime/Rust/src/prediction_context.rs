@@ -533,7 +533,7 @@ impl PredictionContext {
             .deref()
             .cast::<RuleTransition>();
 
-        PredictionContext::new_singleton(Some(parent), transition.follow_state as i32).alloc()
+        PredictionContext::new_singleton(Some(parent), transition.follow_state).alloc()
     }
 
     fn combine_common_parents(array: &mut ArrayPredictionContext) {
