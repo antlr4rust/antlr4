@@ -64,12 +64,12 @@
 //! access in generated parser from embedded actions also can be downcasted to concrete types.
 //! To do it `TidExt::downcast_*` extension methods should be used.
 //!
-//! [`CharStream`]: crate::char_stream::CharStream
-//! [`TokenFactory`]: crate::token_factory::TokenFactory
-//! [`ArenaFactory`]: crate::token_factory::ArenaFactory
-//! [`Token`]: crate::token::Token
-//! [`TokenStream`]: crate::token_stream::TokenStream
-//! [`ParserRuleContext`]: crate::parser_rule_context::ParserRuleContext
+//! [`CharStream`]: char_stream::CharStream
+//! [`TokenFactory`]: token_factory::TokenFactory
+//! [`ArenaFactory`]: token_factory::ArenaFactory
+//! [`Token`]: token::Token
+//! [`TokenStream`]: token_stream::TokenStream
+//! [`ParserRuleContext`]: parser_rule_context::ParserRuleContext
 
 #[macro_use]
 extern crate lazy_static;
@@ -133,7 +133,6 @@ pub mod dfa;
 #[doc(hidden)]
 pub mod transition;
 pub mod tree;
-//pub mod file_stream;
 #[doc(hidden)]
 pub mod atn;
 #[doc(hidden)]
@@ -156,9 +155,7 @@ mod prediction_mode;
 pub mod token;
 pub mod trees;
 mod utils;
-//pub mod tokenstream_rewriter_test;
 mod atn_type;
-// mod context_factory;
 pub mod rule_context;
 pub mod vocabulary;
 //#[cfg(test)]

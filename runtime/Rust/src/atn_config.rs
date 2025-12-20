@@ -32,7 +32,7 @@ impl PartialEq for ATNConfig {
     fn eq(&self, other: &Self) -> bool {
         self.get_state() == other.get_state()
             && self.get_alt() == other.get_alt()
-            // Arc is optimized to not do a deep equalitiy if arc pointers are equal so that's enough
+            // Arc is optimized to not do a deep equality if arc pointers are equal so that's enough
             && self.context == other.context
             && self.get_type() == other.get_type()
             && self.semantic_context == other.semantic_context

@@ -7,7 +7,7 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::sync::Arc;
-use std::{ptr, usize};
+use std::{ptr};
 
 use bit_set::BitSet;
 
@@ -324,15 +324,15 @@ impl ParserATNSimulator {
                 local.input().seek(self.start_index.get());
 
                 let alts = self.eval_semantic_context(local, &Dstate.predicates, true);
-                match alts.len() {
+                return match alts.len() {
                     0 => {
-                        return Err(self.no_viable_alt(
+                        Err(self.no_viable_alt(
                             local,
                             Dstate.configs.as_ref(),
                             self.start_index.get(),
                         ))
                     }
-                    1 => return Ok(alts.iter().next().unwrap() as i32),
+                    1 => Ok(alts.iter().next().unwrap() as i32),
                     _ => {
                         self.report_ambiguity(
                             &dfa,
@@ -343,7 +343,7 @@ impl ParserATNSimulator {
                             Dstate.configs.as_ref(),
                             local.parser,
                         );
-                        return Ok(alts.iter().next().unwrap() as i32);
+                        Ok(alts.iter().next().unwrap() as i32)
                     }
                 }
             }
@@ -900,7 +900,7 @@ impl ParserATNSimulator {
             }
         }
 
-        alts.get_min().unwrap_or(INVALID_ALT) as i32
+        alts.get_min().unwrap_or(INVALID_ALT)
     }
 
     fn eval_semantic_context<'a, T: Parser<'a>>(
@@ -1027,7 +1027,7 @@ impl ParserATNSimulator {
                         config.semantic_context.clone(),
                     );
                     c.set_reaches_into_outer_context(config.get_reaches_into_outer_context());
-                    assert!(depth > i32::min_value());
+                    assert!(depth > i32::MIN);
                     self.closure_checking_stop_state(
                         c,
                         configs,
@@ -1104,7 +1104,7 @@ impl ParserATNSimulator {
                             .outermost_precedence_return;
                         let atn_start_state =
                             self.atn().states[local.dfa().atn_start_state as usize].as_ref();
-                        if outermost_precedence_return == atn_start_state.get_rule_index() as i32
+                        if outermost_precedence_return == atn_start_state.get_rule_index()
                         {
                             c.set_precedence_filter_suppressed(true);
                         }
@@ -1115,7 +1115,7 @@ impl ParserATNSimulator {
                         continue;
                     }
                     configs.set_dips_into_outer_context(true);
-                    assert!(new_depth > i32::min_value());
+                    assert!(new_depth > i32::MIN);
                     new_depth -= 1;
                 } else {
                     if !tr.is_epsilon() && !closure_busy.insert(c.clone()) {

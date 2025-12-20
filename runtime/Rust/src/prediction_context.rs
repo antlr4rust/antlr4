@@ -191,7 +191,7 @@ impl PredictionContext {
                     None => 0,
                     Some(x) => x.hash_code(),
                 });
-                hasher.write_i32(*return_state as i32);
+                hasher.write_i32(*return_state);
             }
             PredictionContext::Array(ArrayPredictionContext {
                 parents,
@@ -206,7 +206,7 @@ impl PredictionContext {
                 });
                 return_states
                     .iter()
-                    .for_each(|x| hasher.write_i32(*x as i32));
+                    .for_each(|x| hasher.write_i32(*x));
             } //            PredictionContext::Empty { .. } => {}
         };
 

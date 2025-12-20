@@ -81,7 +81,7 @@ pub trait Parser<'input>: Recognizer<'input> {
 //     type Type = dyn CsvContext<'a>;
 // }
 
-// workaround trait for rustc not being able to handle cycles in trait defenition yet, e.g. `trait A: Super<Assoc=dyn A>{}`
+// workaround trait for rustc not being able to handle cycles in trait definition yet, e.g. `trait A: Super<Assoc=dyn A>{}`
 // whyyy rustc... whyyy... (╯°□°）╯︵ ┻━┻  It would have been so much cleaner.
 /// Workaround trait for rustc current limitations.
 ///

@@ -289,14 +289,14 @@ where
                 line: Cell::new(1),
                 char_position_in_line: Cell::new(0),
             }),
-            token_type: super::token::TOKEN_INVALID_TYPE,
+            token_type: TOKEN_INVALID_TYPE,
             text: None,
             token: None,
             hit_eof: false,
             channel: super::token::TOKEN_DEFAULT_CHANNEL,
             //            token_factory_source_pair: None,
             mode_stack: Vec::new(),
-            mode: self::LEXER_DEFAULT_MODE,
+            mode: LEXER_DEFAULT_MODE,
         };
         let pos = lexer.current_pos.clone();
         lexer.interpreter.as_mut().unwrap().current_pos = pos;
