@@ -5,9 +5,9 @@ use std::collections::{HashMap, HashSet};
 
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
+use std::ptr;
 use std::rc::Rc;
 use std::sync::Arc;
-use std::{ptr};
 
 use bit_set::BitSet;
 
@@ -325,13 +325,11 @@ impl ParserATNSimulator {
 
                 let alts = self.eval_semantic_context(local, &Dstate.predicates, true);
                 return match alts.len() {
-                    0 => {
-                        Err(self.no_viable_alt(
-                            local,
-                            Dstate.configs.as_ref(),
-                            self.start_index.get(),
-                        ))
-                    }
+                    0 => Err(self.no_viable_alt(
+                        local,
+                        Dstate.configs.as_ref(),
+                        self.start_index.get(),
+                    )),
                     1 => Ok(alts.iter().next().unwrap() as i32),
                     _ => {
                         self.report_ambiguity(
@@ -345,7 +343,7 @@ impl ParserATNSimulator {
                         );
                         Ok(alts.iter().next().unwrap() as i32)
                     }
-                }
+                };
             }
             previousD = D;
 
@@ -358,11 +356,7 @@ impl ParserATNSimulator {
     }
 
     #[allow(non_snake_case)]
-    fn get_existing_target_state(
-        dfa: &DFA,
-        previousD: DFAStateRef,
-        t: i32,
-    ) -> Option<DFAStateRef> {
+    fn get_existing_target_state(dfa: &DFA, previousD: DFAStateRef, t: i32) -> Option<DFAStateRef> {
         dfa.states[previousD]
             .edges
             .get((t + 1) as usize)
@@ -663,7 +657,8 @@ impl ParserATNSimulator {
             if look_to_end_of_rule && state.has_epsilon_only_transitions() {
                 let next_tokens = self.atn().next_tokens(state);
                 if next_tokens.contains(TOKEN_EPSILON) {
-                    let end_of_rule_state = self.atn().rule_to_stop_state[state.get_rule_index() as usize];
+                    let end_of_rule_state =
+                        self.atn().rule_to_stop_state[state.get_rule_index() as usize];
                     result.add_cached(
                         c.cloned(self.atn().states[end_of_rule_state as usize].as_ref())
                             .into(),
@@ -894,7 +889,8 @@ impl ParserATNSimulator {
         let mut alts = IntervalSet::new();
         for c in configs.get_items() {
             let has_empty_path = c.get_context().map(|x| x.has_empty_path()) == Some(true);
-            let is_stop = self.atn().states[c.get_state() as usize].get_state_type() == &RuleStopState;
+            let is_stop =
+                self.atn().states[c.get_state() as usize].get_state_type() == &RuleStopState;
             if c.get_reaches_into_outer_context() > 0 || (is_stop && has_empty_path) {
                 alts.add_one(c.get_alt())
             }
@@ -1094,7 +1090,9 @@ impl ParserATNSimulator {
             );
             if let Some(mut c) = c {
                 let mut new_depth = depth;
-                if let RuleStopState = self.atn().states[config.get_state() as usize].get_state_type() {
+                if let RuleStopState =
+                    self.atn().states[config.get_state() as usize].get_state_type()
+                {
                     assert!(!full_ctx);
 
                     if local.dfa().is_precedence_dfa() {
@@ -1104,8 +1102,7 @@ impl ParserATNSimulator {
                             .outermost_precedence_return;
                         let atn_start_state =
                             self.atn().states[local.dfa().atn_start_state as usize].as_ref();
-                        if outermost_precedence_return == atn_start_state.get_rule_index()
-                        {
+                        if outermost_precedence_return == atn_start_state.get_rule_index() {
                             c.set_precedence_filter_suppressed(true);
                         }
                     }
@@ -1353,11 +1350,12 @@ impl ParserATNSimulator {
 
     fn rule_transition(&self, config: &ATNConfig, t: &RuleTransition) -> ATNConfig {
         assert!(config.get_context().is_some());
-        let new_ctx = PredictionContext::new_singleton(
-            config.get_context().cloned(),
-            t.follow_state,
-        );
-        config.cloned_with_new_ctx(self.atn().states[t.target as usize].as_ref(), Some(new_ctx.into()))
+        let new_ctx =
+            PredictionContext::new_singleton(config.get_context().cloned(), t.follow_state);
+        config.cloned_with_new_ctx(
+            self.atn().states[t.target as usize].as_ref(),
+            Some(new_ctx.into()),
+        )
     }
 
     fn get_conflicting_alts(&self, configs: &ATNConfigSet) -> BitSet {

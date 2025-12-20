@@ -178,8 +178,7 @@ impl ATNState for BaseATNState {
                 if (existing.get_label().is_some()
                     && trans.get_label().is_some()
                     && existing.get_label() == trans.get_label())
-                    ||
-                    (existing.is_epsilon() && trans.is_epsilon())
+                    || (existing.is_epsilon() && trans.is_epsilon())
                 {
                     already_present = true;
                     break;

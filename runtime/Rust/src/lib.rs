@@ -129,17 +129,15 @@ mod token_source;
 pub mod token_stream;
 //pub mod trace_listener;
 #[doc(hidden)]
-pub mod dfa;
-#[doc(hidden)]
-pub mod transition;
-pub mod tree;
-#[doc(hidden)]
 pub mod atn;
 #[doc(hidden)]
 pub mod atn_config_set;
 #[doc(hidden)]
 pub mod atn_deserializer;
+mod atn_type;
 pub mod common_token_stream;
+#[doc(hidden)]
+pub mod dfa;
 mod dfa_serializer;
 pub mod error_listener;
 pub mod error_strategy;
@@ -152,11 +150,13 @@ pub mod lexer_atn_simulator;
 pub mod parser;
 pub mod parser_atn_simulator;
 mod prediction_mode;
+pub mod rule_context;
 pub mod token;
+#[doc(hidden)]
+pub mod transition;
+pub mod tree;
 pub mod trees;
 mod utils;
-mod atn_type;
-pub mod rule_context;
 pub mod vocabulary;
 //#[cfg(test)]
 // tests are either integration tests in "tests" foulder or unit tests in some modules

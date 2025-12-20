@@ -204,9 +204,7 @@ impl PredictionContext {
                         Some(x) => x.hash_code(),
                     })
                 });
-                return_states
-                    .iter()
-                    .for_each(|x| hasher.write_i32(*x));
+                return_states.iter().for_each(|x| hasher.write_i32(*x));
             } //            PredictionContext::Empty { .. } => {}
         };
 

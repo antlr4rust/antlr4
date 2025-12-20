@@ -198,7 +198,8 @@ impl LexerATNSimulator {
             .ok_or_else(|| ANTLRError::IllegalStateError("invalid mode".into()))?;
 
         let _old_mode = self.mode;
-        let mut s0_closure = self.compute_start_state(atn.states[start_state as usize].as_ref(), lexer);
+        let mut s0_closure =
+            self.compute_start_state(atn.states[start_state as usize].as_ref(), lexer);
         let _supress_edge = s0_closure.has_semantic_context();
         s0_closure.set_has_semantic_context(false);
 
@@ -344,7 +345,8 @@ impl LexerATNSimulator {
                             .fix_offset_before_match(lexer.input().index() - self.start_index)
                     });
 
-                    let new = config.cloned_with_new_exec(self.atn().states[target as usize].as_ref(), exec);
+                    let new = config
+                        .cloned_with_new_exec(self.atn().states[target as usize].as_ref(), exec);
                     if self.closure(
                         new,
                         _reach,
@@ -534,7 +536,12 @@ impl LexerATNSimulator {
         lexer: &mut impl Lexer<'input>,
     ) -> Option<ATNConfig> {
         let mut result = None;
-        let target = self.atn().states.get(_trans.get_target() as usize).unwrap().as_ref();
+        let target = self
+            .atn()
+            .states
+            .get(_trans.get_target() as usize)
+            .unwrap()
+            .as_ref();
         //        println!("epsilon target for {:?} is {:?}", _trans, target.get_state_type());
         match _trans.get_serialization_type() {
             TransitionType::TRANSITION_EPSILON => {
@@ -688,9 +695,9 @@ impl LexerATNSimulator {
         let states = &mut dfa.states;
         let key = dfastate.default_hash();
         let dfastate_index: DFAStateRef = if let Some(entry) = dfa.states_map.get(&key) {
-            let find_result = entry.iter().find(|it| {
-                states[**it].configs == dfastate.configs
-            });
+            let find_result = entry
+                .iter()
+                .find(|it| states[**it].configs == dfastate.configs);
             if let Some(find_result) = find_result {
                 *find_result
             } else {
