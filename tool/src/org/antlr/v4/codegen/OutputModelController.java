@@ -152,14 +152,13 @@ public class OutputModelController {
 		Grammar g = getGrammar();
 		for (ActionAST a : r.actions) {
 			if ( a instanceof PredAST ) {
-				PredAST p = (PredAST) a;
+				PredAST p = (PredAST)a;
 				RuleSempredFunction rsf = parser.sempredFuncs.get(r);
-				if (rsf == null) {
+				if ( rsf==null ) {
 					rsf = new RuleSempredFunction(delegate, r, function.ctxType);
 					parser.sempredFuncs.put(r, rsf);
 				}
-				boolean isCtxDependent = UseDefAnalyzer.actionIsContextDependent(p);
-				rsf.actions.put(g.sempreds.get(p), new Action(delegate, p, isCtxDependent));
+				rsf.actions.put(g.sempreds.get(p), new Action(delegate, p));
 			}
 		}
 

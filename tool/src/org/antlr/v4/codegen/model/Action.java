@@ -24,15 +24,7 @@ import java.util.List;
  *
  */
 public class Action extends RuleElement {
-	@ModelElement
-	public List<ActionChunk> chunks;
-	public boolean isCtxDependent = false;
-
-	// Rust target needs to know if ctx is null for safe casting
-	public Action(OutputModelFactory factory, ActionAST ast, boolean needsCtx) {
-		this(factory, ast);
-		isCtxDependent = needsCtx;
-	}
+	@ModelElement public List<ActionChunk> chunks;
 
 	public Action(OutputModelFactory factory, ActionAST ast) {
 		super(factory, ast);
