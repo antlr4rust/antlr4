@@ -10,7 +10,16 @@ import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.antlr.v4.codegen.OutputModelFactory;
-import org.antlr.v4.codegen.model.decl.*;
+import org.antlr.v4.codegen.model.decl.AltLabelStructDecl;
+import org.antlr.v4.codegen.model.decl.AttributeDecl;
+import org.antlr.v4.codegen.model.decl.ContextRuleGetterDecl;
+import org.antlr.v4.codegen.model.decl.ContextRuleListGetterDecl;
+import org.antlr.v4.codegen.model.decl.ContextRuleListIndexedGetterDecl;
+import org.antlr.v4.codegen.model.decl.ContextTokenGetterDecl;
+import org.antlr.v4.codegen.model.decl.ContextTokenListGetterDecl;
+import org.antlr.v4.codegen.model.decl.ContextTokenListIndexedGetterDecl;
+import org.antlr.v4.codegen.model.decl.Decl;
+import org.antlr.v4.codegen.model.decl.StructDecl;
 import org.antlr.v4.misc.FrequencySet;
 import org.antlr.v4.misc.Utils;
 import org.antlr.v4.parse.GrammarASTAdaptor;
@@ -26,9 +35,18 @@ import org.antlr.v4.tool.ast.AltAST;
 import org.antlr.v4.tool.ast.GrammarAST;
 import org.antlr.v4.tool.ast.PredAST;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static org.antlr.v4.parse.ANTLRParser.*;
+import static org.antlr.v4.parse.ANTLRParser.RULE_REF;
+import static org.antlr.v4.parse.ANTLRParser.STRING_LITERAL;
+import static org.antlr.v4.parse.ANTLRParser.TOKEN_REF;
 
 /** */
 public class RuleFunction extends OutputModelObject {
@@ -71,8 +89,8 @@ public class RuleFunction extends OutputModelObject {
 			Collection<Attribute> decls = r.args.attributes.values();
 			if ( decls.size()>0 ) {
 				args = new ArrayList<AttributeDecl>();
+				ruleCtx.addDecls(decls);
 				for (Attribute a : decls) {
-					ruleCtx.addDecl(new AttributeDecl(factory, a, true));
 					args.add(new AttributeDecl(factory, a));
 				}
 				ruleCtx.ctorAttrs = args;

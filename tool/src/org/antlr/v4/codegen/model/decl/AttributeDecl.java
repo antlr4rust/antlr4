@@ -9,19 +9,10 @@ package org.antlr.v4.codegen.model.decl;
 import org.antlr.v4.codegen.OutputModelFactory;
 import org.antlr.v4.tool.Attribute;
 
-/**
- *
- */
+/** */
 public class AttributeDecl extends Decl {
 	public String type;
 	public String initValue;
-	public boolean initFromConstructor = false;
-
-	public AttributeDecl(OutputModelFactory factory, Attribute a, boolean initFromConstructor) {
-		this(factory, a);
-		this.initFromConstructor = initFromConstructor;
-	}
-
 	public AttributeDecl(OutputModelFactory factory, Attribute a) {
 		super(factory, a.name, a.decl);
 		this.type = a.type;

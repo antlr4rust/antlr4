@@ -6,10 +6,8 @@
 
 package org.antlr.v4.codegen.model;
 
-import org.antlr.runtime.CommonToken;
 import org.antlr.v4.Tool;
 import org.antlr.v4.codegen.OutputModelFactory;
-import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.tool.Grammar;
 import org.antlr.v4.tool.ast.ActionAST;
 

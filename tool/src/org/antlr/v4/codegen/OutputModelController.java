@@ -8,13 +8,36 @@ package org.antlr.v4.codegen;
 
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.antlr.v4.analysis.LeftRecursiveRuleAltInfo;
-import org.antlr.v4.codegen.model.*;
+import org.antlr.v4.codegen.model.Action;
+import org.antlr.v4.codegen.model.AltBlock;
+import org.antlr.v4.codegen.model.BaseListenerFile;
+import org.antlr.v4.codegen.model.BaseVisitorFile;
+import org.antlr.v4.codegen.model.Choice;
+import org.antlr.v4.codegen.model.CodeBlockForAlt;
+import org.antlr.v4.codegen.model.CodeBlockForOuterMostAlt;
+import org.antlr.v4.codegen.model.LabeledOp;
+import org.antlr.v4.codegen.model.LeftRecursiveRuleFunction;
+import org.antlr.v4.codegen.model.Lexer;
+import org.antlr.v4.codegen.model.LexerFile;
+import org.antlr.v4.codegen.model.ListenerFile;
+import org.antlr.v4.codegen.model.OutputModelObject;
+import org.antlr.v4.codegen.model.Parser;
+import org.antlr.v4.codegen.model.ParserFile;
+import org.antlr.v4.codegen.model.RuleActionFunction;
+import org.antlr.v4.codegen.model.RuleFunction;
+import org.antlr.v4.codegen.model.RuleSempredFunction;
+import org.antlr.v4.codegen.model.SrcOp;
+import org.antlr.v4.codegen.model.StarBlock;
+import org.antlr.v4.codegen.model.VisitorFile;
 import org.antlr.v4.codegen.model.decl.CodeBlock;
 import org.antlr.v4.misc.Utils;
 import org.antlr.v4.parse.ANTLRParser;
 import org.antlr.v4.parse.GrammarASTAdaptor;
-import org.antlr.v4.semantics.UseDefAnalyzer;
-import org.antlr.v4.tool.*;
+import org.antlr.v4.tool.Alternative;
+import org.antlr.v4.tool.ErrorType;
+import org.antlr.v4.tool.Grammar;
+import org.antlr.v4.tool.LeftRecursiveRule;
+import org.antlr.v4.tool.Rule;
 import org.antlr.v4.tool.ast.ActionAST;
 import org.antlr.v4.tool.ast.BlockAST;
 import org.antlr.v4.tool.ast.GrammarAST;
@@ -152,14 +175,13 @@ public class OutputModelController {
 		Grammar g = getGrammar();
 		for (ActionAST a : r.actions) {
 			if ( a instanceof PredAST ) {
-				PredAST p = (PredAST) a;
+				PredAST p = (PredAST)a;
 				RuleSempredFunction rsf = parser.sempredFuncs.get(r);
-				if (rsf == null) {
+				if ( rsf==null ) {
 					rsf = new RuleSempredFunction(delegate, r, function.ctxType);
 					parser.sempredFuncs.put(r, rsf);
 				}
-				boolean isCtxDependent = UseDefAnalyzer.actionIsContextDependent(p);
-				rsf.actions.put(g.sempreds.get(p), new Action(delegate, p, isCtxDependent));
+				rsf.actions.put(g.sempreds.get(p), new Action(delegate, p));
 			}
 		}
 
