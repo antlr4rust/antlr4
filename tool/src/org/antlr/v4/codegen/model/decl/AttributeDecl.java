@@ -9,9 +9,7 @@ package org.antlr.v4.codegen.model.decl;
 import org.antlr.v4.codegen.OutputModelFactory;
 import org.antlr.v4.tool.Attribute;
 
-/**
- *
- */
+/** */
 public class AttributeDecl extends Decl {
 	public String type;
 	public String initValue;

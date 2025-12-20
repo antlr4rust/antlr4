@@ -7,7 +7,11 @@
 package org.antlr.v4.codegen.model.decl;
 
 import org.antlr.v4.codegen.OutputModelFactory;
-import org.antlr.v4.codegen.model.*;
+import org.antlr.v4.codegen.model.DispatchMethod;
+import org.antlr.v4.codegen.model.ListenerDispatchMethod;
+import org.antlr.v4.codegen.model.ModelElement;
+import org.antlr.v4.codegen.model.OutputModelObject;
+import org.antlr.v4.codegen.model.VisitorDispatchMethod;
 import org.antlr.v4.runtime.misc.OrderedHashSet;
 import org.antlr.v4.tool.Attribute;
 import org.antlr.v4.tool.Rule;
@@ -21,7 +25,7 @@ import java.util.List;
  */
 public class StructDecl extends Decl {
 	public String derivedFromName; // rule name or label name
-	public boolean provideCopyFrom; // can be used to check if there are named Alts
+	public boolean provideCopyFrom;
 	@ModelElement public OrderedHashSet<Decl> attrs = new OrderedHashSet<Decl>();
 	@ModelElement public OrderedHashSet<Decl> getters = new OrderedHashSet<Decl>();
 	@ModelElement public Collection<AttributeDecl> ctorAttrs;
