@@ -69,10 +69,10 @@ public class RuleFunction extends OutputModelObject {
 
 		if ( r.args!=null ) {
 			Collection<Attribute> decls = r.args.attributes.values();
+			ruleCtx.addDecls(decls);
 			if ( decls.size()>0 ) {
 				args = new ArrayList<AttributeDecl>();
 				for (Attribute a : decls) {
-					ruleCtx.addDecl(new AttributeDecl(factory, a, true));
 					args.add(new AttributeDecl(factory, a));
 				}
 				ruleCtx.ctorAttrs = args;
