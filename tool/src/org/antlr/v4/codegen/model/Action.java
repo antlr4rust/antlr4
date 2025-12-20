@@ -20,18 +20,17 @@ import org.stringtemplate.v4.ST;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- */
+/** */
 public class Action extends RuleElement {
 	@ModelElement public List<ActionChunk> chunks;
 
 	public Action(OutputModelFactory factory, ActionAST ast) {
-		super(factory, ast);
+		super(factory,ast);
 		RuleFunction rf = factory.getCurrentRuleFunction();
 		if (ast != null) {
 			chunks = ActionTranslator.translateAction(factory, rf, ast.token, ast);
-		} else {
+		}
+		else {
 			chunks = new ArrayList<ActionChunk>();
 		}
 		//System.out.println("actions="+chunks);
