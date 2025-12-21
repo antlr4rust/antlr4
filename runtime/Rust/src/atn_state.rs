@@ -71,7 +71,6 @@ pub trait ATNState: Sync + Send + Debug {
     fn has_epsilon_only_transitions(&self) -> bool;
 
     fn get_rule_index(&self) -> i32;
-    fn set_rule_index(&self, v: i32);
 
     fn get_next_tokens_within_rule(&self) -> &OnceCell<IntervalSet>;
     //    fn set_next_token_within_rule(&mut self, v: IntervalSet);
@@ -82,10 +81,8 @@ pub trait ATNState: Sync + Send + Debug {
     fn get_state_type_id(&self) -> i32;
 
     fn get_state_number(&self) -> i32;
-    fn set_state_number(&self, state_number: i32);
 
     fn get_transitions(&self) -> &Vec<Box<dyn Transition>>;
-    fn set_transitions(&self, t: Vec<Box<dyn Transition>>);
     fn add_transition(&mut self, trans: Box<dyn Transition>);
 }
 
@@ -129,10 +126,6 @@ impl ATNState for BaseATNState {
         self.rule_index
     }
 
-    fn set_rule_index(&self, _v: i32) {
-        unimplemented!()
-    }
-
     fn get_next_tokens_within_rule(&self) -> &OnceCell<IntervalSet> {
         &self.next_tokens_within_rule
     }
@@ -153,16 +146,8 @@ impl ATNState for BaseATNState {
         self.state_number
     }
 
-    fn set_state_number(&self, _state_number: i32) {
-        unimplemented!()
-    }
-
     fn get_transitions(&self) -> &Vec<Box<dyn Transition>> {
         &self.transitions
-    }
-
-    fn set_transitions(&self, _t: Vec<Box<dyn Transition>>) {
-        unimplemented!()
     }
 
     fn add_transition(&mut self, trans: Box<dyn Transition>) {
