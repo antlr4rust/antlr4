@@ -96,6 +96,13 @@ use std::ops::{DerefMut, Deref};
 use std::borrow::{Borrow,BorrowMut};
 use std::any::{Any,TypeId};
 
+const _: () = {
+    assert!(
+        antlr4rust::const_check::version("0", "5"),
+        "Incompatible version: either switch to v0.5 or regenerate with this version"
+    );
+};
+
 <parser>
 >>
 
