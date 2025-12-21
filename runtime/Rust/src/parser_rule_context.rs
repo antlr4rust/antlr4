@@ -1,5 +1,5 @@
 //! Full parser node
-use std::any::{type_name, Any};
+use std::any::type_name;
 use std::borrow::{Borrow, BorrowMut};
 use std::cell::{Ref, RefCell, RefMut};
 use std::fmt::{Debug, Error, Formatter};
@@ -404,10 +404,6 @@ impl<'input, Ctx: CustomRuleContext<'input>> Tree<'input> for BaseParserRuleCont
         self.base.parent_ctx.borrow().is_some()
     }
 
-    fn get_payload(&self) -> Box<dyn Any> {
-        unimplemented!()
-    }
-
     fn get_child(&self, i: usize) -> Option<Rc<<Self::Ctx as ParserNodeType<'input>>::Type>> {
         self.children.borrow().get(i).cloned()
     }
@@ -594,10 +590,6 @@ where
 
     fn has_parent(&self) -> bool {
         self.deref().has_parent()
-    }
-
-    fn get_payload(&self) -> Box<dyn Any> {
-        self.deref().get_payload()
     }
 
     fn get_child(&self, i: usize) -> Option<Rc<<I::Ctx as ParserNodeType<'input>>::Type>> {

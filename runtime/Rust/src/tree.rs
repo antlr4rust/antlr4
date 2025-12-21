@@ -1,5 +1,4 @@
 //! General AST
-use std::any::Any;
 use std::borrow::Borrow;
 
 use std::fmt::{Debug, Formatter};
@@ -29,9 +28,6 @@ pub trait Tree<'input>: RuleContext<'input> {
     }
     fn has_parent(&self) -> bool {
         false
-    }
-    fn get_payload(&self) -> Box<dyn Any> {
-        unimplemented!()
     }
     fn get_child(&self, _i: usize) -> Option<Rc<<Self::Ctx as ParserNodeType<'input>>::Type>> {
         None
