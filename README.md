@@ -1,5 +1,10 @@
 # ANTLR v4
 
+> [!important]
+> This is fork of the original [ANTLR4](https://github.com/antlr/antlr4) repo which adds [Rust](https://rust-lang.org/) support to it. 
+> It is unclear at this stage how in the future ANTLR might support Rust, so until then, use this instead.
+> We try to keep up with the upstream, and you can download a [prebuild JAR](https://github.com/antlr4rust/antlr4/releases) from here, and read more about Rust support [here](runtime/Rust/README.md)
+
 [![Java 11+](https://img.shields.io/badge/java-11+-4c7e9f.svg)](http://java.oracle.com)
 [![License](https://img.shields.io/badge/license-BSD-blue.svg)](https://raw.githubusercontent.com/antlr/antlr4/master/LICENSE.txt)
 
