@@ -3,17 +3,21 @@
 [![docs](https://flat.badgen.net/badge/docs.rs/v0.5.0)](https://docs.rs/antlr4rust/0.5.0)
 
 
+> [!note]
+> You don't have to build this ANTLR jar yourself, you can use the 
+> [latest release jar from here instead](https://github.com/antlr4rust/antlr4/releases)!
+
+## [ANTLR4](https://github.com/antlr/antlr4) runtime for Rust programming language.
+
+For examples you can see [grammars](grammars), [tests/gen](tests/gen) for corresponding generated code 
+and [tests/my_tests.rs](tests/my_test.rs) for actual usage examples
+
 > [!IMPORTANT]  
 > This is an effort to pick things up where [Konstantin aka @rrevenantt](https://github.com/rrevenantt) left them a few years back.
 > This is work in progress and I'm mostly trying to solve my problem as of now, but I'd be real happy to either contribute this back
 > to the original repo and/or work towards making this a contribution to the antlr4 project.
 >
 > Help, feedback et al are really appreciated!
-
-[ANTLR4](https://github.com/antlr/antlr4) runtime for Rust programming language.
-
-For examples you can see [grammars](grammars), [tests/gen](tests/gen) for corresponding generated code 
-and [tests/my_tests.rs](tests/my_test.rs) for actual usage examples
 
 ## ANTLR4 Tool(parser generator)
 
@@ -45,7 +49,7 @@ Then add following to `Cargo.toml` of the crate from which generated parser
 is going to be used:
 ```toml 
 [dependencies]
-antlr-rust = "0.5"
+antlr4rust = "0.5"
 ```
  
 ### Parse Tree structure
