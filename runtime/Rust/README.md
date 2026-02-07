@@ -35,9 +35,9 @@ so in case of nightly breakage you should migrate to the latest version.
 ### Usage
 
 You should use the ANTLR4 "tool" to generate a parser, that will use the ANTLR 
-runtime located here. You can run it with the following command:
+runtime located here. You can run it with the following command, to have all generated rust sources outputed in directory/"module" `gen`:
 ```bash
-java -jar <path to ANTLR4 tool> -Dlanguage=Rust MyGrammar.g4
+java -jar <path to ANTLR4 tool> -Dlanguage=Rust <g4 location> -o gen
 ```
 For a full list of antlr4 tool options, please visit the 
 [tool documentation page](https://github.com/antlr/antlr4/blob/master/doc/tool-options.md).
