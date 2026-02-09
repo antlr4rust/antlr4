@@ -353,4 +353,82 @@ if (x < x && a > 0) then duh
             _ => panic!("oops"),
         }
     }
+
+    // =========================================================================
+    // Hidden token access tests
+    // =========================================================================
+
+    // CSV grammar uses `WS : [ ]+ -> channel(HIDDEN)`, so spaces become
+    // hidden-channel tokens that remain in the buffer. These tests verify
+    // that `get_hidden_tokens_to_left` and `get_hidden_tokens_to_right`
+    // correctly locate them.
+
+    #[test]
+    fn test_hidden_tokens_to_left() {
+        use antlr4rust::token::TOKEN_HIDDEN_CHANNEL;
+        let tf = ArenaCommonFactory::default();
+        // "V1 ,V2\nd1,d2\n" — the space before the comma is a hidden WS token
+        let lexer = CSVLexer::new_with_token_factory(InputStream::new("V1 ,V2\nd1,d2\n"), &tf);
+        let mut ts = CommonTokenStream::new(lexer);
+
+        // Fill the entire token buffer so all tokens are available.
+        while ts.la(1) != TOKEN_EOF {
+            ts.consume();
+        }
+
+        // Buffer layout:
+        //   0: "V1"  (TEXT, DEFAULT,  start=0, stop=1)
+        //   1: " "   (WS,  HIDDEN,   start=2, stop=2)
+        //   2: ","   (lit, DEFAULT,   start=3, stop=3)
+        //   3: "V2"  (TEXT, DEFAULT,  start=4, stop=5)
+        //   ...
+
+        // Hidden tokens to the left of the comma (index 2) should be the WS.
+        let hidden = ts.get_hidden_tokens_to_left(2, TOKEN_HIDDEN_CHANNEL);
+        let hidden = hidden.expect("expected hidden tokens to the left of comma");
+        assert_eq!(hidden.len(), 1);
+        assert_eq!(hidden[0].get_text(), " ");
+
+        // No hidden tokens to the left of the first token (index 0).
+        assert!(
+            ts.get_hidden_tokens_to_left(0, TOKEN_HIDDEN_CHANNEL)
+                .is_none(),
+            "no hidden tokens before the first token"
+        );
+
+        // No hidden tokens to the left of "V2" (index 3); comma at index 2
+        // is on DEFAULT channel, so there's nothing in between.
+        assert!(
+            ts.get_hidden_tokens_to_left(3, TOKEN_HIDDEN_CHANNEL)
+                .is_none(),
+            "no hidden tokens between comma and V2"
+        );
+    }
+
+    #[test]
+    fn test_hidden_tokens_to_right() {
+        use antlr4rust::token::TOKEN_HIDDEN_CHANNEL;
+
+        let tf = ArenaCommonFactory::default();
+        let lexer = CSVLexer::new_with_token_factory(InputStream::new("V1 ,V2\nd1,d2\n"), &tf);
+        let mut ts = CommonTokenStream::new(lexer);
+
+        while ts.la(1) != TOKEN_EOF {
+            ts.consume();
+        }
+
+        // Hidden tokens to the right of "V1" (index 0) should be the WS.
+        let hidden = ts.get_hidden_tokens_to_right(0, TOKEN_HIDDEN_CHANNEL);
+        let hidden = hidden.expect("expected hidden tokens to the right of V1");
+        assert_eq!(hidden.len(), 1);
+        assert_eq!(hidden[0].get_text(), " ");
+
+        // No hidden tokens to the right of comma (index 2); "V2" at index 3
+        // is on DEFAULT channel with nothing in between.
+        assert!(
+            ts.get_hidden_tokens_to_right(2, TOKEN_HIDDEN_CHANNEL)
+                .is_none(),
+            "no hidden tokens between comma and V2"
+        );
+    }
 }
