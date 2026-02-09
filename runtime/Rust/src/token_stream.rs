@@ -194,12 +194,21 @@ impl<'input, T: TokenSource<'input>> TokenStream<'input> for UnbufferedTokenStre
         let b = stop - buffer_start_index;
 
         let mut buf = String::new();
+        let mut prev_stop: isize = -1;
         for i in a..(b + 1) {
             let t = self.tokens[i as usize].borrow();
             if t.get_token_type() == TOKEN_EOF {
                 break;
             }
+            // When lexer rules skip tokens (e.g. `WS -> skip`), there is a
+            // positional gap between adjacent tokens in the buffer. Insert a
+            // single space to keep the reconstructed text readable.
+            let start = t.get_start();
+            if prev_stop >= 0 && start > prev_stop + 1 {
+                buf.push(' ');
+            }
             buf.push_str(&t.get_text().to_display());
+            prev_stop = t.get_stop();
         }
 
         buf

@@ -353,4 +353,79 @@ if (x < x && a > 0) then duh
             _ => panic!("oops"),
         }
     }
+
+    // =========================================================================
+    // Token text spacing tests
+    // =========================================================================
+
+    // SimpleLR grammar uses `WS -> skip`, which completely discards whitespace
+    // tokens from the buffer. `get_text_from_interval` must detect positional
+    // gaps between adjacent tokens and insert spaces to keep text readable.
+
+    #[test]
+    fn test_text_from_interval_inserts_spaces_for_skipped_tokens() {
+        let lexer = SimpleLRLexer::new(InputStream::new("x y z"));
+        let mut ts = CommonTokenStream::new(lexer);
+
+        // Fill the buffer.
+        while ts.la(1) != TOKEN_EOF {
+            ts.consume();
+        }
+
+        // Buffer contains three ID tokens with no WS tokens (skipped):
+        //   0: "x" (start=0, stop=0)
+        //   1: "y" (start=2, stop=2)
+        //   2: "z" (start=4, stop=4)
+        // The gaps (start > prev_stop + 1) indicate skipped content.
+        let text = ts.get_text_from_interval(0, 2);
+        assert_eq!(
+            text, "x y z",
+            "spaces should be inserted where WS was skipped"
+        );
+    }
+
+    #[test]
+    fn test_text_from_interval_no_extra_spaces_when_adjacent() {
+        // Labels grammar also uses `WS -> skip`, but tokens in "(a+4)"
+        // are positionally adjacent (no gaps), so no spaces are inserted.
+        let codepoints = "(a+4)".chars().map(|x| x as u32).collect::<Vec<_>>();
+        let lexer = LabelsLexer::new(InputStream::new(&*codepoints));
+        let mut ts = CommonTokenStream::new(lexer);
+
+        while ts.la(1) != TOKEN_EOF {
+            ts.consume();
+        }
+
+        // Tokens: "(", "a", "+", "4", ")" — all positionally adjacent.
+        let text = ts.get_text_from_interval(0, 4);
+        assert_eq!(text, "(a+4)", "no extra spaces when tokens are adjacent");
+    }
+
+    #[test]
+    fn test_text_from_interval_includes_hidden_channel_tokens() {
+        // CSV grammar uses `WS -> channel(HIDDEN)` instead of `skip`.
+        // Hidden tokens remain in the buffer and are included by
+        // `get_text_from_interval` natively — the space-insertion logic
+        // should NOT fire because there are no positional gaps.
+        let tf = ArenaCommonFactory::default();
+        let lexer = CSVLexer::new_with_token_factory(InputStream::new("V1\t,V2\nd1,d2\n"), &tf);
+        let mut ts = CommonTokenStream::new(lexer);
+
+        while ts.la(1) != TOKEN_EOF {
+            ts.consume();
+        }
+
+        // Buffer includes hidden WS token between "V1" and ",":
+        //   0: "V1"  (TEXT,    DEFAULT, start=0, stop=1)
+        //      "\t"  (WS,      HIDDEN,  start=2, stop=2)
+        //   1: ","   (literal, DEFAULT, start=3, stop=3)
+        //   2: "V2"  (TEXT,    DEFAULT, start=4, stop=5)
+        // Positions are contiguous, so no synthetic spaces are inserted.
+        // The hidden WS token's text " " is included directly.
+        let text = ts.get_text_from_interval(0, 2);
+        assert_eq!(
+            text, "V1\t,V2",
+            "hidden-channel tokens should be included without extra spaces"
+        );
+    }
 }
