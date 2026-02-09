@@ -16,6 +16,7 @@ mod gen {
     use antlr4rust::errors::ANTLRError;
     use antlr4rust::int_stream::IntStream;
     use antlr4rust::lexer::Lexer;
+    use antlr4rust::parser::Parser as _;
 
     use antlr4rust::token::{Token, TOKEN_EOF};
     use antlr4rust::token_factory::{ArenaCommonFactory, OwningTokenFactory};
@@ -351,6 +352,79 @@ if (x < x && a > 0) then duh
         match x {
             EContextAll::MultContext(x) => assert_eq!("(a+4)", x.a.as_ref().unwrap().get_text()),
             _ => panic!("oops"),
+        }
+    }
+
+    // =========================================================================
+    // Error message rule context tests
+    // =========================================================================
+
+    // Error listener that captures formatted error messages into a shared
+    // Vec, so we can inspect them after parsing.
+    struct CollectingErrorListener {
+        messages: std::rc::Rc<std::cell::RefCell<Vec<String>>>,
+    }
+
+    impl<'a, T: antlr4rust::recognizer::Recognizer<'a>>
+        antlr4rust::error_listener::ErrorListener<'a, T> for CollectingErrorListener
+    {
+        fn syntax_error(
+            &self,
+            _recognizer: &T,
+            _offending_symbol: Option<
+                &<T::TF as antlr4rust::token_factory::TokenFactory<'a>>::Inner,
+            >,
+            _line: isize,
+            _column: isize,
+            msg: &str,
+            _error: Option<&ANTLRError>,
+        ) {
+            self.messages.borrow_mut().push(msg.to_string());
+        }
+    }
+
+    // Both `report_no_viable_alternative` and `report_input_mismatch` were
+    // changed to include rule names. With the available test grammars,
+    // `report_input_mismatch` is the easier path to trigger reliably.
+
+    #[test]
+    fn test_input_mismatch_includes_rule_name() {
+        use std::cell::RefCell;
+        use std::rc::Rc;
+
+        // Labels grammar: `s : q=e ;` where `e` expects INT, ID, or `(`.
+        // A bare `)` is a valid token (from the `'(' x=e ')'` alternative)
+        // but can't start any `e` alternative, producing a mismatched-input
+        // error in rule `e`.
+        let codepoints = ")".chars().map(|x| x as u32).collect::<Vec<_>>();
+        let lexer = LabelsLexer::new(InputStream::new(&*codepoints));
+        let token_source = CommonTokenStream::new(lexer);
+        let mut parser = LabelsParser::new(token_source);
+
+        let messages = Rc::new(RefCell::new(Vec::new()));
+        parser.remove_error_listeners();
+        parser.add_error_listener(Box::new(CollectingErrorListener {
+            messages: messages.clone(),
+        }));
+
+        let _ = parser.s();
+
+        let msgs = messages.borrow();
+        let mismatch_msgs: Vec<_> = msgs
+            .iter()
+            .filter(|m| m.contains("mismatched input"))
+            .collect();
+        assert!(
+            !mismatch_msgs.is_empty(),
+            "expected a 'mismatched input' error, got: {:?}",
+            *msgs
+        );
+        for msg in &mismatch_msgs {
+            assert!(
+                msg.contains("in rule '"),
+                "mismatched-input message should include rule name, got: {}",
+                msg
+            );
         }
     }
 }

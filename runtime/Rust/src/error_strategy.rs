@@ -199,7 +199,12 @@ impl<'input, Ctx: ParserNodeType<'input>> DefaultErrorStrategy<'input, Ctx> {
             )
         };
 
-        format!("no viable alternative at input '{}'", input)
+        let rule_name =
+            recognizer.get_rule_names()[recognizer.get_parser_rule_context().get_rule_index()];
+        format!(
+            "no viable alternative at input '{}' in rule '{}'",
+            input, rule_name
+        )
     }
 
     fn report_input_mismatch<T: Parser<'input, Node = Ctx, TF = Ctx::TF>>(
@@ -207,12 +212,15 @@ impl<'input, Ctx: ParserNodeType<'input>> DefaultErrorStrategy<'input, Ctx> {
         recognizer: &T,
         e: &InputMisMatchError,
     ) -> String {
+        let rule_name =
+            recognizer.get_rule_names()[recognizer.get_parser_rule_context().get_rule_index()];
         format!(
-            "mismatched input {} expecting {}",
+            "mismatched input {} expecting {} in rule '{}'",
             self.get_token_error_display(&e.base.offending_token),
             e.base
                 .get_expected_tokens(recognizer)
-                .to_token_string(recognizer.get_vocabulary())
+                .to_token_string(recognizer.get_vocabulary()),
+            rule_name
         )
     }
 
