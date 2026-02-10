@@ -57,6 +57,7 @@ ParserFile(file, parser, namedActions, contextSuperClass) ::= <<
 #![allow(unused_imports)]
 #![allow(unused_mut)]
 #![allow(unused_braces)]
+#![allow(unused_parens)]
 <namedActions.header>
 use antlr4rust::PredictionContextCache;
 use antlr4rust::parser::{Parser, BaseParser, ParserRecog, ParserNodeType};
