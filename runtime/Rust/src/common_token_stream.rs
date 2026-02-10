@@ -2,7 +2,7 @@
 use std::borrow::Borrow;
 
 use crate::int_stream::{IntStream, IterWrapper, EOF};
-use crate::token::{Token, TOKEN_DEFAULT_CHANNEL, TOKEN_INVALID_TYPE};
+use crate::token::{OwningToken, Token, TOKEN_DEFAULT_CHANNEL, TOKEN_INVALID_TYPE};
 use crate::token_factory::TokenFactory;
 use crate::token_source::TokenSource;
 use crate::token_stream::{TokenStream, UnbufferedTokenStream};
@@ -190,14 +190,90 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
 
         i
     }
-    //
-    //    fn previous_token_on_channel(&self, i: isize, channel: isize) -> int { unimplemented!() }
-    //
-    //    fn get_hidden_tokens_to_right(&self, tokenIndex: isize, channel: isize) -> Vec<Token> { unimplemented!() }
-    //
-    //    fn get_hidden_tokens_to_left(&self, tokenIndex: isize, channel: isize) -> Vec<Token> { unimplemented!() }
-    //
-    //    fn filter_for_channel(&self, left: isize, right: isize, channel: isize) -> Vec<Token> { unimplemented!() }
+
+    /// Scans backwards from index `i` looking for a token on the given
+    /// `channel`. Returns the index of the first matching token, or -1 if
+    /// none is found before the start of the stream. EOF tokens are treated
+    /// as matching any channel.
+    fn previous_token_on_channel(&mut self, mut i: isize, channel: i32) -> isize {
+        self.sync(i);
+        if i >= self.size() {
+            return self.size() - 1;
+        }
+
+        while i >= 0 {
+            let token = self.base.tokens[i as usize].borrow();
+            if token.get_token_type() == EOF || token.get_channel() == channel {
+                return i;
+            }
+            i -= 1;
+        }
+
+        -1
+    }
+
+    /// Collects tokens in the index range `[from, to]` that are on the
+    /// given `channel`. If `channel` is -1, collects all tokens that are
+    /// *not* on `TOKEN_DEFAULT_CHANNEL`. Returns `None` if no tokens match.
+    fn filter_for_channel(&self, from: isize, to: isize, channel: i32) -> Option<Vec<OwningToken>> {
+        let mut hidden: Vec<OwningToken> = Vec::new();
+        for i in from..=to {
+            if i < 0 || i >= self.base.tokens.len() as isize {
+                continue;
+            }
+            let t = self.base.tokens[i as usize].borrow();
+            if channel == -1 {
+                if t.get_channel() != TOKEN_DEFAULT_CHANNEL {
+                    hidden.push(t.to_owned());
+                }
+            } else if t.get_channel() == channel {
+                hidden.push(t.to_owned());
+            }
+        }
+
+        if hidden.is_empty() {
+            None
+        } else {
+            Some(hidden)
+        }
+    }
+
+    /// Returns hidden tokens to the left of `token_index` on the given
+    /// `channel`. Scans backwards to the previous on-channel token and
+    /// collects everything in between. Pass -1 as `channel` to get all
+    /// non-default-channel tokens.
+    pub fn get_hidden_tokens_to_left(
+        &mut self,
+        token_index: isize,
+        channel: i32,
+    ) -> Option<Vec<OwningToken>> {
+        let prev_on_channel =
+            self.previous_token_on_channel(token_index - 1, TOKEN_DEFAULT_CHANNEL);
+        let from = if prev_on_channel == token_index - 1 || prev_on_channel < 0 {
+            return None;
+        } else {
+            prev_on_channel + 1
+        };
+        self.filter_for_channel(from, token_index - 1, channel)
+    }
+
+    /// Returns hidden tokens to the right of `token_index` on the given
+    /// `channel`. Scans forward to the next on-channel token and collects
+    /// everything in between. Pass -1 as `channel` to get all
+    /// non-default-channel tokens.
+    pub fn get_hidden_tokens_to_right(
+        &mut self,
+        token_index: isize,
+        channel: i32,
+    ) -> Option<Vec<OwningToken>> {
+        let next_on_channel = self.next_token_on_channel(token_index + 1, TOKEN_DEFAULT_CHANNEL, 1);
+        let to = next_on_channel - 1;
+        if to <= token_index {
+            return None;
+        }
+        self.filter_for_channel(token_index + 1, to, channel)
+    }
+
     //
     //    fn get_source_name(&self) -> String { unimplemented!() }
     //
