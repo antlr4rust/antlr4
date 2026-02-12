@@ -49,7 +49,7 @@ Then add following to `Cargo.toml` of the crate from which generated parser
 is going to be used:
 ```toml 
 [dependencies]
-antlr4rust = "0.5"
+antlr4rust = "0.6"
 ```
  
 ### Parse Tree structure
