@@ -6,6 +6,7 @@
 #![allow(unused_imports)]
 #![allow(unused_mut)]
 #![allow(unused_braces)]
+#![allow(unused_parens)]
 use antlr4rust::PredictionContextCache;
 use antlr4rust::parser::{Parser, BaseParser, ParserRecog, ParserNodeType};
 use antlr4rust::token_stream::TokenStream;
@@ -38,6 +39,13 @@ use std::cell::RefCell;
 use std::ops::{DerefMut, Deref};
 use std::borrow::{Borrow,BorrowMut};
 use std::any::{Any,TypeId};
+
+const _: () = {
+    assert!(
+        antlr4rust::const_check::version("0", "6"),
+        "Incompatible version: either switch to v0.6 or regenerate with this version"
+    );
+};
 
 		pub const CSV_T__0:i32=1; 
 		pub const CSV_T__1:i32=2; 
@@ -97,7 +105,6 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
-		antlr4rust::recognizer::check_version("0","5");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),

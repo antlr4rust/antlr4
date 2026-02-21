@@ -229,3 +229,32 @@ where
         T::coerce_mut(self)
     }
 }
+
+pub mod const_check {
+    pub const fn version(maj: &str, min: &str) -> bool {
+        if maj.is_empty() || min.is_empty() {
+            return false;
+        }
+        byte_eq(VERSION_MAJ.as_bytes(), maj.as_bytes())
+            && byte_eq(VERSION_MIN.as_bytes(), min.as_bytes())
+    }
+
+    const VERSION_MAJ: &str = env!("CARGO_PKG_VERSION_MAJOR");
+    const VERSION_MIN: &str = env!("CARGO_PKG_VERSION_MINOR");
+
+    const fn byte_eq(lhs: &[u8], rhs: &[u8]) -> bool {
+        if lhs.len() != rhs.len() {
+            return false;
+        }
+        let mut i: usize = 0;
+        loop {
+            if i >= lhs.len() {
+                return true;
+            }
+            if lhs[i] != rhs[i] {
+                return false;
+            }
+            i += 1;
+        }
+    }
+}

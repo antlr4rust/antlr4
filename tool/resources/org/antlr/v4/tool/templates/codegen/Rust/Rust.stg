@@ -96,6 +96,13 @@ use std::ops::{DerefMut, Deref};
 use std::borrow::{Borrow,BorrowMut};
 use std::any::{Any,TypeId};
 
+const _: () = {
+    assert!(
+        antlr4rust::const_check::version("0", "6"),
+        "Incompatible version: either switch to v0.6 or regenerate with this version"
+    );
+};
+
 <parser>
 >>
 
@@ -306,7 +313,6 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: Box\<dyn ErrorStrategy\<'input,BaseParserType\<'input,I> > >) -> Self {
-		antlr4rust::recognizer::check_version("0","5");
 		let interpreter = Arc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
@@ -1387,7 +1393,6 @@ impl\<'input, Input:CharStream\<From\<'input> >\> <lexer.name>\<'input,Input>{
     }
 
 	pub fn new_with_token_factory(input: Input, tf: &'input <TokenFactory()>) -> Self {
-		antlr4rust::recognizer::check_version("0","5");
     	Self {
 			base: BaseLexer::new_base_lexer(
 				input,

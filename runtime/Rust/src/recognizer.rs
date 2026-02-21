@@ -11,12 +11,6 @@ pub const VERSION_MAJOR: &str = env!("CARGO_PKG_VERSION_MAJOR");
 /// Used by generated parser to verify that it is compatible with current version of runtime
 pub const VERSION_MINOR: &str = env!("CARGO_PKG_VERSION_MINOR");
 
-// todo move to compile time check when it will be possible to compare strings in constants
-/// Used by generated parser to verify that it is compatible with current version of runtime
-pub fn check_version(major: &str, minor: &str) {
-    assert!(major == VERSION_MAJOR && minor == VERSION_MINOR,
-            "parser is not compatible with current runtime version, please generate parser with the latest version of ANTLR")
-}
 //todo just a reminder to update version to be inserted in generated parser,
 //const _:[();0-!(VERSION_MAJOR == "0" && VERSION_MINOR == "2") as usize] = [];
 

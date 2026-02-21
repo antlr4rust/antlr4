@@ -1,6 +1,6 @@
 # antlr4rust
-[![Crate](https://flat.badgen.net/crates/v/antlr4rust)](https://crates.io/crates/antlr4rust/0.5.0)
-[![docs](https://flat.badgen.net/badge/docs.rs/v0.5.0)](https://docs.rs/antlr4rust/0.5.0)
+[![Crate](https://img.shields.io/crates/v/antlr4rust)](https://crates.io/crates/antlr4rust)
+[![docs](https://img.shields.io/docsrs/antlr4rust/latest)](https://docs.rs/antlr4rust/latest/antlr4rust/)
 
 
 > [!note]
@@ -49,7 +49,7 @@ Then add following to `Cargo.toml` of the crate from which generated parser
 is going to be used:
 ```toml 
 [dependencies]
-antlr4rust = "0.5"
+antlr4rust = "0.6"
 ```
  
 ### Parse Tree structure
