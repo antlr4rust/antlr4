@@ -113,7 +113,7 @@ pub struct BaseParser<
     Ctx: ParserNodeType<'input, TF = I::TF>, // Ctx::Type is trait object type for tree node of the parser
     T: ParseTreeListener<'input, Ctx> + ?Sized = dyn ParseTreeListener<'input, Ctx>,
 > {
-    interp: Arc<ParserATNSimulator>,
+    interp: Rc<ParserATNSimulator>,
     /// Rule context parser is currently processing
     pub ctx: Option<Rc<Ctx::Type>>,
 
@@ -400,7 +400,7 @@ where
     //     TerminalNode<'input, Ctx>: CoerceTo<Ctx::Type>,
     //     ErrorNode<'input, Ctx>: CoerceTo<Ctx::Type>,
 {
-    pub fn new_base_parser(input: I, interpreter: Arc<ParserATNSimulator>, ext: Ext) -> Self {
+    pub fn new_base_parser(input: I, interpreter: Rc<ParserATNSimulator>, ext: Ext) -> Self {
         Self {
             interp: interpreter,
             ctx: None,
