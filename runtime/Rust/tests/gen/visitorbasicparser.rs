@@ -82,7 +82,7 @@ where
     I: TokenStream<'input, TF = LocalTokenFactory<'input> > + TidAble<'input>,
 {
 	base:BaseParserType<'input,I>,
-	interpreter:Arc<ParserATNSimulator>,
+	interpreter:Rc<ParserATNSimulator>,
 	_shared_context_cache: Box<PredictionContextCache>,
     pub err_handler: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >,
 }
@@ -96,7 +96,7 @@ where
     }
 
     pub fn with_strategy(input: I, strategy: Box<dyn ErrorStrategy<'input,BaseParserType<'input,I> > >) -> Self {
-		let interpreter = Arc::new(ParserATNSimulator::new(
+		let interpreter = Rc::new(ParserATNSimulator::new(
 			_ATN.clone(),
 			_decision_to_DFA.clone(),
 			_shared_context_cache.clone(),
@@ -104,7 +104,7 @@ where
 		Self {
 			base: BaseParser::new_base_parser(
 				input,
-				Arc::clone(&interpreter),
+				Rc::clone(&interpreter),
 				VisitorBasicParserExt{
 					_pd: Default::default(),
 				}
