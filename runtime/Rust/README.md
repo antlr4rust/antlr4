@@ -95,7 +95,9 @@ and to update data inside Rc via `get_mut_unchecked`(returned mutable reference 
 
 ### Versioning
 In addition to usual Rust semantic versioning, 
-patch version changes of the crate should not require updating of generator part 
+patch version changes of the crate should not require updating of generator part.
+
+Current MSRV for the crate is `1.80`.
   
 ## Licence
 
