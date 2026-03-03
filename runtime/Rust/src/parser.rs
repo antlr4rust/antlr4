@@ -4,7 +4,6 @@ use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use std::sync::Arc;
 
 use crate::atn::ATN;
 use crate::atn_simulator::IATNSimulator;
