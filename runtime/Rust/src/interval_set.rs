@@ -173,7 +173,7 @@ impl IntervalSet {
         }
     }
 
-    pub fn substract(&mut self, right: &IntervalSet) {
+    pub fn subtract(&mut self, right: &IntervalSet) {
         let result = self;
         let mut result_i = 0usize;
         let mut right_i = 0usize;
@@ -228,10 +228,10 @@ impl IntervalSet {
     }
 
     pub fn complement(&self, start: i32, stop: i32) -> IntervalSet {
-        let mut vocablulary_is = IntervalSet::new();
-        vocablulary_is.add_range(start, stop);
-        vocablulary_is.substract(self);
-        vocablulary_is
+        let mut vocabulary_is = IntervalSet::new();
+        vocabulary_is.add_range(start, stop);
+        vocabulary_is.subtract(self);
+        vocabulary_is
     }
 
     pub fn contains(&self, _item: i32) -> bool {
@@ -394,13 +394,13 @@ mod test {
     }
 
     #[test]
-    fn test_substract() {
+    fn test_subtract() {
         let mut set1 = IntervalSet::new();
         set1.add_range(1, 2);
         set1.add_range(4, 5);
         let mut set2 = IntervalSet::new();
         set2.add_range(2, 4);
-        set1.substract(&set2);
+        set1.subtract(&set2);
         assert_eq!(
             &set1.intervals,
             &[Interval { a: 1, b: 1 }, Interval { a: 5, b: 5 }]

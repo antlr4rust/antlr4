@@ -4,7 +4,6 @@ use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
-use std::sync::Arc;
 
 use crate::atn::ATN;
 use crate::atn_simulator::IATNSimulator;
@@ -81,7 +80,7 @@ pub trait Parser<'input>: Recognizer<'input> {
 //     type Type = dyn CsvContext<'a>;
 // }
 
-// workaround trait for rustc not being able to handle cycles in trait defenition yet, e.g. `trait A: Super<Assoc=dyn A>{}`
+// workaround trait for rustc not being able to handle cycles in trait definition yet, e.g. `trait A: Super<Assoc=dyn A>{}`
 // whyyy rustc... whyyy... (╯°□°）╯︵ ┻━┻  It would have been so much cleaner.
 /// Workaround trait for rustc current limitations.
 ///
@@ -186,7 +185,6 @@ where
     }
 }
 
-///
 pub trait ParserRecog<'a, P: Recognizer<'a>>: Actions<'a, P> {}
 
 impl<'input, Ext, I, Ctx, T> Recognizer<'input> for BaseParser<'input, Ext, I, Ctx, T>
@@ -478,7 +476,7 @@ where
     where
         L: CoerceTo<T>,
     {
-        let id = ListenerId::new(&listener);
+        let id = ListenerId::new(listener.as_ref());
         self.parse_listeners.push(listener.coerce_box_to());
         id
     }
@@ -492,7 +490,7 @@ where
         let index = self
             .parse_listeners
             .iter()
-            .position(|it| ListenerId::new(it).actual_id == listener_id.actual_id)
+            .position(|it| ListenerId::new(it.as_ref()).actual_id == listener_id.actual_id)
             .expect("listener not found");
         unsafe { listener_id.into_listener(self.parse_listeners.remove(index)) }
     }
@@ -711,9 +709,9 @@ pub struct ListenerId<T: ?Sized> {
 }
 
 impl<T: ?Sized> ListenerId<T> {
-    fn new(listener: &Box<T>) -> ListenerId<T> {
+    fn new(listener: &T) -> ListenerId<T> {
         ListenerId {
-            actual_id: listener.as_ref() as *const T as *const () as usize,
+            actual_id: listener as *const T as *const () as usize,
             phantom: Default::default(),
         }
     }

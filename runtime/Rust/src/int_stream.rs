@@ -1,6 +1,6 @@
 //! <ost generic stream of symbols
 
-use crate::token::{TOKEN_EOF};
+use crate::token::TOKEN_EOF;
 
 /// `IntStream::la` must return EOF in the end of stream
 pub const EOF: i32 = -1;
@@ -12,15 +12,15 @@ pub trait IntStream {
     /// Consumes the current symbol in the stream.
     /// Advances this stream to the next element.
     ///
-    ///	This method has the following
+    /// This method has the following
     /// effects:
     ///
     ///  - Forward movement: The value of `index`
-    ///		before calling this method is less than the value of `index`
-    ///		after calling this method.
+    ///    before calling this method is less than the value of `index`
+    ///    after calling this method.
     ///  - Ordered lookahead: The value of {@code LA(1)} before
-    ///		calling this method becomes the value of {@code LA(-1)} after calling
-    ///		this method.
+    ///    calling this method becomes the value of {@code LA(-1)} after calling
+    ///    this method.
     ///
     /// Note that calling this method does not guarantee that `index()` is
     /// incremented by exactly 1.
@@ -78,7 +78,7 @@ impl<T: IntStream> Iterator for IterWrapper<'_, T> {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.1 {
-            return None
+            return None;
         }
         let token = self.0.la(1);
 

@@ -32,7 +32,7 @@ impl PartialEq for ATNConfig {
     fn eq(&self, other: &Self) -> bool {
         self.get_state() == other.get_state()
             && self.get_alt() == other.get_alt()
-            // Arc is optimized to not do a deep equalitiy if arc pointers are equal so that's enough
+            // Arc is optimized to not do a deep equality if arc pointers are equal so that's enough
             && self.context == other.context
             && self.get_type() == other.get_type()
             && self.semantic_context == other.semantic_context
@@ -42,8 +42,8 @@ impl PartialEq for ATNConfig {
 
 impl Hash for ATNConfig {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        state.write_i32(self.get_state() as i32);
-        state.write_i32(self.get_alt() as i32);
+        state.write_i32(self.get_state());
+        state.write_i32(self.get_alt());
         match self.get_context() {
             None => state.write_i32(0),
             Some(c) => c.hash(state),
@@ -110,11 +110,7 @@ impl ATNConfig {
         })
     }
 
-    pub fn new(
-        state: ATNStateRef,
-        alt: i32,
-        context: Option<Arc<PredictionContext>>,
-    ) -> ATNConfig {
+    pub fn new(state: ATNStateRef, alt: i32, context: Option<Arc<PredictionContext>>) -> ATNConfig {
         ATNConfig {
             precedence_filter_suppressed: false,
             state,

@@ -1,5 +1,4 @@
 //! General AST
-use std::any::Any;
 use std::borrow::Borrow;
 
 use std::fmt::{Debug, Formatter};
@@ -29,9 +28,6 @@ pub trait Tree<'input>: RuleContext<'input> {
     }
     fn has_parent(&self) -> bool {
         false
-    }
-    fn get_payload(&self) -> Box<dyn Any> {
-        unimplemented!()
     }
     fn get_child(&self, _i: usize) -> Option<Rc<<Self::Ctx as ParserNodeType<'input>>::Type>> {
         None
@@ -75,8 +71,8 @@ pub trait ParseTree<'input>: Tree<'input> {
     /// also it includes only tokens added to the parse tree
     ///
     /// Since tokens on hidden channels (e.g. whitespace or comments) are not
-    ///	added to the parse trees, they will not appear in the output of this
-    ///	method.
+    /// added to the parse trees, they will not appear in the output of this
+    /// method.
     fn get_text(&self) -> String {
         String::new()
     }
@@ -92,8 +88,8 @@ pub trait ParseTree<'input>: Tree<'input> {
     }
 }
 
-/// text of the node.
-/// Already implemented for all rule contexts
+// text of the node.
+// Already implemented for all rule contexts
 // pub trait NodeText {
 //     fn get_node_text(&self, rule_names: &[&str]) -> String;
 // }
@@ -137,7 +133,7 @@ impl<'input, Node: ParserNodeType<'input>, T: 'static> CustomRuleContext<'input>
     type Ctx = Node;
 
     fn get_rule_index(&self) -> usize {
-        usize::max_value()
+        usize::MAX
     }
 
     fn get_node_text(&self, _rule_names: &[&str]) -> String {
@@ -324,8 +320,8 @@ where
 pub trait ParseTreeVisitor<'input, Node: ParserNodeType<'input>>:
     VisitChildren<'input, Node>
 {
-    /// Basically alias for `node.accept(self)` in visitor implementation
-    /// just to make api closer to java
+    // Basically alias for `node.accept(self)` in visitor implementation
+    // just to make api closer to java
 
     /// Called on terminal(leaf) node
     fn visit_terminal(&mut self, _node: &TerminalNode<'input, Node>) {}
@@ -371,7 +367,9 @@ pub trait Visitable<Vis: ?Sized> {
     /// Calls corresponding visit callback on visitor`Vis`
     fn accept(&self, _visitor: &mut Vis) {
         if cfg!(feature = "debug") {
-            unreachable!("should have been properly implemented by generated context when reachable")
+            unreachable!(
+                "should have been properly implemented by generated context when reachable"
+            )
         }
     }
 }
@@ -381,7 +379,9 @@ pub trait Visitable<Vis: ?Sized> {
 pub trait VisitableDyn<Vis: ?Sized> {
     fn accept_dyn(&self, _visitor: &mut Vis) {
         if cfg!(feature = "debug") {
-            unreachable!("should have been properly implemented by generated context when reachable")
+            unreachable!(
+                "should have been properly implemented by generated context when reachable"
+            )
         }
     }
 }

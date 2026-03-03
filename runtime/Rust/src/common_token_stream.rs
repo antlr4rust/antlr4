@@ -117,7 +117,7 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
         }
         r
     }
-    
+
     pub fn get_dfa_string(&self) -> String {
         self.base.get_dfa_string()
     }
@@ -313,5 +313,4 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
     }
 
     //    fn get_number_of_on_channel_tokens(&self) -> int { unimplemented!() }
-    
 }

@@ -4,7 +4,6 @@ use std::cell::Cell;
 use std::ops::Deref;
 use std::rc::Rc;
 use std::sync::Arc;
-use std::usize;
 
 use crate::atn::ATN;
 use crate::atn_config::{ATNConfig, ATNConfigType};
@@ -199,7 +198,8 @@ impl LexerATNSimulator {
             .ok_or_else(|| ANTLRError::IllegalStateError("invalid mode".into()))?;
 
         let _old_mode = self.mode;
-        let mut s0_closure = self.compute_start_state(atn.states[start_state as usize].as_ref(), lexer);
+        let mut s0_closure =
+            self.compute_start_state(atn.states[start_state as usize].as_ref(), lexer);
         let _supress_edge = s0_closure.has_semantic_context();
         s0_closure.set_has_semantic_context(false);
 
@@ -345,7 +345,8 @@ impl LexerATNSimulator {
                             .fix_offset_before_match(lexer.input().index() - self.start_index)
                     });
 
-                    let new = config.cloned_with_new_exec(self.atn().states[target as usize].as_ref(), exec);
+                    let new = config
+                        .cloned_with_new_exec(self.atn().states[target as usize].as_ref(), exec);
                     if self.closure(
                         new,
                         _reach,
@@ -404,7 +405,7 @@ impl LexerATNSimulator {
         }
     }
 
-    fn accept<'input>(&mut self, input: &mut impl IntStream) {
+    fn accept(&mut self, input: &mut impl IntStream) {
         input.seek(self.prev_accept.index);
         self.current_pos.line.set(self.prev_accept.line);
         self.current_pos
@@ -535,7 +536,12 @@ impl LexerATNSimulator {
         lexer: &mut impl Lexer<'input>,
     ) -> Option<ATNConfig> {
         let mut result = None;
-        let target = self.atn().states.get(_trans.get_target() as usize).unwrap().as_ref();
+        let target = self
+            .atn()
+            .states
+            .get(_trans.get_target() as usize)
+            .unwrap()
+            .as_ref();
         //        println!("epsilon target for {:?} is {:?}", _trans, target.get_state_type());
         match _trans.get_serialization_type() {
             TransitionType::TRANSITION_EPSILON => {
@@ -546,7 +552,7 @@ impl LexerATNSimulator {
                 //println!("rule transition follow state{}", rt.follow_state);
                 let pred_ctx = PredictionContext::new_singleton(
                     Some(_config.get_context().unwrap().clone()),
-                    rt.follow_state as i32,
+                    rt.follow_state,
                 );
                 result = Some(_config.cloned_with_new_ctx(target, Some(pred_ctx.into())));
             }
@@ -689,9 +695,9 @@ impl LexerATNSimulator {
         let states = &mut dfa.states;
         let key = dfastate.default_hash();
         let dfastate_index: DFAStateRef = if let Some(entry) = dfa.states_map.get(&key) {
-            let find_result = entry.iter().find(|it| {
-                states[**it].configs == dfastate.configs
-            });
+            let find_result = entry
+                .iter()
+                .find(|it| states[**it].configs == dfastate.configs);
             if let Some(find_result) = find_result {
                 *find_result
             } else {
