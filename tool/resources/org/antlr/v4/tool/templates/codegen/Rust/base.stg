@@ -1,0 +1,35 @@
+vocabulary(literalNames, symbolicNames) ::= <<
+
+pub const _LITERAL_NAMES: [Option\<&'static str>;<length(literalNames)>] = [
+	<literalNames:{t | Some(<t>)}; null="None", separator=", ", wrap, anchor>
+];
+pub const _SYMBOLIC_NAMES: [Option\<&'static str>;<length(symbolicNames)>]  = [
+	<symbolicNames:{t | Some(<t>)}; null="None", separator=", ", wrap, anchor>
+];
+lazy_static!{
+    static ref _shared_context_cache: Arc\<PredictionContextCache> = Arc::new(PredictionContextCache::new());
+	static ref VOCABULARY: Box\<dyn Vocabulary> = Box::new(VocabularyImpl::new(_LITERAL_NAMES.iter(), _SYMBOLIC_NAMES.iter(), None));
+}
+>>
+
+SerializedATN(model) ::= <<
+	lazy_static!{
+    static ref _ATN: Arc\<ATN> =
+        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
+    static ref _decision_to_DFA: Arc\<Vec\<antlr4rust::RwLock\<DFA>\>> = {
+        let mut dfa = Vec::new();
+        let size = _ATN.decision_to_state.len() as i32;
+        for i in 0..size {
+            dfa.push(DFA::new(
+                _ATN.clone(),
+                _ATN.get_decision_state(i),
+                i,
+            ).into())
+        }
+        Arc::new(dfa)
+    };
+	static ref _serializedATN: Vec\<i32> = vec![
+		<model.serialized; separator=", ", wrap>
+	];
+}
+>>

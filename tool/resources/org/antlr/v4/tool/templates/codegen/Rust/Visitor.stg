@@ -1,0 +1,5 @@
+VisitorDispatchMethod(method) ::= <<
+fn accept(&self,visitor: &mut (dyn <parser.grammarName>Visitor\<'input> + 'a)) {
+	visitor.visit_<struct.derivedFromName>(self);
+}
+>>

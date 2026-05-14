@@ -1,0 +1,195 @@
+RuleActionFunction(r, actions) ::= <<
+
+fn <r.escapedName>_action(_localctx: Option\<&<r.ctxType>\<'input>\>, action_index: i32,
+				   recog:&mut \<Self as Deref>::Target
+	) {
+	match action_index {
+	<actions:{index|
+ 		<index>=>{
+			<actions.(index)>
+		\},
+	}; separator="\n">
+		_ => {}
+	}
+}
+>>
+
+RuleSempredFunction(r, actions) ::= <<
+fn <r.escapedName>_sempred(_localctx: Option\<&<r.ctxType>\<'input>\>, pred_index:i32,
+					recog:&mut \<Self as Deref>::Target
+	) -> bool {
+	match pred_index {
+	<actions:{index|
+		<index>=>{
+			<actions.(index)>
+		\}}; separator="\n">
+		_ => true
+	}
+}
+>>
+
+RuleTypeForAlt(currentRule,ruleCtx,altLabelCtxs) ::= <<
+<if(ruleCtx.struct.provideCopyFrom)>
+#[derive(Debug)]
+pub enum <currentRule.ctxType>All\<'input>{
+	<altLabelCtxs:{l | <altLabelCtxs.(l).struct.escapedName>(<altLabelCtxs.(l).struct.escapedName>\<'input>),
+	}>Error(<ruleCtx.struct.escapedName>\<'input>)
+}
+antlr4rust::tid!{<currentRule.ctxType>All\<'a>}
+
+impl\<'input> antlr4rust::parser_rule_context::DerefSeal for <currentRule.ctxType>All\<'input>{}
+
+impl\<'input> <parser.name>Context\<'input> for <currentRule.ctxType>All\<'input>{}
+
+impl\<'input> Deref for <currentRule.ctxType>All\<'input>{
+	type Target = dyn <currentRule.ctxType>Attrs\<'input> + 'input;
+	fn deref(&self) -> &Self::Target{
+		use <currentRule.ctxType>All::*;
+		match self{
+			<altLabelCtxs:{l | <altLabelCtxs.(l).struct.escapedName>(inner) => inner,
+			}>Error(inner) => inner
+		}
+	}
+}
+<if(parser.file.genVisitor)>
+impl\<'input,'a> Visitable\<dyn <parser.grammarName>Visitor\<'input> + 'a> for <currentRule.ctxType>All\<'input>{
+	fn accept(&self, visitor: &mut (dyn <parser.grammarName>Visitor\<'input> + 'a)) { self.deref().accept(visitor) }
+}
+<endif>
+<if(parser.file.genListener)>
+impl\<'input,'a> Listenable\<dyn <parser.grammarName>Listener\<'input> + 'a> for <currentRule.ctxType>All\<'input>{
+    fn enter(&self, listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) -> Result\<(), ANTLRError> { self.deref().enter(listener) }
+    fn exit(&self, listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) -> Result\<(), ANTLRError> { self.deref().exit(listener) }
+}
+<endif>
+
+<else>
+pub type <currentRule.ctxType>All\<'input> = <ruleCtx.struct.escapedName>\<'input>;
+<endif>
+
+>>
+
+RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,finallyAction,postamble,exceptions) ::= <<
+//------------------- <currentRule.name> ----------------
+<RuleTypeForAlt(currentRule,ruleCtx,altLabelCtxs)>
+
+<ruleCtx>
+<altLabelCtxs:{l | <altLabelCtxs.(l)>}; separator="\n">
+
+impl\<'input, I> <parser.name>\<'input, I>
+where
+    I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>,
+{
+	<if(currentRule.modifiers)><currentRule.modifiers:{f | <f> }><else>pub <endif>fn <currentRule.escapedName>(&mut self,<args; separator=",">)
+	-> Result\<Rc\<<currentRule.ctxType>All\<'input>\>,ANTLRError> {
+		let mut recog = self;
+		<!keeping parent ctx here because otherwise if we are not building tree, parent would be referenced only by Weak reference from current ctx !>
+		let _parentctx = <self()>.ctx.take();
+		let mut _localctx = <currentRule.ctxType>Ext::new(_parentctx.clone(), <self()>.base.get_state()<currentRule.args:{a | , <a.escapedName>}>);
+        <self()>.base.enter_rule(_localctx.clone(), <currentRule.startState>, RULE_<currentRule.name>);
+        let mut _localctx: Rc\<<currentRule.ctxType>All> = _localctx;
+		<namedActions.init>
+		<locals; separator="\n">
+		let result: Result\<(), ANTLRError> = (|| {
+
+	<if(currentRule.hasLookaheadBlock)>
+			let mut _alt: i32;
+	<endif>
+			<code>
+			<postamble; separator="\n">
+			<namedActions.after>
+			Ok(())
+		})();
+		match result {
+		Ok(_)=>{},
+		<if(exceptions)>
+        <exceptions; separator="\n">
+        <endif>
+        Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
+		Err(ref re) => {
+				//_localctx.exception = re;
+				<self()>.err_handler.report_error(&mut <self()>.base, re);
+				<self()>.err_handler.recover(&mut <self()>.base, re)?;
+			}
+		}
+		<finallyAction>
+		<self()>.base.exit_rule()?;
+
+		Ok(_localctx)
+	}
+}
+>>
+
+LeftRecursiveRuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,
+	namedActions,finallyAction,postamble,exceptions) ::= <<
+//------------------- <currentRule.name> ----------------
+<RuleTypeForAlt(currentRule,ruleCtx,altLabelCtxs)>
+
+<ruleCtx>
+<altLabelCtxs:{l | <altLabelCtxs.(l)>}; separator="\n">
+
+impl\<'input, I> <parser.name>\<'input, I>
+where
+    I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>,
+{
+	<if(currentRule.modifiers)><currentRule.modifiers:{f | <f> }><else>pub fn <endif> <currentRule.escapedName>(&mut self,<args; separator=", ">)
+	-> Result\<Rc\<<currentRule.ctxType>All\<'input>\>,ANTLRError> {
+		self.<currentRule.escapedName>_rec(0<currentRule.args:{a | , <a.escapedName>}>)
+	}
+
+	fn <currentRule.escapedName>_rec(&mut self, _p: i32<args:{a | , <a>}>)
+	-> Result\<Rc\<<currentRule.ctxType>All\<'input>\>,ANTLRError> {
+		let recog = self;
+		let _parentctx = <self()>.ctx.take();
+		let _parentState = <self()>.base.get_state();
+		let mut _localctx = <currentRule.ctxType>Ext::new(_parentctx.clone(), <self()>.base.get_state()<currentRule.args:{a | , <a.escapedName>}>);
+		<self()>.base.enter_recursion_rule(_localctx.clone(), <currentRule.startState>, RULE_<currentRule.name>, _p);
+	    let mut _localctx: Rc\<<currentRule.ctxType>All> = _localctx;
+        let mut _prevctx = _localctx.clone();
+		let _startState = <currentRule.startState>;
+		<namedActions.init>
+		<locals; separator="\n">
+		let result: Result\<(), ANTLRError> = (|| {
+	<if(currentRule.hasLookaheadBlock)>
+			let mut _alt: i32;
+	<endif>
+			<code>
+			<postamble; separator="\n">
+			<namedActions.after>
+			Ok(())
+		})();
+		match result {
+		Ok(_) => {},
+		<if(exceptions)>
+        <exceptions; separator="\n">
+        <endif>
+        Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
+		Err(ref re)=>{
+			//_localctx.exception = re;
+			<self()>.err_handler.report_error(&mut <self()>.base, re);
+	        <self()>.err_handler.recover(&mut <self()>.base, re)?;}
+		}
+		<finallyAction>
+		<self()>.base.unroll_recursion_context(_parentctx)?;
+
+		Ok(_localctx)
+	}
+}
+>>
+
+
+ContextRuleGetterDecl(r)       ::= <<
+fn <r.escapedName>(&self) -> Option\<Rc\<<r.ctxName>All\<'input>\>> where Self:Sized{
+	self.child_of_type(0)
+}
+>>
+ContextRuleListGetterDecl(r)   ::= <<
+fn <r.name>_all(&self) ->  Vec\<Rc\<<r.ctxName>All\<'input>\>> where Self:Sized{
+	self.children_of_type()
+}
+>>
+ContextRuleListIndexedGetterDecl(r)   ::= <<
+fn <r.escapedName>(&self, i: usize) -> Option\<Rc\<<r.ctxName>All\<'input>\>> where Self:Sized{
+	self.child_of_type(i)
+}
+>>

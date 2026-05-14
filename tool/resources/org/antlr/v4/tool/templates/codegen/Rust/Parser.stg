@@ -1,0 +1,258 @@
+
+// args must be <object-model-object>, <fields-resulting-in-STs>
+
+ParserFile(file, parser, namedActions, contextSuperClass) ::= <<
+<fileHeader(file.grammarFileName, file.ANTLRVersion)>
+#![allow(dead_code)]
+#![allow(non_snake_case)]
+#![allow(non_upper_case_globals)]
+#![allow(nonstandard_style)]
+#![allow(unused_imports)]
+#![allow(unused_mut)]
+#![allow(unused_braces)]
+#![allow(unused_parens)]
+<namedActions.header>
+use antlr4rust::PredictionContextCache;
+use antlr4rust::parser::{Parser, BaseParser, ParserRecog, ParserNodeType};
+use antlr4rust::token_stream::TokenStream;
+use antlr4rust::TokenSource;
+use antlr4rust::parser_atn_simulator::ParserATNSimulator;
+use antlr4rust::errors::*;
+use antlr4rust::rule_context::{BaseRuleContext, CustomRuleContext, RuleContext};
+use antlr4rust::recognizer::{Recognizer,Actions};
+use antlr4rust::atn_deserializer::ATNDeserializer;
+use antlr4rust::dfa::DFA;
+use antlr4rust::atn::{ATN, INVALID_ALT};
+use antlr4rust::error_strategy::{ErrorStrategy, DefaultErrorStrategy};
+use antlr4rust::parser_rule_context::{BaseParserRuleContext, ParserRuleContext,cast,cast_mut};
+use antlr4rust::tree::*;
+use antlr4rust::token::{TOKEN_EOF,OwningToken,Token};
+use antlr4rust::int_stream::EOF;
+use antlr4rust::vocabulary::{Vocabulary,VocabularyImpl};
+use antlr4rust::token_factory::{CommonTokenFactory,TokenFactory, TokenAware};
+<if(file.genListener)>
+use super::<file.grammarName; format="lower">listener::*;
+<endif>
+<if(file.genVisitor)>
+use super::<file.grammarName; format="lower">visitor::*;
+<endif>
+
+use antlr4rust::lazy_static;
+use antlr4rust::{TidAble,TidExt};
+
+use std::marker::PhantomData;
+use std::sync::Arc;
+use std::rc::Rc;
+use std::convert::TryFrom;
+use std::cell::RefCell;
+use std::ops::{DerefMut, Deref};
+use std::borrow::{Borrow,BorrowMut};
+use std::any::{Any,TypeId};
+
+const _: () = {
+    assert!(
+        antlr4rust::const_check::version("0", "6"),
+        "Incompatible version: either switch to v0.6 or regenerate with this version"
+    );
+};
+
+<parser>
+>>
+
+Parser(parser, funcs, atn, sempredFuncs, superClass) ::= <<
+<Parser_(ctor="parser_ctor", ...)>
+>>
+
+Parser_(parser, funcs, atn, sempredFuncs, ctor, superClass) ::= <<
+	<if(parser.tokens)>
+		<parser.tokens:{k | pub const <parser.grammarName>_<k>:i32=<parser.tokens.(k)>;}; separator=" \n">
+	<endif>
+	pub const <parser.grammarName>_EOF:i32=EOF;
+	<parser.rules:{r | pub const RULE_<r.name>:usize = <r.index>;}; separator=" \n">
+	pub const ruleNames: [&'static str; <length(parser.ruleNames)>] =  [
+		<parser.ruleNames:{r | "<r>"}; separator=", ", wrap, anchor>
+	];
+
+	<vocabulary(parser.literalNames, parser.symbolicNames)>
+
+<namedActions.definitions>
+
+type BaseParserType\<'input, I> =
+	BaseParser\<'input,<parser.name>Ext\<'input>, I, <parser.name>ContextType <if(file.genListener)>, dyn <parser.grammarName>Listener\<'input> + 'input<endif> >;
+
+type TokenType\<'input> = \<<TokenFactory()> as TokenFactory\<'input>\>::Tok;
+<if(namedActions.tokenfactory)>
+<namedActions.tokenfactory>
+<else>
+pub type LocalTokenFactory\<'input> = CommonTokenFactory;
+<endif>
+
+pub type <file.grammarName>TreeWalker\<'input,'a> =
+	ParseTreeWalker\<'input, 'a, <parser.name>ContextType <if(file.genListener)>, dyn <file.grammarName>Listener\<'input> + 'a<endif>\>;
+
+/// Parser for <file.grammarName> grammar
+pub struct <parser.name>\<'input, I>
+where
+    I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>,
+{
+	base:BaseParserType\<'input,I>,
+	interpreter:Rc\<ParserATNSimulator>,
+	_shared_context_cache: Box\<PredictionContextCache>,
+    pub err_handler: Box\<dyn ErrorStrategy\<'input,BaseParserType\<'input,I> > >,
+}
+
+impl\<'input, I> <parser.name>\<'input, I>
+where
+    I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>,
+{
+    pub fn set_error_strategy(&mut self, strategy: Box\<dyn ErrorStrategy\<'input,BaseParserType\<'input,I> > >) {
+        self.err_handler = strategy
+    }
+
+    pub fn with_strategy(input: I, strategy: Box\<dyn ErrorStrategy\<'input,BaseParserType\<'input,I> > >) -> Self {
+		let interpreter = Rc::new(ParserATNSimulator::new(
+			_ATN.clone(),
+			_decision_to_DFA.clone(),
+			_shared_context_cache.clone(),
+		));
+		Self {
+			base: BaseParser::new_base_parser(
+				input,
+				Rc::clone(&interpreter),
+				<parser.name>Ext{
+					_pd: Default::default(),
+					<namedActions.init>
+				}
+			),
+			interpreter,
+            _shared_context_cache: Box::new(PredictionContextCache::new()),
+            err_handler: strategy,
+        }
+    }
+
+}
+
+type DynStrategy\<'input,I> = Box\<dyn ErrorStrategy\<'input,BaseParserType\<'input,I>\> + 'input>;
+
+impl\<'input, I> <parser.name>\<'input, I>
+where
+    I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>,
+{
+    pub fn with_dyn_strategy(input: I) -> Self{
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
+    }
+}
+
+impl\<'input, I> <parser.name>\<'input, I\>
+where
+    I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>,
+{
+    pub fn new(input: I) -> Self{
+    	Self::with_strategy(input,Box::new(DefaultErrorStrategy::new()))
+    }
+}
+
+/// Trait for monomorphized trait object that corresponds to the nodes of parse tree generated for <parser.name>
+pub trait <parser.name>Context\<'input>:
+	<if(file.genListener)>for\<'x> Listenable\<dyn <parser.grammarName>Listener\<'input> + 'x > + <endif>
+	<if(file.genVisitor)>for\<'x> Visitable\<dyn <parser.grammarName>Visitor\<'input> + 'x > + <endif>
+	ParserRuleContext\<'input, TF=<TokenFactory()>, Ctx=<parser.name>ContextType>
+{}
+
+antlr4rust::coerce_from!{ 'input : <parser.name>Context\<'input> }
+
+<if(file.genVisitor)>
+impl\<'input, 'x, T> VisitableDyn\<T> for dyn <parser.name>Context\<'input> + 'input
+where
+    T: <parser.grammarName>Visitor\<'input> + 'x,
+{
+    fn accept_dyn(&self, visitor: &mut T) {
+        self.accept(visitor as &mut (dyn <parser.grammarName>Visitor\<'input> + 'x))
+    }
+}
+<endif>
+
+impl\<'input> <parser.name>Context\<'input> for TerminalNode\<'input,<parser.name>ContextType> {}
+impl\<'input> <parser.name>Context\<'input> for ErrorNode\<'input,<parser.name>ContextType> {}
+
+antlr4rust::tid! { impl\<'input> TidAble\<'input> for dyn <parser.name>Context\<'input> + 'input }
+
+antlr4rust::tid! { impl\<'input> TidAble\<'input> for dyn <parser.grammarName>Listener\<'input> + 'input }
+
+pub struct <parser.name>ContextType;
+antlr4rust::tid!{<parser.name>ContextType}
+
+impl\<'input> ParserNodeType\<'input> for <parser.name>ContextType{
+	type TF = <TokenFactory()>;
+	type Type = dyn <parser.name>Context\<'input> + 'input;
+<!-- <if(file.genVisitor)>	type Visitor = dyn <parser.grammarName>Visitor\<'input> + 'input;
+<else>	  type Visitor = dyn ParseTreeVisitor\<'input, Self> + 'input;
+<endif>
+--!>
+}
+
+impl\<'input, I> Deref for <parser.name>\<'input, I>
+where
+    I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>,
+{
+    type Target = BaseParserType\<'input,I>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.base
+    }
+}
+
+impl\<'input, I> DerefMut for <parser.name>\<'input, I>
+where
+    I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>,
+{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.base
+    }
+}
+
+pub struct <parser.name>Ext\<'input>{
+	_pd: PhantomData\<&'input str>,
+	<namedActions.fields>
+}
+
+impl\<'input> <parser.name>Ext\<'input>{
+	<namedActions.members>
+}
+antlr4rust::tid! { <parser.name>Ext\<'a> }
+
+impl\<'input> TokenAware\<'input> for <parser.name>Ext\<'input>{
+	type TF = <TokenFactory()>;
+}
+
+impl\<'input,I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>\> ParserRecog\<'input, BaseParserType\<'input,I>\> for <parser.name>Ext\<'input>{}
+
+impl\<'input,I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>\> Actions\<'input, BaseParserType\<'input,I>\> for <parser.name>Ext\<'input>{
+	fn get_grammar_file_name(&self) -> & str{ "<parser.grammarFileName>"}
+
+   	fn get_rule_names(&self) -> &[& str] {&ruleNames}
+
+   	fn get_vocabulary(&self) -> &dyn Vocabulary { &**VOCABULARY }
+<if(sempredFuncs)>
+	fn sempred(_localctx: Option\<&(dyn <parser.name>Context\<'input> + 'input)>, rule_index: i32, pred_index: i32,
+			   recog:&mut BaseParserType\<'input,I>
+	)->bool{
+		match rule_index {
+		<parser.sempredFuncs.values:{f|
+			<f.ruleIndex> => <parser.name>::\<'input,I>::<f.escapedName>_sempred(_localctx.and_then(|x|x.downcast_ref()), pred_index, recog),}; separator="\n">
+			_ => true
+		}
+	}
+}
+
+impl\<'input, I> <parser.name>\<'input, I\>
+where
+    I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>,
+{
+	<sempredFuncs.values; separator="\n">
+<endif>
+}
+<funcs; separator="\n">
+<atn>
+
+>>
