@@ -1,0 +1,6 @@
+LexerFile(lexerFile, lexer, namedActions) ::= <<
+<fileHeader(lexerFile.grammarFileName, lexerFile.ANTLRVersion)>
+>>
+
+Lexer(lexer, atn, actionFuncs, sempredFuncs, superClass) ::= <<
+>>

@@ -1,3 +1,9 @@
+BaseListenerFile(file, header, namedActions) ::= <<
+>>
+
+ListenerFile(file, header, namedActions) ::= <<
+>>
+
 ListenerDispatchMethod(method) ::= <<
 fn <if(method.isEnter)>enter<else>exit<endif>(&self,listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) -> Result\<(), ANTLRError> {
 	<if(method.isEnter)>listener.enter_every_rule(self)?;<endif>

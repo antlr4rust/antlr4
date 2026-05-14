@@ -1,0 +1,32 @@
+SerializedATN(model) ::= <<
+>>
+
+AltBlock(choice, preamble, alts, error) ::= <<
+<self()>.base.set_state(<choice.stateNumber>);
+<self()>.err_handler.sync(&mut <self()>.base)?;
+<if(choice.label)><labelref(choice.label,{ = <self()>.base.input.lt(1).cloned();})><endif>
+<preamble; separator="\n">
+match  <self()>.interpreter.adaptive_predict(<choice.decision>,&mut <self()>.base)? {
+<alts:{alt |
+	<i> =>{
+		<alt>
+	\}
+	}; separator=",\n">
+	_ => {}
+}
+>>
+
+LL1AltBlock(choice, preamble, alts, error) ::= <<
+<self()>.base.set_state(<choice.stateNumber>);
+<self()>.err_handler.sync(&mut <self()>.base)?;
+<if(choice.label)><labelref(choice.label,{ = <self()>.base.input.lt(1).cloned();})><endif>
+<preamble; separator="\n">
+match <self()>.base.input.la(1) {
+<choice.altLook,alts:{look,alt| <cases(tokens=look)>
+	=> {
+		<alt>
+	\}
+	}; separator="\n">
+	_ => Err(<error>)?
+}
+>>

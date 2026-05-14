@@ -1,0 +1,64 @@
+RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,finallyAction,postamble,exceptions) ::= <<
+>>
+
+ContextRuleGetterDecl(r)       ::= <<
+fn <r.escapedName>(&self) -> Option\<Rc\<<r.ctxName>All\<'input>\>> where Self:Sized{
+	self.child_of_type(0)
+}
+>>
+ContextRuleListGetterDecl(r)   ::= <<
+fn <r.name>_all(&self) ->  Vec\<Rc\<<r.ctxName>All\<'input>\>> where Self:Sized{
+	self.children_of_type()
+}
+>>
+ContextRuleListIndexedGetterDecl(r)   ::= <<
+fn <r.escapedName>(&self, i: usize) -> Option\<Rc\<<r.ctxName>All\<'input>\>> where Self:Sized{
+	self.child_of_type(i)
+}
+>>
+
+CodeBlockForOuterMostAlt(currentOuterMostAltCodeBlock, locals, preamble, ops) ::= <<
+	<if(currentOuterMostAltCodeBlock.altLabel)>
+	let tmp = <currentOuterMostAltCodeBlock.altLabel; format="cap">ContextExt::new(&**_localctx);
+	<self()>.base.enter_outer_alt(Some(tmp.clone()), <currentOuterMostAltCodeBlock.alt.altNum>)?;
+	_localctx = tmp;
+	<else>
+	//<self()>.base.enter_outer_alt(_localctx.clone(), <currentOuterMostAltCodeBlock.alt.altNum>)?;
+	<self()>.base.enter_outer_alt(None, <currentOuterMostAltCodeBlock.alt.altNum>)?;
+	<endif>
+	<CodeBlockForAlt(currentAltCodeBlock=currentOuterMostAltCodeBlock, ...)>
+>>
+
+ThrowNoViableAlt(t) ::= "ANTLRError::NoAltError(NoViableAltError::new(&mut <self()>.base))"
+
+InvokeRule(r, argExprsChunks) ::= <<
+/*InvokeRule <r.escapedName>*/
+<self()>.base.set_state(<r.stateNumber>);
+<LabelsAssign(r.labels,{<self()>.<r.escapedName><if(r.ast.options.p)>_rec<endif>(<if(r.ast.options.p)><r.ast.options.p><if(argExprsChunks)>,<endif><endif><argExprsChunks>)?})>
+>>
+
+MatchToken(m) ::= <<
+<self()>.base.set_state(<m.stateNumber>);
+<LabelsAssign(m.labels,{<self()>.base.match_token(<parser.grammarName>_<m.escapedName>,&mut <self()>.err_handler)?})>
+>>
+
+LL1PlusBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
+<self()>.base.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
+<self()>.err_handler.sync(&mut <self()>.base)?;
+<preamble; separator="\n">
+loop {
+	<alts; separator="\n">
+	<self()>.base.set_state(<choice.stateNumber>); <! loopback/exit decision !>
+	<self()>.err_handler.sync(&mut <self()>.base)?;
+	<iteration>
+	if !(<loopExpr>) {break}
+}
+>>
+
+CodeBlockForAlt(currentAltCodeBlock, locals, preamble, ops) ::= <<
+{
+<locals; separator="\n">
+<preamble; separator="\n">
+<ops; separator="\n">
+}
+>>

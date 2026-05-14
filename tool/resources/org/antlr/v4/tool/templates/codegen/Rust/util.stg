@@ -1,0 +1,24 @@
+codeFileExtension() ::= ".rs"
+
+fileHeader(grammarFileName, ANTLRVersion) ::= <<
+// Generated from <grammarFileName> by ANTLR <ANTLRVersion>
+>>
+
+RuleContextNameSuffix() ::= "Context"
+
+LabelsAssign(labels,assign) ::= <<
+<if(labels)>
+let tmp = <assign>;
+<labels:{l | <labelref(l,{ = Some(tmp.clone());})> };separator="\n">
+<else>
+<assign>;
+<endif>
+>>
+
+TestSetInline(s) ::= <<
+<s.bitsets:{bits | <if(rest(rest(bits.tokens)))><bitsetBitfieldComparison(s, bits)><else><bitsetInlineComparison(s, bits)><endif>}; separator=" || ">
+>>
+
+
+CaptureNextToken(d) ::= "<d.varName> = <self()>.base.input.lt(1).unwrap().clone();"
+CaptureNextTokenType(d) ::= "<d.varName> = <self()>.base.input.la(1);"
