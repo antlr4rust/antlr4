@@ -7,39 +7,31 @@ use crate::dfa::DFA;
 use crate::prediction_context::PredictionContextCache;
 use parking_lot::RwLock;
 
-pub trait IATNSimulator {
-    fn shared_context_cache(&self) -> &PredictionContextCache;
-    fn atn(&self) -> &ATN;
-    fn decision_to_dfa(&self) -> &Vec<RwLock<DFA>>;
-}
-
-pub struct BaseATNSimulator {
+pub struct Simulator {
     pub atn: Arc<ATN>,
     pub shared_context_cache: Arc<PredictionContextCache>,
     pub decision_to_dfa: Arc<Vec<RwLock<DFA>>>,
 }
 
-impl Debug for BaseATNSimulator {
+impl Debug for Simulator {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        f.write_str("BaseATNSimulator { .. }")
+        f.write_str("Simulator { .. }")
     }
 }
 
-impl BaseATNSimulator {
-    pub fn new_base_atnsimulator(
+impl Simulator {
+    pub fn new(
         atn: Arc<ATN>,
         decision_to_dfa: Arc<Vec<RwLock<DFA>>>,
         shared_context_cache: Arc<PredictionContextCache>,
-    ) -> BaseATNSimulator {
-        BaseATNSimulator {
+    ) -> Self {
+        Self {
             atn,
             shared_context_cache,
             decision_to_dfa,
         }
     }
-}
 
-impl IATNSimulator for BaseATNSimulator {
     fn shared_context_cache(&self) -> &PredictionContextCache {
         self.shared_context_cache.deref()
     }

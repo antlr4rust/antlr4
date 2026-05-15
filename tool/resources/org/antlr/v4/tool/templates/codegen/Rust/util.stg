@@ -20,5 +20,3 @@ TestSetInline(s) ::= <<
 >>
 
 
-CaptureNextToken(d) ::= "<d.varName> = <self()>.base.input.lt(1).unwrap().clone();"
-CaptureNextTokenType(d) ::= "<d.varName> = <self()>.base.input.la(1);"

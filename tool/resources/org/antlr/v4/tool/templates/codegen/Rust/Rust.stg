@@ -33,7 +33,7 @@ import "declaration.stg"
 import "lexer.stg"
 import "listener.stg"
 import "parser.stg"
-import "rules.stg"
+import "token.stg"
 import "util.stg"
 import "visitor.stg"
 

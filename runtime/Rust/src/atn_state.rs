@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::slice::Iter;
 
 use once_cell::sync::OnceCell;
 
@@ -38,7 +39,67 @@ pub enum ATNStateType {
         nongreedy: bool,
         state: ATNDecisionState,
     },
-    InvalidState,
+}
+
+impl ATNStateType {
+    pub fn new(type_index: i32, next: Option<i32>) -> Result<Self, ()> {
+
+        match type_index {
+            ATNSTATE_BASIC => Ok(ATNStateType::BasicState),
+            ATNSTATE_RULE_START => Ok(ATNStateType::RuleStartState {
+                stop_state: 0,
+                is_left_recursive: false,
+            }),
+            ATNSTATE_BLOCK_START => Ok(ATNStateType::DecisionState {
+                decision: -1,
+                nongreedy: false,
+                state: ATNDecisionState::BlockStartState {
+                    end_state: next?,
+                    en: ATNBlockStart::BasicBlockStart,
+                },
+            }),
+            ATNSTATE_PLUS_BLOCK_START => Ok(ATNStateType::DecisionState {
+                decision: -1,
+                nongreedy: false,
+                state: ATNDecisionState::BlockStartState {
+                    end_state: next?,
+                    en: ATNBlockStart::PlusBlockStart(0),
+                },
+            }),
+            ATNSTATE_STAR_BLOCK_START => Ok(ATNStateType::DecisionState {
+                decision: -1,
+                nongreedy: false,
+                state: ATNDecisionState::BlockStartState {
+                    end_state: next?,
+                    en: ATNBlockStart::StarBlockStart,
+                },
+            }),
+            ATNSTATE_TOKEN_START => Ok(ATNStateType::DecisionState {
+                decision: -1,
+                nongreedy: false,
+                state: ATNDecisionState::TokenStartState,
+            }),
+            ATNSTATE_RULE_STOP => Ok(ATNStateType::RuleStopState),
+            ATNSTATE_BLOCK_END => Ok(ATNStateType::BlockEndState(0)),
+            ATNSTATE_STAR_LOOP_BACK => Ok(ATNStateType::StarLoopbackState),
+            ATNSTATE_STAR_LOOP_ENTRY => Ok(ATNStateType::DecisionState {
+                decision: -1,
+                nongreedy: false,
+                state: ATNDecisionState::StarLoopEntry {
+                    loop_back_state: 0,
+                    is_precedence: false,
+                },
+            }),
+            ATNSTATE_PLUS_LOOP_BACK => Ok(ATNStateType::DecisionState {
+                decision: -1,
+                nongreedy: false,
+                state: ATNDecisionState::PlusLoopBack,
+            }),
+            ATNSTATE_LOOP_END => Ok(ATNStateType::LoopEndState(next?)),
+
+            _ => Err(()),
+        }
+    }
 }
 
 #[doc(hidden)]
@@ -66,62 +127,51 @@ pub enum ATNBlockStart {
 
 pub type ATNStateRef = i32;
 
-// todo no need for trait here, it is too slow for hot code
-pub trait ATNState: Sync + Send + Debug {
-    fn has_epsilon_only_transitions(&self) -> bool;
-
-    fn get_rule_index(&self) -> i32;
-    fn set_rule_index(&self, v: i32);
-
-    fn get_next_tokens_within_rule(&self) -> &OnceCell<IntervalSet>;
-    //    fn set_next_token_within_rule(&mut self, v: IntervalSet);
-
-    fn get_state_type(&self) -> &ATNStateType;
-    fn get_state_type_mut(&mut self) -> &mut ATNStateType;
-
-    fn get_state_type_id(&self) -> i32;
-
-    fn get_state_number(&self) -> i32;
-    fn set_state_number(&self, state_number: i32);
-
-    fn get_transitions(&self) -> &Vec<Box<dyn Transition>>;
-    fn set_transitions(&self, t: Vec<Box<dyn Transition>>);
-    fn add_transition(&mut self, trans: Box<dyn Transition>);
-}
-
 #[derive(Debug)]
-pub struct BaseATNState {
+pub struct ATNState {
     next_tokens_within_rule: OnceCell<IntervalSet>,
 
-    //    atn: Box<ATN>,
     epsilon_only_transitions: bool,
 
     pub rule_index: i32,
 
     pub state_number: i32,
 
-    pub state_type_id: i32,
-
     pub state_type: ATNStateType,
 
     transitions: Vec<Box<dyn Transition>>,
 }
 
-impl BaseATNState {
-    pub fn new_base_atnstate() -> BaseATNState {
-        BaseATNState {
+impl ATNState {
+    pub fn new(state_type: ATNStateType, rule_index: i32, state_number: i32 ) -> Self {
+        Self {
             next_tokens_within_rule: OnceCell::new(),
             epsilon_only_transitions: false,
-            rule_index: 0,
-            state_number: 0,
-            state_type_id: 0,
-            state_type: ATNStateType::InvalidState,
+            rule_index,
+            state_number,
+            state_type,
             transitions: Vec::new(),
         }
     }
-}
 
-impl ATNState for BaseATNState {
+    pub fn set_nongreedy(&mut self, ng: bool) {
+        if let ATNStateType::DecisionState {
+            mut nongreedy,
+            ..
+        } = self.state_type {
+            nongreedy = ng;
+        }
+    }
+
+    pub fn set_left_recursive(&mut self, lr: bool) {
+        if let ATNStateType::RuleStartState {
+            mut is_left_recursive,
+            ..
+        } = self.state_type {
+            is_left_recursive = lr;
+        }
+    }
+
     fn has_epsilon_only_transitions(&self) -> bool {
         self.epsilon_only_transitions
     }
@@ -143,10 +193,6 @@ impl ATNState for BaseATNState {
 
     fn get_state_type_mut(&mut self) -> &mut ATNStateType {
         &mut self.state_type
-    }
-
-    fn get_state_type_id(&self) -> i32 {
-        self.state_type_id
     }
 
     fn get_state_number(&self) -> i32 {
@@ -192,252 +238,3 @@ impl ATNState for BaseATNState {
         }
     }
 }
-//pub struct BasicState {
-//    base: BaseATNState,
-//}
-//
-//fn new_basic_state() -> BasicState { unimplemented!() }
-//
-//pub trait DecisionState:ATNState {
-//
-//    fn get_decision(&self) -> i32;
-//    fn set_decision(&self, b: i32);
-//
-//    fn get_non_greedy(&self) -> bool;
-//    fn set_non_greedy(&self, b: bool);
-//}
-//
-//pub struct BaseDecisionState {
-//    base: BaseATNState,
-//    decision: i32,
-//    non_greedy: bool,
-//}
-
-//
-//fn new_base_decision_state() -> BaseDecisionState { unimplemented!() }
-//impl DecisionState for BaseDecisionState {
-//    fn get_decision(&self) -> i32 { unimplemented!() }
-//
-//    fn set_decision(&self, b: i32) { unimplemented!() }
-//
-//    fn get_non_greedy(&self) -> bool { unimplemented!() }
-//
-//    fn set_non_greedy(&self, b: bool) { unimplemented!() }
-//}
-//
-//impl ATNState for BaseDecisionState{
-//    fn get_epsilon_only_transitions(&self) -> bool {
-//        self.base.get_epsilon_only_transitions()
-//    }
-//
-//    fn get_rule_index(&self) -> i32 {
-//        self.base.get_rule_index()
-//    }
-//
-//    fn set_rule_index(&self, v: i32) {
-//        self.base.set_rule_index(v)
-//    }
-//
-//    fn get_next_token_within_rule(&self) -> IntervalSet {
-//        self.base.get_next_token_within_rule()
-//    }
-//
-//    fn set_next_token_within_rule(&self, v: IntervalSet) {
-//        self.base.set_next_token_within_rule(v)
-//    }
-//
-//    fn get_atn(&self) -> Arc<ATN> {
-//        self.base.get_atn()
-//    }
-//
-//    fn set_atn(&self, atn: Box<ATN>) {
-//        self.base.set_atn(atn)
-//    }
-//
-//    fn get_state_type(&self) -> &ATNStateType {
-//        self.base.get_state_type()
-//    }
-//
-//    fn get_state_number(&self) -> i32 {
-//        self.base.get_state_number()
-//    }
-//
-//    fn set_state_number(&self, stateNumber: i32) {
-//        self.base.set_state_number(stateNumber)
-//    }
-//
-//    fn get_transitions(&self) -> Vec<&Transition> {
-//        self.base.get_transitions()
-//    }
-//
-//    fn set_transitions(&self, t: Vec<Box<Transition>>) {
-//        self.base.set_transitions(t)
-//    }
-//
-//    fn add_transition(&self, trans: Box<Transition>, index: i32) {
-//        self.base.add_transition(trans, index)
-//    }
-//}
-//pub trait BlockStartState :DecisionState{
-//
-//    fn get_end_state(&self) -> &BlockEndState;
-//    fn set_end_state(&self, b: Box<BlockEndState>);
-//}
-//
-//pub struct BaseBlockStartState {
-//    base: BaseDecisionState,
-//    end_state: Box<BlockEndState>,
-//}
-//
-//fn new_block_start_state() -> BaseBlockStartState { unimplemented!() }
-//
-//impl BlockStartState for BaseBlockStartState {
-//    fn get_end_state(&self) -> &BlockEndState { unimplemented!() }
-//
-//    fn set_end_state(&self, b: Box<BlockEndState>) { unimplemented!() }
-//}
-//
-//impl DecisionState for BaseBlockStartState{
-//    fn get_decision(&self) -> i32 {
-//        self.base.get_decision()
-//    }
-//
-//    fn set_decision(&self, b: i32) {
-//        self.base.set_decision(b)
-//    }
-//
-//    fn get_non_greedy(&self) -> bool {
-//        self.base.get_non_greedy()
-//    }
-//
-//    fn set_non_greedy(&self, b: bool) {
-//        self.base.set_non_greedy(b)
-//    }
-//}
-//
-//impl ATNState for BaseBlockStartState{
-//    fn get_epsilon_only_transitions(&self) -> bool {
-//        self.base.get_epsilon_only_transitions()
-//    }
-//
-//    fn get_rule_index(&self) -> i32 {
-//        self.base.get_rule_index()
-//    }
-//
-//    fn set_rule_index(&self, v: i32) {
-//        self.base.set_rule_index(v)
-//    }
-//
-//    fn get_next_token_within_rule(&self) -> IntervalSet {
-//        self.base.get_next_token_within_rule()
-//    }
-//
-//    fn set_next_token_within_rule(&self, v: IntervalSet) {
-//        self.base.set_next_token_within_rule(v)
-//    }
-//
-//    fn get_atn(&self) -> Arc<ATN> {
-//        self.base.get_atn()
-//    }
-//
-//    fn set_atn(&self, atn: Box<ATN>) {
-//        self.base.set_atn(atn)
-//    }
-//
-//    fn get_state_type(&self) -> &ATNStateType {
-//        self.base.get_state_type()
-//    }
-//
-//    fn get_state_number(&self) -> i32 {
-//        self.base.get_state_number()
-//    }
-//
-//    fn set_state_number(&self, stateNumber: i32) {
-//        self.base.set_state_number(stateNumber)
-//    }
-//
-//    fn get_transitions(&self) -> Vec<&Transition> {
-//        self.base.get_transitions()
-//    }
-//
-//    fn set_transitions(&self, t: Vec<Box<Transition>>) {
-//        self.base.set_transitions(t)
-//    }
-//
-//    fn add_transition(&self, trans: Box<Transition>, index: i32) {
-//        self.base.add_transition(trans, index)
-//    }
-//}
-//
-//pub struct BasicBlockStartState {
-//    base: BaseBlockStartState,
-//}
-//
-//fn new_basic_block_start_state() -> BasicBlockStartState { unimplemented!() }
-//
-//pub struct BlockEndState {
-//    base: BaseATNState,
-//    start_state: Box<ATNState>,
-//}
-//
-//fn new_block_end_state() -> BlockEndState { unimplemented!() }
-//
-//pub struct RuleStopState {
-//    base: BaseATNState,
-//}
-//
-//fn new_rule_stop_state() -> RuleStopState { unimplemented!() }
-//
-//pub struct RuleStartState {
-//    base: BaseATNState,
-//    stop_state: Box<ATNState>,
-//    is_precedence_rule: bool,
-//}
-//
-//fn new_rule_start_state() -> RuleStartState { unimplemented!() }
-//
-//pub struct PlusLoopbackState {
-//    base: BaseDecisionState,
-//}
-//
-//fn new_plus_loopback_state() -> PlusLoopbackState { unimplemented!() }
-//
-//pub struct PlusBlockStartState {
-//    base: BaseBlockStartState,
-//    loop_back_state: Box<ATNState>,
-//}
-//
-//fn new_plus_block_start_state() -> PlusBlockStartState { unimplemented!() }
-//
-//pub struct StarBlockStartState {
-//    base: BaseBlockStartState,
-//}
-//
-//fn new_star_block_start_state() -> StarBlockStartState { unimplemented!() }
-//
-//pub struct StarLoopbackState {
-//    base: BaseATNState,
-//}
-//
-//fn new_star_loopback_state() -> StarLoopbackState { unimplemented!() }
-//
-//pub struct StarLoopEntryState {
-//    base: BaseDecisionState,
-//    loop_back_state: Box<ATNState>,
-//    precedence_rule_decision: bool,
-//}
-//
-//fn new_star_loop_entry_state() -> StarLoopEntryState { unimplemented!() }
-//
-//pub struct LoopEndState {
-//    base: BaseATNState,
-//    loop_back_state: Box<ATNState>,
-//}
-//
-//fn new_loop_end_state() -> LoopEndState { unimplemented!() }
-//
-//pub struct TokensStartState {
-//    base: BaseDecisionState,
-//}
-//
-//fn new_tokens_start_state() -> TokensStartState { unimplemented!() }
