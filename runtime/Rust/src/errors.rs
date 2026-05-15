@@ -4,7 +4,7 @@ use crate::interval_set::IntervalSet;
 use crate::parser::{Parser, ParserNodeType};
 use crate::rule_context::states_stack;
 use crate::token::{OwningToken, Token};
-use crate::transition::PredicateTransition;
+use crate::transition::Transition;
 use crate::transition::TransitionType::TRANSITION_PREDICATE;
 use std::borrow::Borrow;
 use std::error::Error;

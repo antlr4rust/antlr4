@@ -14,7 +14,7 @@ use crate::parser::ParserNodeType;
 use crate::rule_context::EmptyContextType;
 use crate::token::{TOKEN_EOF, TOKEN_EPSILON};
 use crate::token_factory::CommonTokenFactory;
-use crate::transition::RuleTransition;
+use crate::transition::Transition;
 use std::fmt::{Debug, Formatter};
 #[doc(hidden)]
 #[derive(Eq, PartialEq, Debug)]
@@ -414,7 +414,7 @@ impl ATN {
         let ndecisions = *_data.next()?;
         for i in 0..ndecisions {
             let s = *_data.next()?;
-            let dec_state: &mut Box<dyn ATNState> = atn.states.get_mut(s as usize)?;
+            let dec_state: &mut Box<ATNState> = atn.states.get_mut(s as usize)?;
             atn.decision_to_state.push(s);
             if let ATNStateType::DecisionState { decision, .. } = dec_state.get_state_type_mut() {
                 *decision = i

@@ -139,7 +139,7 @@ pub struct ATNState {
 
     pub state_type: ATNStateType,
 
-    transitions: Vec<Box<dyn Transition>>,
+    transitions: Vec<Box<Transition>>,
 }
 
 impl ATNState {
@@ -203,15 +203,15 @@ impl ATNState {
         unimplemented!()
     }
 
-    fn get_transitions(&self) -> &Vec<Box<dyn Transition>> {
+    fn get_transitions(&self) -> &Vec<Box<Transition>> {
         &self.transitions
     }
 
-    fn set_transitions(&self, _t: Vec<Box<dyn Transition>>) {
+    fn set_transitions(&self, _t: Vec<Box<Transition>>) {
         unimplemented!()
     }
 
-    fn add_transition(&mut self, trans: Box<dyn Transition>) {
+    fn add_transition(&mut self, trans: Box<Transition>) {
         if self.transitions.is_empty() {
             self.epsilon_only_transitions = trans.is_epsilon()
         } else {

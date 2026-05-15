@@ -152,7 +152,7 @@ impl ATNConfig {
 
     pub fn cloned_with_new_semantic(
         &self,
-        target: &dyn ATNState,
+        target: &ATNState,
         ctx: Box<SemanticContext>,
     ) -> ATNConfig {
         let mut new = self.cloned(target);
@@ -160,7 +160,7 @@ impl ATNConfig {
         new
     }
 
-    pub fn cloned(&self, target: &dyn ATNState) -> ATNConfig {
+    pub fn cloned(&self, target: &ATNState) -> ATNConfig {
         //        println!("depth {}",PredictionContext::size(self.context.as_deref()));
         let mut new = self.clone();
         new.state = target.get_state_number();
@@ -176,7 +176,7 @@ impl ATNConfig {
 
     pub fn cloned_with_new_ctx(
         &self,
-        target: &dyn ATNState,
+        target: &ATNState,
         ctx: Option<Arc<PredictionContext>>,
     ) -> ATNConfig {
         let mut new = self.cloned(target);
@@ -187,7 +187,7 @@ impl ATNConfig {
 
     pub(crate) fn cloned_with_new_exec(
         &self,
-        target: &dyn ATNState,
+        target: &ATNState,
         exec: Option<LexerActionExecutor>,
     ) -> ATNConfig {
         let mut new = self.cloned(target);
@@ -243,7 +243,7 @@ impl ATNConfig {
     }
 }
 
-fn check_non_greedy_decision(source: &ATNConfig, target: &dyn ATNState) -> bool {
+fn check_non_greedy_decision(source: &ATNConfig, target: &ATNState) -> bool {
     if let LexerATNConfig {
         passed_through_non_greedy_decision: true,
         ..

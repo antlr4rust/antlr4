@@ -136,10 +136,6 @@ pub mod tree;
 //pub mod file_stream;
 #[doc(hidden)]
 pub mod atn;
-#[doc(hidden)]
-pub mod atn_config_set;
-#[doc(hidden)]
-pub mod atn_deserializer;
 pub mod common_token_stream;
 mod dfa_serializer;
 pub mod error_listener;
@@ -154,10 +150,8 @@ pub mod parser;
 pub mod parser_atn_simulator;
 mod prediction_mode;
 pub mod token;
-pub mod trees;
 mod utils;
 //pub mod tokenstream_rewriter_test;
-mod atn_type;
 // mod context_factory;
 pub mod rule_context;
 pub mod vocabulary;

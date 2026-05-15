@@ -13,7 +13,7 @@ use crate::prediction_context::PredictionContext;
 use crate::prediction_context::EMPTY_PREDICTION_CONTEXT;
 use crate::token::{TOKEN_EOF, TOKEN_EPSILON, TOKEN_INVALID_TYPE, TOKEN_MIN_USER_TOKEN_TYPE};
 use crate::transition::TransitionType::TRANSITION_NOTSET;
-use crate::transition::{RuleTransition, TransitionType};
+use crate::transition::Transition;
 
 pub struct LL1Analyzer<'a> {
     atn: &'a ATN,
@@ -24,12 +24,12 @@ impl LL1Analyzer<'_> {
         LL1Analyzer { atn }
     }
 
-    //    fn get_decision_lookahead(&self, _s: &dyn ATNState) -> &Vec<IntervalSet> { unimplemented!() }
+    //    fn get_decision_lookahead(&self, _s: &ATNState) -> &Vec<IntervalSet> { unimplemented!() }
 
     pub fn look<'input, Ctx: ParserNodeType<'input>>(
         &self,
-        s: &dyn ATNState,
-        stop_state: Option<&dyn ATNState>,
+        s: &ATNState,
+        stop_state: Option<&ATNState>,
         ctx: Option<&Ctx::Type>,
     ) -> IntervalSet {
         let mut r = IntervalSet::new();
@@ -52,8 +52,8 @@ impl LL1Analyzer<'_> {
     fn look_work(
         &self,
         //                 atn:&ATN,
-        s: &dyn ATNState,
-        stop_state: Option<&dyn ATNState>,
+        s: &ATNState,
+        stop_state: Option<&ATNState>,
         ctx: Option<Arc<PredictionContext>>,
         look: &mut IntervalSet,
         look_busy: &mut HashSet<ATNConfig>,

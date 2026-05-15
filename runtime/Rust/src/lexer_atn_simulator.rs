@@ -9,7 +9,7 @@ use std::usize;
 use crate::atn::ATN;
 use crate::atn_config::{ATNConfig, ATNConfigType};
 use crate::atn_config_set::ATNConfigSet;
-use crate::atn_simulator::{BaseATNSimulator, IATNSimulator};
+use crate::atn_simulator::ATNSimulator;
 use crate::atn_state::ATNStateType::RuleStopState;
 use crate::atn_state::{ATNState, ATNStateType};
 
@@ -35,32 +35,10 @@ use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
 #[allow(missing_docs)]
 pub const ERROR_DFA_STATE_REF: DFAStateRef = usize::MAX;
 
-// todo rewrite this to be actually usable
-#[doc(hidden)]
-pub trait ILexerATNSimulator: IATNSimulator {
-    fn reset(&mut self);
-    fn match_token<'input>(
-        &mut self,
-        mode: usize,
-        lexer: &mut impl Lexer<'input>,
-    ) -> Result<i32, ANTLRError>;
-    fn get_char_position_in_line(&self) -> isize;
-    fn set_char_position_in_line(&mut self, column: isize);
-    fn get_line(&self) -> isize;
-    fn set_line(&mut self, line: isize);
-    fn consume<T: IntStream + ?Sized>(&self, input: &mut T);
-    #[cold]
-    fn recover(&mut self, _re: ANTLRError, input: &mut impl IntStream) {
-        if input.la(1) != EOF {
-            self.consume(input)
-        }
-    }
-}
-
 /// Simple DFA implementation enough for lexer.
 #[derive(Debug)]
 pub struct LexerATNSimulator {
-    base: BaseATNSimulator,
+    base: ATNSimulator,
 
     //    merge_cache: DoubleDict,
     start_index: isize,
@@ -165,7 +143,7 @@ impl LexerATNSimulator {
         shared_context_cache: Arc<PredictionContextCache>,
     ) -> LexerATNSimulator {
         LexerATNSimulator {
-            base: BaseATNSimulator::new_base_atnsimulator(
+            base: ATNSimulator::new_base_atnsimulator(
                 atn,
                 decision_to_dfa,
                 shared_context_cache,
@@ -414,7 +392,7 @@ impl LexerATNSimulator {
 
     fn compute_start_state<'input>(
         &self,
-        _p: &dyn ATNState,
+        _p: &ATNState,
         lexer: &mut impl Lexer<'input>,
     ) -> Box<ATNConfigSet> {
         //        let initial_context = &EMPTY_PREDICTION_CONTEXT;
@@ -528,7 +506,7 @@ impl LexerATNSimulator {
         &self,
         //        _input: &mut dyn CharStream,
         _config: &mut ATNConfig,
-        _trans: &dyn Transition,
+        _trans: &Transition,
         _configs: &mut ATNConfigSet,
         _speculative: bool,
         _treat_eofas_epsilon: bool,

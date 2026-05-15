@@ -7,7 +7,6 @@ use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 use std::sync::Arc;
 
-use crate::atn_simulator::IATNSimulator;
 use crate::atn_state::*;
 use crate::char_stream::{CharStream, InputData};
 use crate::dfa::ScopeExt;

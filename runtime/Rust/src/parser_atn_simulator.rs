@@ -34,10 +34,8 @@ use crate::semantic_context::SemanticContext;
 use crate::token::{Token, TOKEN_EOF, TOKEN_EPSILON};
 
 use crate::token_stream::TokenStream;
-use crate::transition::{
-    ActionTransition, EpsilonTransition, PrecedencePredicateTransition, PredicateTransition,
-    RuleTransition, Transition, TransitionType,
-};
+use crate::transition::Transition;
+use crate::transition::TransitionType;
 use parking_lot::{RwLock, RwLockUpgradableReadGuard, RwLockWriteGuard};
 
 /// ### The embodiment of the adaptive LL(*), ALL(*), parsing strategy.
@@ -433,7 +431,7 @@ impl ParserATNSimulator {
         D
     }
 
-    fn predicate_dfa_state(&self, dfa_state: &mut DFAState, decision_state: &dyn ATNState) {
+    fn predicate_dfa_state(&self, dfa_state: &mut DFAState, decision_state: &ATNState) {
         let nalts = decision_state.get_transitions().len();
         let alts_to_collect_preds_from =
             self.get_conflicting_alts_or_unique_alt(dfa_state.configs.as_ref());
@@ -766,7 +764,7 @@ impl ParserATNSimulator {
         config_set
     }
 
-    fn get_reachable_target(&self, trans: &dyn Transition, ttype: i32) -> Option<ATNStateRef> {
+    fn get_reachable_target(&self, trans: &Transition, ttype: i32) -> Option<ATNStateRef> {
         if trans.matches(ttype, 0, self.atn().max_token_type) {
             return Some(trans.get_target());
         }
@@ -1229,7 +1227,7 @@ impl ParserATNSimulator {
     fn get_epsilon_target<'a, T: Parser<'a>>(
         &self,
         config: &ATNConfig,
-        t: &dyn Transition,
+        t: &Transition,
         collect_predicates: bool,
         in_context: bool,
         full_ctx: bool,
@@ -1241,22 +1239,22 @@ impl ParserATNSimulator {
                 Some(config.cloned(self.atn().states[t.get_target() as usize].as_ref()))
             }
             TransitionType::TRANSITION_RULE => {
-                Some(self.rule_transition(config, t.cast::<RuleTransition>()))
+                Some(self.rule_transition(config, t))
             }
             TransitionType::TRANSITION_PREDICATE => self.pred_transition(
                 config,
-                t.cast::<PredicateTransition>(),
+                t.cast::<Transition>(),
                 collect_predicates,
                 in_context,
                 full_ctx,
                 local,
             ),
             TransitionType::TRANSITION_ACTION => {
-                Some(self.action_transition(config, t.cast::<ActionTransition>()))
+                Some(self.action_transition(config, t))
             }
             TransitionType::TRANSITION_PRECEDENCE => self.precedence_transition(
                 config,
-                t.cast::<PrecedencePredicateTransition>(),
+                t.cast::<Transition>(),
                 collect_predicates,
                 in_context,
                 full_ctx,
@@ -1275,14 +1273,14 @@ impl ParserATNSimulator {
         }
     }
 
-    fn action_transition(&self, config: &ATNConfig, t: &ActionTransition) -> ATNConfig {
+    fn action_transition(&self, config: &ATNConfig, t: &Transition) -> ATNConfig {
         config.cloned(self.atn().states[t.target as usize].as_ref())
     }
 
     fn precedence_transition<'a, T: Parser<'a>>(
         &self,
         config: &ATNConfig,
-        pt: &PrecedencePredicateTransition,
+        pt: &Transition,
         collect_predicates: bool,
         in_context: bool,
         full_ctx: bool,
@@ -1318,7 +1316,7 @@ impl ParserATNSimulator {
     fn pred_transition<'a, T: Parser<'a>>(
         &self,
         config: &ATNConfig,
-        pt: &PredicateTransition,
+        pt: &Transition,
         collect_predicates: bool,
         in_context: bool,
         full_ctx: bool,
@@ -1351,7 +1349,7 @@ impl ParserATNSimulator {
         None
     }
 
-    fn rule_transition(&self, config: &ATNConfig, t: &RuleTransition) -> ATNConfig {
+    fn rule_transition(&self, config: &ATNConfig, t: &Transition) -> ATNConfig {
         assert!(config.get_context().is_some());
         let new_ctx = PredictionContext::new_singleton(
             config.get_context().cloned(),
@@ -1510,19 +1508,5 @@ impl ParserATNSimulator {
             ambig_alts,
             configs,
         )
-    }
-}
-
-impl IATNSimulator for ParserATNSimulator {
-    fn shared_context_cache(&self) -> &PredictionContextCache {
-        self.base.shared_context_cache()
-    }
-
-    fn atn(&self) -> &ATN {
-        self.base.atn()
-    }
-
-    fn decision_to_dfa(&self) -> &Vec<RwLock<DFA>> {
-        self.base.decision_to_dfa()
     }
 }
