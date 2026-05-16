@@ -1,23 +1,27 @@
 SerializedATN(model) ::= <<
 	lazy_static!{
-    static ref _ATN: Arc\<ATN> =
-        Arc::new(ATNDeserializer::new(None).deserialize(&mut _serializedATN.iter()));
-    static ref _decision_to_DFA: Arc\<Vec\<antlr4rust::RwLock\<DFA>\>> = {
-        let mut dfa = Vec::new();
-        let size = _ATN.decision_to_state.len() as i32;
-        for i in 0..size {
-            dfa.push(DFA::new(
-                _ATN.clone(),
-                _ATN.get_decision_state(i),
-                i,
-            ).into())
-        }
-        Arc::new(dfa)
-    };
-	static ref _serializedATN: Vec\<i32> = vec![
-		<model.serialized; separator=", ", wrap>
-	];
-}
+		static ref _ATN: Arc\<ATN> =
+			Arc::new(ATN::from_serialized(_serializedATN.into_iter(), false).unwrap());
+		
+		static ref decisions_to_dfas: Vec\<DFA> = {
+			let mut dfa = Vec::new();
+			for decision_state, i in _ATN.decision_states().iter() {
+				dfa.push(
+					DFA::new(
+						_ATN.clone(),
+						decision_state
+						i,
+					)
+				)
+			}
+
+			dfa
+		};
+
+		static ref _serializedATN: Vec\<i32> = vec![
+			<model.serialized; separator=", ", wrap>
+		];
+	}
 >>
 
 RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,finallyAction,postamble,exceptions) ::= <<

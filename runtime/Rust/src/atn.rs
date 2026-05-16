@@ -42,9 +42,8 @@ enum ATNConstructionErr {
 ///
 /// Basically NFA(graph) of states and possible(maybe multiple) transitions on a given particular symbol.
 ///
-/// Public mostly because of implementations reasons. From user side is only useful for advanced error handling
 pub struct ATN {
-    pub decision_to_state: Vec<ATNStateRef>,
+    pub decision_states: Vec<ATNStateRef>,
 
     pub grammar_type: ATNType,
 
@@ -88,7 +87,7 @@ impl ATN {
         let max_token_type = *data.next()?;
 
         let in_construction_atn = ATN {
-            decision_to_state: Vec::new(),
+            decision_states: Vec::new(),
             grammar_type,
             lexer_actions: Vec::new(),
             max_token_type,
@@ -133,8 +132,8 @@ impl ATN {
 
     // fn define_decision_state(&self, _s: ATNStateRef) -> i32 { unimplemented!() }
 
-    pub fn get_decision_state(&self, decision: i32) -> ATNStateRef {
-        self.decision_to_state[decision as usize]
+    pub fn get_decision_states(&self) -> &Vec<ATNStateRef> {
+        &self.decision_states
     }
 
     /// Computes the set of input symbols which could follow ATN state number
@@ -207,20 +206,20 @@ impl ATN {
 
 
 impl ATN {
-        self.read_rules(&mut atn, data);
-        self.read_modes(&mut atn, data);
+        // self.read_rules(&mut atn, data);
+        // self.read_modes(&mut atn, data);
 
-        let sets = self.read_sets(&mut atn, data);
+        // let sets = self.read_sets(&mut atn, data);
 
-        self.read_edges(&mut atn, data, &sets);
-        self.read_decisions(&mut atn, data);
-        if atn.grammar_type == ATNType::LEXER {
-            self.read_lexer_actions(&mut atn, data);
-        }
-        self.mark_precedence_decisions(&mut atn, data);
-        if self.deserialization_options.is_verify() {
-            self.verify_atn(&mut atn, data);
-        }
+        // self.read_edges(&mut atn, data, &sets);
+        // self.read_decisions(&mut atn, data);
+        // if atn.grammar_type == ATNType::LEXER {
+        //     self.read_lexer_actions(&mut atn, data);
+        // }
+        // self.mark_precedence_decisions(&mut atn, data);
+        // if self.deserialization_options.is_verify() {
+        //     self.verify_atn(&mut atn, data);
+        // }
 
 
     fn read_states(data: &mut Iter<i32>) -> Vec<ATNState> {
@@ -410,14 +409,16 @@ impl ATN {
         }
     }
 
-    fn read_decisions(&self, atn: &mut ATN, _data: &mut Iter<i32>) {
-        let ndecisions = *_data.next()?;
+    fn read_decisions(&self, atn: &mut ATN, data: &mut Iter<i32>) {
+        let ndecisions = *data.next()?;
         for i in 0..ndecisions {
-            let s = *_data.next()?;
-            let dec_state: &mut Box<ATNState> = atn.states.get_mut(s as usize)?;
-            atn.decision_to_state.push(s);
-            if let ATNStateType::DecisionState { decision, .. } = dec_state.get_state_type_mut() {
-                *decision = i
+            let s = *data.next()?;
+            if let Some(dec_state) = atn.states.get_mut(s as usize) {
+                atn.decision_states.push(s);
+
+                if let ATNStateType::DecisionState { decision, .. } = dec_state.get_state_type_mut() {
+                    *decision = i
+                }
             }
         }
     }

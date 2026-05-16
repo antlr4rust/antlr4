@@ -187,11 +187,11 @@ impl ATNState {
         &self.next_tokens_within_rule
     }
 
-    fn get_state_type(&self) -> &ATNStateType {
+    pub fn get_state_type(&self) -> &ATNStateType {
         &self.state_type
     }
 
-    fn get_state_type_mut(&mut self) -> &mut ATNStateType {
+    pub fn get_state_type_mut(&mut self) -> &mut ATNStateType {
         &mut self.state_type
     }
 

@@ -417,7 +417,7 @@ impl ParserATNSimulator {
 
         //        println!("target config {:?}",&D.configs);
         if D.is_accept_state && D.configs.has_semantic_context() {
-            let decision_state = self.atn().decision_to_state[dfa.decision as usize];
+            let decision_state = self.atn().decision_states().get(dfa.decision as usize).unwrap();
             self.predicate_dfa_state(&mut D, self.atn().states[decision_state as usize].deref());
             //            println!("predicates compute target {:?}",&D.predicates);
             if !D.predicates.is_empty() {

@@ -5,19 +5,6 @@ use std::collections::HashSet;
 
 use crate::parser::{Parser, ParserNodeType};
 
-//pub trait SemanticContext:Sync + Send {
-///    fn evaluate(&self, parser: &Recognizer, outerContext: &RuleContext) -> bool;
-///    fn eval_precedence(&self, parser: &Recognizer, outerContext: &RuleContext, ) -> Box<dyn SemanticContext>;
-//}
-
-// fn empty() -> SemanticContext {
-//     SemanticContext::Predicate {
-//         rule_index: -1,
-//         pred_index: -1,
-//         is_ctx_dependent: false,
-//     }
-// }
-
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub enum SemanticContext {
     Predicate {

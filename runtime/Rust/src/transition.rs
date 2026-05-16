@@ -132,21 +132,6 @@ impl Transition {
         }
     }
 
-    // pub fn get_serialization_type(&self) -> i32 {
-    //     match self {
-    //         Self::Atom { .. } => TRANSITION_ATOM,
-    //         Self::Rule { .. } => TRANSITION_RULE,
-    //         Self::Epsilon { .. } => TRANSITION_EPSILON,
-    //         Self::Range { .. } => TRANSITION_RANGE,
-    //         Self::Action { .. } => TRANSITION_ACTION,
-    //         Self::Set { .. } => TRANSITION_SET,
-    //         Self::NotSet { .. } => TRANSITION_NOTSET,
-    //         Self::Wildcard { .. } => TRANSITION_WILDCARD,
-    //         Self::Predicate { .. } => TRANSITION_PREDICATE,
-    //         Self::PrecedencePredicate { .. } => TRANSITION_PRECEDENCE,
-    //     }
-    // }
-
     pub fn matches(&self, symbol: i32, min_vocab_symbol: i32, max_vocab_symbol: i32) -> bool {
         match self {
             Self::Atom { label, .. } => symbol == *label,

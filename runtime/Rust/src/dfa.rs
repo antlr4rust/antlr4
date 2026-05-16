@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::convert::TryFrom;
 
 use std::fmt::{Display, Formatter};
@@ -10,58 +10,116 @@ use crate::dfa_state::{DFAState, DFAStateRef};
 use crate::lexer_atn_simulator::ERROR_DFA_STATE_REF;
 use crate::vocabulary::Vocabulary;
 
-///Helper trait for scope management and temporary values not living long enough
-pub(crate) trait ScopeExt: Sized {
-    fn convert_with<T, F: FnOnce(Self) -> T>(self, f: F) -> T {
-        f(self)
-    }
-    fn run<T, F: FnOnce(&Self) -> T>(&self, f: F) -> T {
-        f(self)
-    }
+#[derive(Eq, PartialEq, Debug)]
+pub struct PredPrediction {
+    pub(crate) alt: i32,
+    pub(crate) pred: SemanticContext,
+}
 
-    //apply
-    fn modify_with<F: FnOnce(&mut Self)>(mut self, f: F) -> Self {
-        f(&mut self);
-        self
-    }
-    //apply_inplace
-    fn apply<F: FnOnce(&mut Self)>(&mut self, f: F) -> &mut Self {
-        f(self);
-        self
+impl Display for PredPrediction {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
+        f.write_fmt(format_args!("({},{:?})", self.alt, self.pred))
     }
 }
 
-impl<Any: Sized> ScopeExt for Any {}
+//index in DFA.states
+pub type DFAStateRef = usize;
+
+#[derive(Eq, Debug)]
+pub struct DFAState {
+    /// Number of this state in corresponding DFA
+    pub state_number: usize,
+    pub configs: Box<ATNConfigSet>,
+    /// - 0 => no edge
+    /// - usize::MAX => error edge
+    /// - _ => actual edge
+    pub edges: Vec<DFAStateRef>,
+    pub is_accept_state: bool,
+
+    pub prediction: i32,
+    pub(crate) lexer_action_executor: Option<Box<LexerActionExecutor>>,
+    pub requires_full_context: bool,
+    pub predicates: Vec<PredPrediction>,
+}
+
+impl Display for DFAState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut base_str = format!(
+            "{}s{}{}",
+            if self.is_accept_state { ":" } else { "" },
+            self.state_number - 1,
+            if self.requires_full_context { "^" } else { "" },
+        );
+        if self.is_accept_state {
+            base_str = if !self.predicates.is_empty() {
+                unimplemented!()
+            //                format!("{}=>{:?}", base_str, state.predicates)
+            } else {
+                format!("{}=>{}", base_str, self.prediction)
+            };
+        }
+
+        f.write_str(&base_str)
+    }
+}
+
+impl PartialEq for DFAState {
+    fn eq(&self, other: &Self) -> bool {
+        self.configs == other.configs
+    }
+}
+
+impl Hash for DFAState {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.configs.hash(state);
+    }
+}
+
+impl DFAState {
+    pub fn default_hash(&self) -> u64 {
+        let mut hasher = MurmurHasher::default();
+        self.hash(&mut hasher);
+        hasher.finish()
+    }
+
+    pub fn new_dfastate(state_number: usize, configs: Box<ATNConfigSet>) -> DFAState {
+        DFAState {
+            state_number,
+            configs,
+            //            edges: Vec::with_capacity((MAX_DFA_EDGE - MIN_DFA_EDGE + 1) as usize),
+            edges: Vec::new(),
+            is_accept_state: false,
+            prediction: 0,
+            lexer_action_executor: None,
+            requires_full_context: false,
+            predicates: Vec::new(),
+        }
+    }
+
+    //    fn get_alt_set(&self) -> &Set { unimplemented!() }
+
+    // fn set_prediction(&self, _v: i32) { unimplemented!() }
+}
 
 #[derive(Debug)]
 pub struct DFA {
-    /// ATN state from which this DFA creation was started from
-    pub atn_start_state: ATNStateRef,
-
-    pub decision: i32,
+    decision: i32,
 
     /// Set of all dfa states.
-    pub states: Vec<DFAState>,
+    states: HashSet<DFAState>,
 
-    // for faster duplicate search
-    // TODO i think DFAState.edges can contain references to its elements
-    pub(crate) states_map: HashMap</*DFAState hash*/ u64, Vec<DFAStateRef>>,
-    //    states_mu sync.RWMutex
     /// Initial DFA state
-    pub s0: Option<DFAStateRef>,
-    //    s0_mu sync.RWMutex
+    s0: Option<DFAStateRef>,
+
     is_precedence_dfa: bool,
 }
 
 impl DFA {
     pub fn new(atn: Arc<ATN>, atn_start_state: ATNStateRef, decision: i32) -> DFA {
         let mut dfa = DFA {
-            atn_start_state,
             decision,
-            states: Default::default(),
-            //            states_map: RwLock::new(HashMap::new()),
-            states_map: Default::default(),
-            s0: Default::default(),
+            states: HashSet::new(),
+            s0: None,
             is_precedence_dfa: false,
         };
 
