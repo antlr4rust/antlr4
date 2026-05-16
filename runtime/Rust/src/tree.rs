@@ -18,7 +18,7 @@ use crate::recognizer::Recognizer;
 use crate::rule_context::{CustomRuleContext, RuleContext};
 use crate::token::Token;
 use crate::token_factory::TokenFactory;
-use crate::{interval_set, trees, CoerceTo};
+use crate::{interval_set, CoerceTo};
 use std::mem;
 
 //todo try to make in more generic

@@ -39,6 +39,27 @@ pub struct DFAState {
     pub predicates: Vec<PredPrediction>,
 }
 
+impl Display for DFAState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut base_str = format!(
+            "{}s{}{}",
+            if self.is_accept_state { ":" } else { "" },
+            self.state_number - 1,
+            if self.requires_full_context { "^" } else { "" },
+        );
+        if self.is_accept_state {
+            base_str = if !self.predicates.is_empty() {
+                unimplemented!()
+            //                format!("{}=>{:?}", base_str, state.predicates)
+            } else {
+                format!("{}=>{}", base_str, self.prediction)
+            };
+        }
+
+        f.write_str(&base_str)
+    }
+}
+
 impl PartialEq for DFAState {
     fn eq(&self, other: &Self) -> bool {
         self.configs == other.configs

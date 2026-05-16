@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 use std::convert::TryFrom;
 
+use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 
 use crate::atn::ATN;
-use crate::atn_config_set::ATNConfigSet;
 use crate::atn_state::{ATNDecisionState, ATNStateRef, ATNStateType};
-use crate::dfa_serializer::DFASerializer;
 use crate::dfa_state::{DFAState, DFAStateRef};
+use crate::lexer_atn_simulator::ERROR_DFA_STATE_REF;
 use crate::vocabulary::Vocabulary;
 
 ///Helper trait for scope management and temporary values not living long enough
@@ -138,29 +138,53 @@ impl DFA {
         self.is_precedence_dfa = precedence_dfa
     }
 
-    pub fn to_string(&self, vocabulary: &dyn Vocabulary) -> String {
+    pub fn to_string(&self, vocabulary: &Vocabulary) -> String {
+        let mut string = String::new();
+
         if self.s0.is_none() {
-            return String::new();
+            return string;
         }
 
-        format!(
-            "{}",
-            DFASerializer::new(self, &|x| vocabulary
-                .get_display_name(x as i32 - 1)
-                .into_owned(),)
-        )
+        for source in self.states.iter() {
+            for (i, edge) in source.edges.iter().copied().enumerate() {
+                if edge != 0 && edge != ERROR_DFA_STATE_REF {
+                    let target = &self.states[edge];
+                    write!(
+                        string,
+                        "{}-{}->{}\n",
+                        source,
+                        vocabulary.get_display_name(i as i32 - 1),
+                        target
+                    )?;
+                }
+            }
+        }
+
+        string
     }
 
     pub fn to_lexer_string(&self) -> String {
+        let mut string = String::new();
+
         if self.s0.is_none() {
-            return String::new();
+            return string;
         }
-        format!(
-            "{}",
-            DFASerializer::new(self, &|x| format!(
-                "'{}'",
-                char::try_from(x as u32).unwrap()
-            ))
-        )
+
+        for source in self.states.iter() {
+            for (i, edge) in source.edges.iter().copied().enumerate() {
+                if edge != 0 && edge != ERROR_DFA_STATE_REF {
+                    let target = &self.states[edge];
+                    write!(
+                        string,
+                        "{}-{}->{}\n",
+                        source,
+                        char::try_from(i as u32),
+                        target
+                    )?;
+                }
+            }
+        }
+
+        string
     }
 }

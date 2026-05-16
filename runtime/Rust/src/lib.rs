@@ -111,9 +111,7 @@ mod ll1_analyzer;
 #[doc(hidden)]
 pub mod recognizer;
 pub mod token_factory;
-//pub mod tokenstream_rewriter;
 #[doc(hidden)]
-pub mod atn_deserialization_options;
 #[doc(hidden)]
 pub mod atn_state;
 pub mod char_stream;
@@ -137,7 +135,6 @@ pub mod tree;
 #[doc(hidden)]
 pub mod atn;
 pub mod common_token_stream;
-mod dfa_serializer;
 pub mod error_listener;
 pub mod error_strategy;
 pub mod errors;

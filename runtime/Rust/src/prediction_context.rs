@@ -16,7 +16,7 @@ use crate::parser_atn_simulator::MergeCache;
 use crate::prediction_context::PredictionContext::{Array, Singleton};
 use crate::rule_context::RuleContext;
 
-use crate::transition::RuleTransition;
+use crate::transition::Transition;
 
 pub const PREDICTION_CONTEXT_EMPTY_RETURN_STATE: i32 = 0x7FFFFFFF;
 
