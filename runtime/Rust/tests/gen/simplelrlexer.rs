@@ -1,1 +1,0 @@
-// Generated from SimpleLR.g4 by ANTLR 4.13.2

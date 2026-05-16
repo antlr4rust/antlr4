@@ -1,1 +1,0 @@
-// Generated from Labels.g4 by ANTLR 4.13.2
