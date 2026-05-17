@@ -241,8 +241,6 @@ pub struct BaseParserRuleContext<'input, Ctx: CustomRuleContext<'input>> {
     pub(crate) children: RefCell<Vec<Rc<<Ctx::Ctx as ParserNodeType<'input>>::Type>>>,
 }
 
-better_any::tid! { impl<'i,Ctx> TidAble<'i> for BaseParserRuleContext<'i,Ctx> where Ctx:CustomRuleContext<'i> }
-
 impl<'input, Ctx: CustomRuleContext<'input>> Debug for BaseParserRuleContext<'input, Ctx> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
         f.write_str(type_name::<Self>())

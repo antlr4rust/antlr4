@@ -24,8 +24,6 @@ pub trait InputData:
     + Debug
     + 'static
 {
-    // fn to_indexed_vec(&self) -> Vec<(u32, u32)>;
-
     #[doc(hidden)]
     fn offset(&self, index: isize, item_offset: isize) -> Option<isize>;
 
@@ -91,30 +89,8 @@ where
             .collect()
     }
 }
-//
-// impl InputData for [u8] {
-//     #[inline]
-//     fn to_display(&self) -> String { String::from_utf8_lossy(self).into_owned() }
-// }
-
-// impl InputData for [u16] {
-// }
-//
-// impl InputData for [u32] {
-//     #[inline]
-//     fn to_display(&self) -> String {
-//         self.iter()
-//             .map(|x| char::try_from(*x).unwrap_or(REPLACEMENT_CHARACTER))
-//             .collect()
-//     }
-// }
 
 impl InputData for str {
-    // fn to_indexed_vec(&self) -> Vec<(u32, u32)> {
-    //     self.char_indices()
-    //         .map(|(i, ch)| (i as u32, ch as u32))
-    //         .collect()
-    // }
 
     #[inline]
     fn offset(&self, mut index: isize, mut item_offset: isize) -> Option<isize> {

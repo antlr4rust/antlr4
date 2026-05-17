@@ -82,7 +82,6 @@ pub trait TokenFactory<'a>: TidAble<'a> + Sized {
 #[derive(Default, Debug)]
 pub struct CommonTokenFactory;
 
-better_any::tid! {CommonTokenFactory}
 
 impl Default for &'_ CommonTokenFactory {
     fn default() -> Self {
@@ -149,7 +148,6 @@ impl<'a> TokenFactory<'a> for CommonTokenFactory {
 #[derive(Default, Debug)]
 pub struct OwningTokenFactory;
 
-better_any::tid! {OwningTokenFactory}
 
 impl<'a> TokenFactory<'a> for OwningTokenFactory {
     type Inner = OwningToken;
@@ -239,7 +237,6 @@ pub struct ArenaFactory<'input, TF, T> {
     pd: PhantomData<&'input str>,
 }
 
-better_any::tid! {impl<'input,TF,T> TidAble<'input> for ArenaFactory<'input,TF,T>}
 
 impl<TF: Debug, T> Debug for ArenaFactory<'_, TF, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

@@ -95,7 +95,6 @@ pub trait ErrorStrategy<'a, T: Parser<'a>>: Tid<'a> {
 // pub type DynHandler<'a, T> = Box<dyn ErrorStrategy<'a, T> + 'a>;
 
 // impl<'a, T: Parser<'a> + TidAble<'a>> TidAble<'a> for Box<dyn ErrorStrategy<'a, T> + 'a> {}
-better_any::tid! { impl<'a, T> TidAble<'a> for Box<dyn ErrorStrategy<'a, T> + 'a> where T: Parser<'a>}
 
 impl<'a, T: Parser<'a> + TidAble<'a>> ErrorStrategy<'a, T> for Box<dyn ErrorStrategy<'a, T> + 'a> {
     #[inline(always)]
@@ -148,7 +147,6 @@ pub struct DefaultErrorStrategy<'input, Ctx: ParserNodeType<'input>> {
     next_tokens_ctx: Option<Rc<Ctx::Type>>,
 }
 
-better_any::tid! { impl<'i,Ctx> TidAble<'i> for DefaultErrorStrategy<'i,Ctx> where Ctx: ParserNodeType<'i>}
 
 impl<'input, Ctx: ParserNodeType<'input>> Default for DefaultErrorStrategy<'input, Ctx> {
     fn default() -> Self {
@@ -561,8 +559,6 @@ impl<'a, T: Parser<'a>> ErrorStrategy<'a, T> for DefaultErrorStrategy<'a, T::Nod
 pub struct BailErrorStrategy<'input, Ctx: ParserNodeType<'input>>(
     DefaultErrorStrategy<'input, Ctx>,
 );
-
-better_any::tid! {impl<'i,Ctx> TidAble<'i> for BailErrorStrategy<'i,Ctx> where Ctx:ParserNodeType<'i> }
 
 impl<'input, Ctx: ParserNodeType<'input>> BailErrorStrategy<'input, Ctx> {
     /// Creates new instance of `BailErrorStrategy`

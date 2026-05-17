@@ -128,7 +128,6 @@ pub struct LeafNode<'input, Node: ParserNodeType<'input>, T: 'static> {
     pub symbol: <Node::TF as TokenFactory<'input>>::Tok,
     iserror: PhantomData<T>,
 }
-better_any::tid! { impl <'input, Node, T:'static> TidAble<'input> for LeafNode<'input, Node, T> where Node:ParserNodeType<'input> }
 
 impl<'input, Node: ParserNodeType<'input>, T: 'static> CustomRuleContext<'input>
     for LeafNode<'input, Node, T>

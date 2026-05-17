@@ -71,7 +71,6 @@ pub struct EmptyCustomRuleContext<'a, TF: TokenFactory<'a> + 'a>(
     pub(crate) PhantomData<&'a TF::Tok>,
 );
 
-better_any::tid! { impl <'a,TF> TidAble<'a> for EmptyCustomRuleContext<'a,TF> where TF:TokenFactory<'a> + 'a}
 
 impl<'a, TF: TokenFactory<'a> + 'a> CustomRuleContext<'a> for EmptyCustomRuleContext<'a, TF> {
     type TF = TF;
@@ -102,7 +101,6 @@ pub type EmptyContext<'a, TF> =
 #[doc(hidden)] // public for implementation reasons
 pub struct EmptyContextType<'a, TF: TokenFactory<'a>>(pub PhantomData<&'a TF>);
 
-better_any::tid! { impl <'a,TF> TidAble<'a> for EmptyContextType<'a,TF> where TF:TokenFactory<'a> }
 
 impl<'a, TF: TokenFactory<'a>> ParserNodeType<'a> for EmptyContextType<'a, TF> {
     type TF = TF;
@@ -147,7 +145,6 @@ pub struct BaseRuleContext<'input, ExtCtx: CustomRuleContext<'input>> {
     pub(crate) ext: ExtCtx,
 }
 
-better_any::tid! { impl <'input,Ctx> TidAble<'input> for BaseRuleContext<'input,Ctx> where Ctx:CustomRuleContext<'input>}
 
 #[allow(missing_docs)]
 impl<'input, ExtCtx: CustomRuleContext<'input>> BaseRuleContext<'input, ExtCtx> {

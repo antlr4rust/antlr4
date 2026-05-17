@@ -25,97 +25,15 @@ use crate::vocabulary::Vocabulary;
 use crate::{CoerceFrom, CoerceTo};
 use better_any::TidAble;
 
-/// parser functionality required for `ParserATNSimulator` to work
-#[allow(missing_docs)] // todo rewrite it so downstream crates actually could meaningfully implement it
-pub trait Parser<'input>: Recognizer<'input> {
-    fn get_interpreter(&self) -> &ParserATNSimulator;
-
-    fn get_token_factory(&self) -> &'input Self::TF;
-    fn get_parser_rule_context(&self) -> &Rc<<Self::Node as ParserNodeType<'input>>::Type>;
-    //    fn set_parser_rule_context(&self, v: ParserRuleContext);
-    fn consume(&mut self, err_handler: &mut impl ErrorStrategy<'input, Self>)
-    where
-        Self: Sized;
-    //    fn get_parse_listeners(&self) -> Vec<ParseTreeListener>;
-    //fn sempred(&mut self, _localctx: Option<&dyn ParserRuleContext>, rule_index: i32, action_index: i32) -> bool { true }
-
-    fn precpred(
-        &self,
-        localctx: Option<&<Self::Node as ParserNodeType<'input>>::Type>,
-        precedence: i32,
-    ) -> bool;
-
-    //    fn get_error_handler(&self) -> ErrorStrategy;
-    //    fn set_error_handler(&self, e: ErrorStrategy);
-    fn get_input_stream_mut(&mut self) -> &mut dyn TokenStream<'input, TF = Self::TF>;
-    fn get_input_stream(&self) -> &dyn TokenStream<'input, TF = Self::TF>;
-    fn get_current_token(&self) -> &<Self::TF as TokenFactory<'input>>::Tok;
-    fn get_expected_tokens(&self) -> IntervalSet;
-
-    fn add_error_listener(&mut self, listener: Box<dyn ErrorListener<'input, Self>>)
-    where
-        Self: Sized;
-    fn remove_error_listeners(&mut self);
-    fn notify_error_listeners(
-        &self,
-        msg: String,
-        offending_token: Option<isize>,
-        err: Option<&ANTLRError>,
-    );
-    fn get_error_lister_dispatch<'a>(&'a self) -> Box<dyn ErrorListener<'input, Self> + 'a>
-    where
-        Self: Sized;
-
-    fn is_expected_token(&self, symbol: i32) -> bool;
-    fn get_precedence(&self) -> i32;
-
-    fn get_state(&self) -> i32;
-    fn set_state(&mut self, v: i32);
-    fn get_rule_invocation_stack(&self) -> Vec<String>;
-}
-
-// trait CsvContext<'input>: for<'x> Listenable<'input, dyn CsvParseTreeListener<'input,CsvTreeNodeType> + 'x> + ParserRuleContext<'input,TF=CommonTokenFactory,Ctx=CsvTreeNodeType>{}
-//
-// struct CsvTreeNodeType;
-// impl<'a> ParserNodeType<'a> for CsvTreeNodeType{
-//     type Type = dyn CsvContext<'a>;
-// }
-
-// workaround trait for rustc not being able to handle cycles in trait defenition yet, e.g. `trait A: Super<Assoc=dyn A>{}`
-// whyyy rustc... whyyy... (╯°□°）╯︵ ┻━┻  It would have been so much cleaner.
-/// Workaround trait for rustc current limitations.
-///
-/// Basically you can consider it as if context trait for generated parser has been implemented as
-/// ```text
-/// trait GenratedParserContext:ParserRuleContext<Ctx=dyn GeneratedParserContext>{ ... }
-/// ```
-/// which is not possible, hence this a bit ugly workaround.
-///
-/// Implemented by generated parser for the type that is going to carry information about
-/// parse tree node.
-pub trait ParserNodeType<'input>: TidAble<'input> + Sized {
-    /// Shortcut for `Type::TF`
-    type TF: TokenFactory<'input> + 'input;
-    /// Actual type of the parse tree node
-    type Type: ?Sized + ParserRuleContext<'input, Ctx = Self, TF = Self::TF> + 'input;
-    // type Visitor: ?Sized + ParseTreeVisitor<'input, Self>;
-}
-
 /// ### Main underlying Parser struct
 ///
 /// It is a member of generated parser struct, so
 /// almost always you don't need to create it yourself.
 /// Generated parser hides complexity of this struct and expose required flexibility via generic parameters
-pub struct BaseParser<
-    'input,
-    Ext, //: 'static, //: ParserRecog<'input, Self> + 'static, // user provided behavior, such as semantic predicates
-    I: TokenStream<'input>, // input stream
-    Ctx: ParserNodeType<'input, TF = I::TF>, // Ctx::Type is trait object type for tree node of the parser
-    T: ParseTreeListener<'input, Ctx> + ?Sized = dyn ParseTreeListener<'input, Ctx>,
-> {
+pub struct Parser<'input> {
     interp: Rc<ParserATNSimulator>,
     /// Rule context parser is currently processing
-    pub ctx: Option<Rc<Ctx::Type>>,
+    pub ctx: Option<Rule>,
 
     /// Track the {@link ParserRuleContext} objects during the parse and hook
     /// them up using the {@link ParserRuleContext#children} list so that it
@@ -151,53 +69,7 @@ pub struct BaseParser<
     pd: PhantomData<fn() -> &'input str>,
 }
 
-better_any::tid! {
-    impl<'input, Ext, I, Ctx, T> TidAble<'input> for BaseParser<'input,Ext, I, Ctx, T>
-    where I: TokenStream<'input>,
-        Ctx: ParserNodeType<'input, TF = I::TF>,
-        T: ParseTreeListener<'input, Ctx> + ?Sized
-}
-
-impl<'input, Ext, I, Ctx, T> Deref for BaseParser<'input, Ext, I, Ctx, T>
-where
-    Ext: ParserRecog<'input, Self>,
-    I: TokenStream<'input>,
-    Ctx: ParserNodeType<'input, TF = I::TF>,
-    T: ParseTreeListener<'input, Ctx> + ?Sized,
-    // Ctx::Type: Listenable<T>,
-{
-    type Target = Ext;
-
-    fn deref(&self) -> &Self::Target {
-        &self.ext
-    }
-}
-
-impl<'input, Ext, I, Ctx, T> DerefMut for BaseParser<'input, Ext, I, Ctx, T>
-where
-    Ext: ParserRecog<'input, Self>,
-    I: TokenStream<'input>,
-    Ctx: ParserNodeType<'input, TF = I::TF>,
-    T: ParseTreeListener<'input, Ctx> + ?Sized,
-    // Ctx::Type: Listenable<T>,
-{
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.ext
-    }
-}
-
-///
-pub trait ParserRecog<'a, P: Recognizer<'a>>: Actions<'a, P> {}
-
-impl<'input, Ext, I, Ctx, T> Recognizer<'input> for BaseParser<'input, Ext, I, Ctx, T>
-where
-    Ext: ParserRecog<'input, Self>,
-    I: TokenStream<'input>,
-    Ctx: ParserNodeType<'input, TF = I::TF>,
-    T: ParseTreeListener<'input, Ctx> + ?Sized,
-    // Ctx::Type: Listenable<T>,
-{
-    type Node = Ctx;
+impl Parser<'input> {
 
     fn sempred(
         &mut self,
@@ -223,30 +95,7 @@ where
     fn get_atn(&self) -> &ATN {
         self.interp.atn()
     }
-}
 
-impl<'input, Ext, I, Ctx, T> TokenAware<'input> for BaseParser<'input, Ext, I, Ctx, T>
-where
-    Ext: ParserRecog<'input, Self>,
-    I: TokenStream<'input>,
-    Ctx: ParserNodeType<'input, TF = I::TF>,
-    T: ParseTreeListener<'input, Ctx> + ?Sized,
-    // Ctx::Type: Listenable<T>,
-{
-    type TF = I::TF;
-}
-
-impl<'input, Ext, I, Ctx, T> Parser<'input> for BaseParser<'input, Ext, I, Ctx, T>
-where
-    Ext: ParserRecog<'input, Self>,
-    I: TokenStream<'input>,
-    Ctx: ParserNodeType<'input, TF = I::TF>,
-    T: ParseTreeListener<'input, Ctx> + ?Sized,
-    Ctx::Type:
-        Listenable<T> + CoerceFrom<TerminalNode<'input, Ctx>> + CoerceFrom<ErrorNode<'input, Ctx>>,
-    // TerminalNode<'input, Ctx>: CoerceTo<Ctx::Type>,
-    // ErrorNode<'input, Ctx>: CoerceTo<Ctx::Type>,
-{
     fn get_interpreter(&self) -> &ParserATNSimulator {
         self.interp.as_ref()
     }
@@ -383,24 +232,7 @@ where
         vec
     }
 
-    //    fn get_rule_invocation_stack(&self, c: _) -> Vec<String> {
-    //        unimplemented!()
-    //    }
-}
-
-#[allow(missing_docs)] // todo docs
-impl<'input, Ext, I, Ctx, T> BaseParser<'input, Ext, I, Ctx, T>
-where
-    Ext: ParserRecog<'input, Self>,
-    I: TokenStream<'input>,
-    Ctx: ParserNodeType<'input, TF = I::TF>,
-    T: ParseTreeListener<'input, Ctx> + ?Sized,
-    Ctx::Type:
-        Listenable<T> + CoerceFrom<TerminalNode<'input, Ctx>> + CoerceFrom<ErrorNode<'input, Ctx>>,
-    //     TerminalNode<'input, Ctx>: CoerceTo<Ctx::Type>,
-    //     ErrorNode<'input, Ctx>: CoerceTo<Ctx::Type>,
-{
-    pub fn new_base_parser(input: I, interpreter: Rc<ParserATNSimulator>, ext: Ext) -> Self {
+    pub fn new(input: I, interpreter: ParserATNSimulator) -> Self {
         Self {
             interp: interpreter,
             ctx: None,
@@ -416,9 +248,6 @@ where
             pd: PhantomData,
         }
     }
-
-    //
-    //    fn reset(&self) { unimplemented!() }
 
     #[inline]
     pub fn match_token(
@@ -685,42 +514,5 @@ where
                 seen_one = true;
             }
         }
-    }
-
-    //    fn get_invoking_context(&self, ruleIndex: i32) -> ParserRuleContext { unimplemented!() }
-    //
-    //    fn in_context(&self, context: ParserRuleContext) -> bool { unimplemented!() }
-    //
-    //    fn get_expected_tokens_within_current_rule(&self) -> * IntervalSet { unimplemented!() }
-    //
-    //
-    //    fn get_rule_index(&self, ruleName: String) -> int { unimplemented!() }
-    //
-    //    fn get_dfaStrings(&self) -> String { unimplemented!() }
-    //
-    //    fn get_source_name(&self) -> String { unimplemented!() }
-    //
-    //    fn set_trace(&self, trace: * TraceListener) { unimplemented!() }
-}
-
-/// Allows to safely cast listener back to user type
-#[derive(Debug)]
-pub struct ListenerId<T: ?Sized> {
-    pub(crate) actual_id: usize,
-    phantom: PhantomData<fn() -> T>,
-}
-
-impl<T: ?Sized> ListenerId<T> {
-    fn new(listener: &Box<T>) -> ListenerId<T> {
-        ListenerId {
-            actual_id: listener.as_ref() as *const T as *const () as usize,
-            phantom: Default::default(),
-        }
-    }
-}
-
-impl<T> ListenerId<T> {
-    unsafe fn into_listener<U: ?Sized>(self, boxed: Box<U>) -> Box<T> {
-        Box::from_raw(Box::into_raw(boxed) as *mut T)
     }
 }

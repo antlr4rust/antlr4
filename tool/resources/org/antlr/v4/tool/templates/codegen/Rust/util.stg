@@ -19,4 +19,14 @@ TestSetInline(s) ::= <<
 <s.bitsets:{bits | <if(rest(rest(bits.tokens)))><bitsetBitfieldComparison(s, bits)><else><bitsetInlineComparison(s, bits)><endif>}; separator=" || ">
 >>
 
+cases(tokens) ::= <<
+<tokens:{t | <parser.grammarName>_<t.name> }; separator="|",wrap>
+>>
 
+// produces more efficient bytecode when bits.tokens contains at most two items
+bitsetInlineComparison(s, bits) ::= <%
+<bits.tokens:{ttype | <s.varName>==<parser.grammarName>_<ttype.name>}; separator=" || ">
+%>
+
+// Try to get rid of this if possible
+self() ::= "recog"

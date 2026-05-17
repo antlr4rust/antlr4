@@ -19,13 +19,6 @@ pub struct InputStream<Data: Deref> {
     index: isize,
 }
 
-// #[impl_tid]
-// impl<'a, T: ?Sized + 'static> TidAble<'a> for InputStream<Box<T>> {}
-// #[impl_tid]
-// impl<'a, T: ?Sized + 'static> TidAble<'a> for InputStream<&'a T> {}
-better_any::tid! {impl<'a, T: 'static> TidAble<'a> for InputStream<&'a T> where T: ?Sized}
-better_any::tid! {impl<'a, T: 'static> TidAble<'a> for InputStream<Box<T>> where T: ?Sized}
-
 impl<'a, T: From<&'a str>> CharStream<T> for InputStream<&'a str> {
     #[inline]
     fn get_text(&self, start: isize, stop: isize) -> T {
