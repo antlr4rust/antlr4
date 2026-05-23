@@ -40,15 +40,13 @@ pub const ERROR_DFA_STATE_REF: DFAStateRef = usize::MAX;
 pub struct LexerATNSimulator {
     base: ATNSimulator,
 
-    //    merge_cache: DoubleDict,
     start_index: isize,
     pub(crate) current_pos: Rc<LexerPosition>,
     mode: usize,
     prev_accept: SimState,
-    // lexer_action_executor: Option<Box<LexerActionExecutor>>,
 }
 
-impl ILexerATNSimulator for LexerATNSimulator {
+impl LexerATNSimulator {
     fn reset(&mut self) {
         self.prev_accept.reset()
     }
@@ -109,12 +107,6 @@ impl ILexerATNSimulator for LexerATNSimulator {
         _input.consume();
     }
 
-    //    fn get_recog(&self) -> Rc<RefCell<Box<Recognizer>>>{
-    //        Rc::clone(&self.recog)
-    //    }
-}
-
-impl IATNSimulator for LexerATNSimulator {
     fn shared_context_cache(&self) -> &PredictionContextCache {
         self.base.shared_context_cache()
     }
@@ -126,17 +118,7 @@ impl IATNSimulator for LexerATNSimulator {
     fn decision_to_dfa(&self) -> &Vec<RwLock<DFA>> {
         self.base.decision_to_dfa()
     }
-}
 
-#[allow(missing_docs)]
-pub const MIN_DFA_EDGE: i32 = 0;
-#[allow(missing_docs)]
-pub const MAX_DFA_EDGE: i32 = 127;
-
-impl LexerATNSimulator {
-    /// Creates `LexerATNSimulator` instance which creates DFA over `atn`
-    ///
-    /// Called from generated parser.
     pub fn new_lexer_atnsimulator(
         atn: Arc<ATN>,
         decision_to_dfa: Arc<Vec<RwLock<DFA>>>,
@@ -159,11 +141,6 @@ impl LexerATNSimulator {
         }
     }
 
-    //    fn copy_state(&self, _simulator: &mut LexerATNSimulator) {
-    //        unimplemented!()
-    //    }
-
-    #[cold]
     fn match_atn<'input>(
         &mut self,
         lexer: &mut impl Lexer<'input>,
@@ -237,7 +214,6 @@ impl LexerATNSimulator {
         self.fail_or_accept(symbol, lexer, dfa.unwrap())
     }
 
-    #[inline(always)]
     fn get_existing_target_state(dfa: &DFA, _s: DFAStateRef, t: i32) -> Option<DFAStateRef> {
         // if t < MIN_DFA_EDGE || t > MAX_DFA_EDGE {
         //     return None;
@@ -253,7 +229,6 @@ impl LexerATNSimulator {
             .copied()
     }
 
-    #[cold]
     fn compute_target_state<'input>(
         &self,
         dfa: &mut Option<RwLockUpgradableReadGuard<'_, DFA>>,
@@ -339,13 +314,6 @@ impl LexerATNSimulator {
             }
         }
     }
-
-    //    fn get_reachable_target<T>(&self, states: &T, _trans: &Transition, _t: i32) -> &ATNState
-    //    where
-    //        T: Deref<Target = Vec<DFAState>>,
-    //    {
-    //        unimplemented!()
-    //    }
 
     fn fail_or_accept<'input>(
         &mut self,
@@ -639,8 +607,6 @@ impl LexerATNSimulator {
     }
 
     fn add_dfastate(&self, dfa: &mut DFA, _configs: Box<ATNConfigSet>) -> DFAStateRef
-// where
-    //     V: DerefMut<Target = Vec<DFAState>>,
     {
         assert!(!_configs.has_semantic_context());
         let mut dfastate = DFAState::new_dfastate(usize::MAX, _configs);
@@ -708,9 +674,6 @@ impl LexerATNSimulator {
         &self.decision_to_dfa()[mode]
     }
 
-    // fn get_token_name(&self, _tt: i32) -> String { unimplemented!() }
-
-    // fn reset_sim_state(_sim: &mut SimState) { unimplemented!() }
 }
 
 #[derive(Debug)]
@@ -722,7 +685,7 @@ pub(crate) struct SimState {
 }
 
 impl SimState {
-    pub(crate) fn new() -> SimState {
+    pub fn new() -> SimState {
         SimState {
             index: -1,
             line: 0,
@@ -731,10 +694,7 @@ impl SimState {
         }
     }
 
-    pub(crate) fn reset(&mut self) {
-        // self.index = -1;
-        // self.line = 0;
-        // self.column = -1;
+    pub fn reset(&mut self) {
         self.dfa_state = None;
     }
 }

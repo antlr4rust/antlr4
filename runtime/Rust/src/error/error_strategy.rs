@@ -15,7 +15,7 @@ use crate::interval_set::IntervalSet;
 use crate::parser::{Parser, ParserNodeType};
 use crate::parser_rule_context::ParserRuleContext;
 use crate::rule_context::{CustomRuleContext, RuleContext};
-use crate::token::{Token, TOKEN_DEFAULT_CHANNEL, TOKEN_EOF, TOKEN_EPSILON, TOKEN_INVALID_TYPE};
+use crate::token::{Token, TokenChannel::Default, TOKEN_EOF, TOKEN_EPSILON, TOKEN_INVALID_TYPE};
 use crate::token_factory::TokenFactory;
 use crate::transition::RuleTransition;
 use crate::tree::Tree;
@@ -334,7 +334,7 @@ impl<'input, Ctx: ParserNodeType<'input>> DefaultErrorStrategy<'input, Ctx> {
             None::<&mut dyn CharStream<<Ctx::TF as TokenFactory<'input>>::From>>,
             expected_token_type,
             Some(token_text),
-            TOKEN_DEFAULT_CHANNEL,
+            TokenChannel::Default,
             -1,
             -1,
             line,

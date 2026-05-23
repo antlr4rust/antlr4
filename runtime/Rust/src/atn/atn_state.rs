@@ -175,7 +175,7 @@ impl ATNState {
     fn has_epsilon_only_transitions(&self) -> bool {
         self.epsilon_only_transitions
     }
-    fn get_rule_index(&self) -> i32 {
+    pub fn get_rule_index(&self) -> i32 {
         self.rule_index
     }
 
