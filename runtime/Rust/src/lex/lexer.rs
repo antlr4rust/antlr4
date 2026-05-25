@@ -11,7 +11,7 @@ struct LexerPosition {
     pub char_position_in_line: usize,
 }
 
-pub(crate) enum LexerAction {
+pub enum LexerAction {
     LexerChannelAction(i32),
     LexerCustomAction {
         rule_index: i32,
@@ -35,6 +35,7 @@ pub(crate) enum LexerAction {
 #[allow(missing_docs)]
 pub struct Lexer<'input> {
     input: Cursor<&'input str>,
+
     // position: LexerPosition,
     interpreter: LexerATNSimulator,
     
@@ -77,25 +78,24 @@ impl<'input> Lexer<'input>
         input: &'input str
     ) -> Self {
         let mut lexer = Self {
-            interpreter: Some(Box::new(interpreter)),
-            input: Some(input),
-            recog,
-            factory,
-            error_listeners: RefCell::new(vec![Box::new(ConsoleErrorListener {})]),
-            token_start_char_index: 0,
-            token_start_line: 0,
-            token_start_column: 0,
-            current_pos: Rc::new(LexerPosition {
-                line: Cell::new(1),
-                char_position_in_line: Cell::new(0),
-            }),
+            interpreter: LexerATNSimulator::new_lexer_atnsimulator(atn, decision_to_dfa, shared_context_cache),
+            input: Cursor::new(input),
+            // recog,
+            // factory,
+            // error_listeners: RefCell::new(vec![Box::new(ConsoleErrorListener {})]),
+            // token_start_char_index: 0,
+            // token_start_line: 0,
+            // token_start_column: 0,
+            // current_pos: Rc::new(LexerPosition {
+            //     line: Cell::new(1),
+            //     char_position_in_line: Cell::new(0),
+            // }),
             token_type: super::token::TOKEN_INVALID_TYPE,
-            text: None,
             force_next_token: None,
             hit_eof: false,
             channel: super::token::TokenChannel::Default,
             //            token_factory_source_pair: None,
-            mode_stack: Vec::new(),
+            mode_stack: VecDeque::new(),
             mode: self::LEXER_DEFAULT_MODE,
         };
         let pos = lexer.current_pos.clone();
@@ -118,11 +118,11 @@ impl<'input> Lexer<'input>
         self.input.as_mut().unwrap()
     }
 
-    fn set_channel(&mut self, v: i32) {
+    fn set_channel(&mut self, v: TokenChannel) {
         self.channel = v;
     }
 
-    fn push_mode(&mut self, m: usize) {
+    fn push_mode(&mut self, m: LexerMode) {
         self.mode_stack.push(self.mode);
         self.mode = m;
     }
@@ -133,13 +133,13 @@ impl<'input> Lexer<'input>
         })
     }
 
-    fn set_type(&mut self, t: i32) {
-        self.token_type = t;
-    }
+    // fn set_type(&mut self, t: LexerMode) {
+    //     self.token_type = ;
+    // }
 
-    fn set_mode(&mut self, m: usize) {
-        self.mode = m;
-    }
+    // fn set_mode(&mut self, m: usize) {
+    //     self.mode = m;
+    // }
 
     fn more(&mut self) {
         self.set_type(LexerMode::More)

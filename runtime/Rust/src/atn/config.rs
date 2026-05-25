@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use murmur3::murmur3_32::MurmurHasher;
 
-use crate::atn_config::ATNConfigType::LexerATNConfig;
+use crate::config::ATNConfigType::LexerATNConfig;
 use crate::atn_state::{ATNState, ATNStateRef, ATNStateType};
 use crate::dfa::ScopeExt;
 use crate::lexer_action_executor::LexerActionExecutor;
@@ -84,7 +84,7 @@ impl Debug for ATNConfig {
 }
 
 #[derive(Eq, PartialEq, Clone, Debug)]
-pub(crate) enum ATNConfigType {
+pub enum ATNConfigType {
     BaseATNConfig,
     LexerATNConfig {
         lexer_action_executor: Option<Box<LexerActionExecutor>>,
@@ -93,7 +93,7 @@ pub(crate) enum ATNConfigType {
 }
 
 impl ATNConfig {
-    pub(crate) fn get_lexer_executor(&self) -> Option<&LexerActionExecutor> {
+    pub fn get_lexer_executor(&self) -> Option<&LexerActionExecutor> {
         match &self.config_type {
             ATNConfigType::BaseATNConfig => None,
             ATNConfigType::LexerATNConfig {

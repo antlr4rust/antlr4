@@ -1,9 +1,8 @@
 use std::borrow::Cow;
 
-use crate::atn_state::ATNStateRef;
-use crate::interval_set::IntervalSet;
-use crate::lexer::{LEXER_MAX_CHAR_VALUE, LEXER_MIN_CHAR_VALUE};
-use crate::semantic_context::SemanticContext;
+use crate::atn::ATNStateRef;
+use crate::lex::IntervalSet;
+use crate::lex::{LEXER_MAX_CHAR_VALUE, LEXER_MIN_CHAR_VALUE};
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Eq, PartialEq)]

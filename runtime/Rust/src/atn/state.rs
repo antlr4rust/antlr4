@@ -3,8 +3,9 @@ use std::slice::Iter;
 
 use once_cell::sync::OnceCell;
 
-use crate::interval_set::IntervalSet;
-use crate::transition::Transition;
+use crate::atn::ATNStateRef;
+use crate::lex::IntervalSet;
+use crate::atn::transition::Transition;
 
 pub(crate) const ATNSTATE_INVALID_TYPE: i32 = 0;
 pub(crate) const ATNSTATE_BASIC: i32 = 1;
@@ -42,63 +43,65 @@ pub enum ATNStateType {
 }
 
 impl ATNStateType {
-    pub fn new(type_index: i32, next: Option<i32>) -> Result<Self, ()> {
-
-        match type_index {
-            ATNSTATE_BASIC => Ok(ATNStateType::BasicState),
-            ATNSTATE_RULE_START => Ok(ATNStateType::RuleStartState {
-                stop_state: 0,
-                is_left_recursive: false,
-            }),
-            ATNSTATE_BLOCK_START => Ok(ATNStateType::DecisionState {
-                decision: -1,
-                nongreedy: false,
-                state: ATNDecisionState::BlockStartState {
-                    end_state: next?,
-                    en: ATNBlockStart::BasicBlockStart,
+    pub fn new(type_index: usize, rule_index: usize) -> Result<Self, ()> {
+        Ok(
+            match type_index {
+                ATNSTATE_BASIC => ATNStateType::BasicState,
+                ATNSTATE_RULE_START => ATNStateType::RuleStartState {
+                    stop_state: 0,
+                    is_left_recursive: false,
                 },
-            }),
-            ATNSTATE_PLUS_BLOCK_START => Ok(ATNStateType::DecisionState {
-                decision: -1,
-                nongreedy: false,
-                state: ATNDecisionState::BlockStartState {
-                    end_state: next?,
-                    en: ATNBlockStart::PlusBlockStart(0),
+                ATNSTATE_BLOCK_START => ATNStateType::DecisionState {
+                    decision: -1,
+                    nongreedy: false,
+                    state: ATNDecisionState::BlockStartState {
+                        end_state: 0,
+                        en: ATNBlockStart::BasicBlockStart,
+                    },
                 },
-            }),
-            ATNSTATE_STAR_BLOCK_START => Ok(ATNStateType::DecisionState {
-                decision: -1,
-                nongreedy: false,
-                state: ATNDecisionState::BlockStartState {
-                    end_state: next?,
-                    en: ATNBlockStart::StarBlockStart,
+                ATNSTATE_PLUS_BLOCK_START => ATNStateType::DecisionState {
+                    decision: -1,
+                    nongreedy: false,
+                    state: ATNDecisionState::BlockStartState {
+                        end_state: 0,
+                        en: ATNBlockStart::PlusBlockStart(0),
+                    },
                 },
-            }),
-            ATNSTATE_TOKEN_START => Ok(ATNStateType::DecisionState {
-                decision: -1,
-                nongreedy: false,
-                state: ATNDecisionState::TokenStartState,
-            }),
-            ATNSTATE_RULE_STOP => Ok(ATNStateType::RuleStopState),
-            ATNSTATE_BLOCK_END => Ok(ATNStateType::BlockEndState(0)),
-            ATNSTATE_STAR_LOOP_BACK => Ok(ATNStateType::StarLoopbackState),
-            ATNSTATE_STAR_LOOP_ENTRY => Ok(ATNStateType::DecisionState {
-                decision: -1,
-                nongreedy: false,
-                state: ATNDecisionState::StarLoopEntry {
-                    loop_back_state: 0,
-                    is_precedence: false,
+                ATNSTATE_STAR_BLOCK_START => ATNStateType::DecisionState {
+                    decision: -1,
+                    nongreedy: false,
+                    state: ATNDecisionState::BlockStartState {
+                        end_state: 0,
+                        en: ATNBlockStart::StarBlockStart,
+                    },
                 },
-            }),
-            ATNSTATE_PLUS_LOOP_BACK => Ok(ATNStateType::DecisionState {
-                decision: -1,
-                nongreedy: false,
-                state: ATNDecisionState::PlusLoopBack,
-            }),
-            ATNSTATE_LOOP_END => Ok(ATNStateType::LoopEndState(next?)),
-
-            _ => Err(()),
-        }
+                ATNSTATE_TOKEN_START => ATNStateType::DecisionState {
+                    decision: -1,
+                    nongreedy: false,
+                    state: ATNDecisionState::TokenStartState,
+                },
+                ATNSTATE_RULE_STOP => ATNStateType::RuleStopState,
+                ATNSTATE_BLOCK_END => ATNStateType::BlockEndState(0),
+                ATNSTATE_STAR_LOOP_BACK => ATNStateType::StarLoopbackState,
+                ATNSTATE_STAR_LOOP_ENTRY => ATNStateType::DecisionState {
+                    decision: -1,
+                    nongreedy: false,
+                    state: ATNDecisionState::StarLoopEntry {
+                        loop_back_state: 0,
+                        is_precedence: false,
+                    },
+                },
+                ATNSTATE_PLUS_LOOP_BACK => ATNStateType::DecisionState {
+                    decision: -1,
+                    nongreedy: false,
+                    state: ATNDecisionState::PlusLoopBack,
+                },
+                ATNSTATE_LOOP_END => ATNStateType::LoopEndState(0),
+                _ => {
+                    return Err(())
+                }
+            }
+        )
     }
 }
 
@@ -125,11 +128,9 @@ pub enum ATNBlockStart {
     PlusBlockStart(ATNStateRef),
 }
 
-pub type ATNStateRef = i32;
-
 #[derive(Debug)]
 pub struct ATNState {
-    next_tokens_within_rule: OnceCell<IntervalSet>,
+    next_tokens_within_rule: IntervalSet,
 
     epsilon_only_transitions: bool,
 
@@ -145,7 +146,7 @@ pub struct ATNState {
 impl ATNState {
     pub fn new(state_type: ATNStateType, rule_index: i32, state_number: i32 ) -> Self {
         Self {
-            next_tokens_within_rule: OnceCell::new(),
+            next_tokens_within_rule: IntervalSet::new(),
             epsilon_only_transitions: false,
             rule_index,
             state_number,
@@ -203,7 +204,7 @@ impl ATNState {
         unimplemented!()
     }
 
-    fn get_transitions(&self) -> &Vec<Box<Transition>> {
+    pub fn get_transitions(&self) -> &Vec<Box<Transition>> {
         &self.transitions
     }
 

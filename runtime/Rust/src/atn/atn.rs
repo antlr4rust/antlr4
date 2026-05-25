@@ -4,7 +4,9 @@ use std::slice::Iter;
 
 use std::fmt::{Debug, Formatter};
 
-use crate::atn::atn_state::{ATNState, ATNStateRef, ATNStateType};
+use crate::atn::rule::Rule;
+use crate::atn::state::{ATNState, ATNStateRef, ATNStateType};
+use crate::lex::{IntervalSet, LexerAction};
 use crate::lex::token::TokenType;
 #[doc(hidden)]
 #[derive(Eq, PartialEq, Debug)]
@@ -33,25 +35,26 @@ enum ATNConstructionErr {
 /// Basically NFA(graph) of states and possible(maybe multiple) transitions on a given particular symbol.
 ///
 pub struct ATN {
-    pub decision_states: Vec<ATNStateRef>,
+    // decision_states: Vec<ATNStateRef>,
 
-    pub grammar_type: ATNType,
+    pub(super) grammar_type: ATNType,
 
-    pub(crate) lexer_actions: Vec<LexerAction>,
+    lexer_actions: Vec<LexerAction>,
 
-    pub max_token_type: i32,
+    max_token_type: usize,
 
-    pub mode_name_to_start_state: HashMap<String, ATNStateRef>,
+    // mode_name_to_start_state: HashMap<String, ATNStateRef>,
 
-    pub mode_to_start_state: Vec<ATNStateRef>,
+    // mode_to_start_state: Vec<ATNStateRef>,
 
-    pub rule_to_start_state: Vec<ATNStateRef>,
+    // rule_to_start_state: Vec<ATNStateRef>,
 
-    pub rule_to_stop_state: Vec<ATNStateRef>,
+    // rule_to_stop_state: Vec<ATNStateRef>,
 
-    pub rule_to_token_type: Vec<i32>,
+    // rule_to_token_type: Vec<i32>, 
 
-    pub states: Vec<ATNState>,
+    rules: Vec<Rule>,
+    states: Vec<ATNState>,
 }
 
 impl Debug for ATN {
@@ -68,7 +71,7 @@ impl Debug for ATN {
 impl ATN {
     const SERIALIZED_VERSION: i32 = 4;
 
-    pub fn from_serialized(data: Iter<i32>, verify_atn: bool) -> Result<Self, ATNConstructionErr> {
+    pub fn from_serialized(data: &mut Iter<i32>, verify_atn: bool) -> Result<Self, ATNConstructionErr> {
         if data.next()? != Self::SERIALIZED_VERSION {
             return Err(ATNConstructionErr::VersionMismatch);
         };
