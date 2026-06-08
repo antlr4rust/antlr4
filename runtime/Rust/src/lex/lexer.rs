@@ -1,8 +1,8 @@
 //! Lexer implementation
 
-use std::{collections::VecDeque, io::{Cursor, Read}};
+use std::{collections::VecDeque};
 
-use crate::lex::{Token, action::LexerAction, lexer_atn_simulator::LexerATNSimulator, token::{TokenChannel, TokenType}};
+use crate::{atn::ATN, lex::{token::{TokenChannel, Token, TokenType}}};
 
 #[derive(Debug)]
 struct LexerPosition {
@@ -34,14 +34,14 @@ pub enum LexerAction {
 /// Public fields in this struct are intended to be used by embedded actions
 #[allow(missing_docs)]
 pub struct Lexer<'input> {
-    input: Cursor<&'input str>,
+    input: Vec<char>,
 
     // position: LexerPosition,
-    interpreter: LexerATNSimulator,
+    atn: ATN,
     
     // error_listeners: Vec<Box<dyn ErrorListener<'input, Self>>>,
 
-    // current_pos: LexerPosition,
+    pos: usize,
 
     /// Overrides token type emitted by lexer for current token
     token_type: TokenType,
@@ -68,323 +68,32 @@ pub enum LexerMode {
     Skip
 }
 
-pub(crate) const LEXER_MIN_CHAR_VALUE: i32 = 0x0000;
-pub(crate) const LEXER_MAX_CHAR_VALUE: i32 = 0x10FFFF;
+pub(crate) const LEXER_MIN_CHAR_VALUE: usize = 0x0000;
+pub(crate) const LEXER_MAX_CHAR_VALUE: usize = 0x10FFFF;
 
 impl<'input> Lexer<'input>
 {
     /// Creates new lexer instance
     pub fn new(
-        input: &'input str
+        input: &'input str,
+        atn: ATN
     ) -> Self {
-        let mut lexer = Self {
-            interpreter: LexerATNSimulator::new_lexer_atnsimulator(atn, decision_to_dfa, shared_context_cache),
-            input: Cursor::new(input),
-            // recog,
-            // factory,
-            // error_listeners: RefCell::new(vec![Box::new(ConsoleErrorListener {})]),
-            // token_start_char_index: 0,
-            // token_start_line: 0,
-            // token_start_column: 0,
-            // current_pos: Rc::new(LexerPosition {
-            //     line: Cell::new(1),
-            //     char_position_in_line: Cell::new(0),
-            // }),
-            token_type: super::token::TOKEN_INVALID_TYPE,
+        Self {
+            atn,
+            input: input.chars().collect(),
+
+            pos: 0,
+            token_type: TokenType::Invalid,
             force_next_token: None,
             hit_eof: false,
             channel: super::token::TokenChannel::Default,
             //            token_factory_source_pair: None,
             mode_stack: VecDeque::new(),
-            mode: self::LEXER_DEFAULT_MODE,
-        };
-        let pos = lexer.current_pos.clone();
-        lexer.interpreter.as_mut().unwrap().current_pos = pos;
-        lexer
+            mode: LexerMode::Default,
+        }
     }
     
-
-    /// Add error listener
-    // pub fn add_error_listener(&mut self, listener: Box<dyn ErrorListener<'input, Self>>) {
-    //     self.error_listeners.borrow_mut().push(listener);
-    // }
-
-    /// Remove and drop all error listeners
-    pub fn remove_error_listeners(&mut self) {
-        self.error_listeners.borrow_mut().clear();
+    fn look_ahead(&self, by: usize) -> Option<char> {
+        self.input.get(by + self.pos).cloned()
     }
-
-    fn input(&mut self) -> &mut Self::Input {
-        self.input.as_mut().unwrap()
-    }
-
-    fn set_channel(&mut self, v: TokenChannel) {
-        self.channel = v;
-    }
-
-    fn push_mode(&mut self, m: LexerMode) {
-        self.mode_stack.push(self.mode);
-        self.mode = m;
-    }
-
-    fn pop_mode(&mut self) -> Option<usize> {
-        self.mode_stack.pop().inspect(|&mode| {
-            self.mode = mode;
-        })
-    }
-
-    // fn set_type(&mut self, t: LexerMode) {
-    //     self.token_type = ;
-    // }
-
-    // fn set_mode(&mut self, m: usize) {
-    //     self.mode = m;
-    // }
-
-    fn more(&mut self) {
-        self.set_type(LexerMode::More)
-    }
-
-    fn skip(&mut self) {
-        self.set_type(LexerMode::Skip)
-    }
-
-    fn reset(&mut self) {
-        unimplemented!()
-    }
-
-    fn get_interpreter(&self) -> Option<&LexerATNSimulator> {
-        self.interpreter.as_deref()
-    }
-
-    #[inline]
-    fn consume(&mut self) {
-        self.base.consume();
-        //        self.base.p = self.next_token_on_channel(self.base.p,self.channel);
-        //        self.base.current_token_index = self.base.p;
-        let next = self.next_token_on_channel(self.base.p, self.channel, 1);
-        self.base.seek(next);
-        // Ok(())
-    }
-
-    #[inline]
-    fn la(&mut self, i: isize) -> i32 {
-        self.lt(i)
-            .map(|t| t.borrow().get_token_type())
-            .unwrap_or(TOKEN_INVALID_TYPE)
-    }
-
-    #[inline(always)]
-    fn mark(&mut self) -> isize {
-        0
-    }
-
-    #[inline(always)]
-    fn release(&mut self, _marker: isize) {}
-
-    #[inline(always)]
-    fn index(&self) -> isize {
-        self.base.index()
-    }
-
-    #[inline(always)]
-    fn seek(&mut self, index: isize) {
-        self.base.seek(index);
-    }
-
-    #[inline(always)]
-    fn size(&self) -> isize {
-        self.base.size()
-    }
-
-    fn get_source_name(&self) -> String {
-        self.base.get_source_name()
-    }
-
-    #[inline(always)]
-    fn lt(&mut self, k: isize) -> Option<Token> {
-        if k == 0 {
-            return None;
-        }
-        if k < 0 {
-            return self.lb(-k);
-        }
-        self.lt_inner(k)
-    }
-
-    #[inline]
-    fn get(&self, index: isize) -> &<Self::TF as TokenFactory<'input>>::Tok {
-        self.base.get(index)
-    }
-
-    fn get_token_source(&self) -> &dyn TokenSource<'input, TF = Self::TF> {
-        self.base.get_token_source()
-    }
-
-    fn get_text_from_interval(&self, start: isize, stop: isize) -> String {
-        self.base.get_text_from_interval(start, stop)
-    }
-    
-    pub fn get_dfa_string(&self) -> String {
-        self.base.get_dfa_string()
-    }
-
-    fn lt_inner(&mut self, k: isize) -> Option<Token> {
-        let mut i = self.base.p;
-        let mut n = 1; // we know tokens[p] is a good one
-                       // find k good tokens
-        while n < k {
-            // skip off-channel tokens, but make sure to not look past EOF
-            if self.sync(i + 1) {
-                i = self.next_token_on_channel(i + 1, self.channel, 1);
-            }
-            n += 1;
-        }
-        //		if ( i>range ) range = i;
-        self.base.tokens.get(i as usize)
-    }
-
-    /// Restarts this token stream
-    pub fn reset(&mut self) {
-        self.base.p = 0;
-        self.base.current_token_index = 0;
-    }
-
-    fn sync(&mut self, i: isize) -> bool {
-        let need = i - self.size() + 1;
-        if need > 0 {
-            let fetched = self.base.fill(need);
-            return fetched >= need;
-        }
-
-        true
-    }
-
-    //todo make this const generic over direction
-    fn next_token_on_channel(&mut self, mut i: isize, channel: i32, direction: isize) -> isize {
-        self.sync(i);
-        if i >= self.size() {
-            return self.size() - 1;
-        }
-
-        let mut token = self.base.tokens[i as usize].borrow();
-        while token.get_channel() != channel {
-            i += direction;
-            if token.get_token_type() == EOF || i < 0 {
-                return i;
-            }
-
-            self.sync(i);
-            token = self.base.tokens[i as usize].borrow();
-        }
-
-        i
-    }
-
-    /// Scans backwards from index `i` looking for a token on the given
-    /// `channel`. Returns the index of the first matching token, or -1 if
-    /// none is found before the start of the stream. EOF tokens are treated
-    /// as matching any channel.
-    fn previous_token_on_channel(&mut self, mut i: isize, channel: i32) -> isize {
-        self.sync(i);
-        if i >= self.size() {
-            return self.size() - 1;
-        }
-
-        while i >= 0 {
-            let token = self.base.tokens[i as usize].borrow();
-            if token.get_token_type() == EOF || token.get_channel() == channel {
-                return i;
-            }
-            i -= 1;
-        }
-
-        -1
-    }
-
-    /// Collects tokens in the index range `[from, to]` that are on the
-    /// given `channel`. If `channel` is -1, collects all tokens that are
-    /// *not* on `TokenChannel::Default`. Returns `None` if no tokens match.
-    fn filter_for_channel(&self, from: isize, to: isize, channel: i32) -> Option<Vec<OwningToken>> {
-        let mut hidden: Vec<OwningToken> = Vec::new();
-        for i in from..=to {
-            if i < 0 || i >= self.base.tokens.len() as isize {
-                continue;
-            }
-            let t = self.base.tokens[i as usize].borrow();
-            if channel == -1 {
-                if t.get_channel() != TokenChannel::Default {
-                    hidden.push(t.to_owned());
-                }
-            } else if t.get_channel() == channel {
-                hidden.push(t.to_owned());
-            }
-        }
-
-        if hidden.is_empty() {
-            None
-        } else {
-            Some(hidden)
-        }
-    }
-
-    /// Returns hidden tokens to the left of `token_index` on the given
-    /// `channel`. Scans backwards to the previous on-channel token and
-    /// collects everything in between. Pass -1 as `channel` to get all
-    /// non-default-channel tokens.
-    pub fn get_hidden_tokens_to_left(
-        &mut self,
-        token_index: isize,
-        channel: i32,
-    ) -> Option<Vec<OwningToken>> {
-        let prev_on_channel =
-            self.previous_token_on_channel(token_index - 1, TokenChannel::Default);
-        let from = if prev_on_channel == token_index - 1 || prev_on_channel < 0 {
-            return None;
-        } else {
-            prev_on_channel + 1
-        };
-        self.filter_for_channel(from, token_index - 1, channel)
-    }
-
-    /// Returns hidden tokens to the right of `token_index` on the given
-    /// `channel`. Scans forward to the next on-channel token and collects
-    /// everything in between. Pass -1 as `channel` to get all
-    /// non-default-channel tokens.
-    pub fn get_hidden_tokens_to_right(
-        &mut self,
-        token_index: isize,
-        channel: i32,
-    ) -> Option<Vec<Token>> {
-        let next_on_channel = self.next_token_on_channel(token_index + 1, TokenChannel::Default, 1);
-        let to = next_on_channel - 1;
-        if to <= token_index {
-            return None;
-        }
-        self.filter_for_channel(token_index + 1, to, channel)
-    }
-
-    // Stands for look-back?
-    fn lb(
-        &mut self,
-        k: isize,
-    ) -> Option<Token> {
-        if k == 0 || (self.base.p - k) < 0 {
-            return None;
-        }
-
-        let mut i = self.base.p;
-        let mut n = 1;
-        // find k good tokens looking backwards
-        while n <= k && i > 0 {
-            // skip off-channel tokens
-            i = self.next_token_on_channel(i - 1, self.channel, -1);
-            n += 1;
-        }
-        if i < 0 {
-            return None;
-        }
-
-        self.base.tokens.get(i as usize)
-    }    
 }

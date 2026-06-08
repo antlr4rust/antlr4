@@ -2,6 +2,7 @@ use std::borrow::Borrow;
 use std::fmt::Formatter;
 use std::fmt::{Debug, Display};
 
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum TokenType {
     Epsilon = -2,
     
@@ -12,12 +13,13 @@ pub enum TokenType {
     
 }
 
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum TokenChannel {
     Default,
     Hidden
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 #[allow(missing_docs)]
 pub struct Token<'input> {
     pub token_type: TokenType,
@@ -43,17 +45,13 @@ impl Display for Token<'_> {
         let txt = txt.replace("\t", "\\t");
         //        let txt = escape_whitespaces(txt,false);
         f.write_fmt(format_args!(
-            "[@{},{}:{}='{}',<{}>{},{}:{}]",
+            "[@{},{}:{}='{}',<{:#?}>{:#?},{}:{}]",
             self.get_token_index(),
             self.start,
             self.stop,
             txt,
             self.token_type,
-            if self.channel > 0 {
-                ",channel=".to_string() + self.channel.to_string().as_str()
-            } else {
-                String::new()
-            },
+            self.channel,
             self.line,
             self.column
         ))
@@ -102,7 +100,7 @@ impl Token<'_> {
         self.token_index
     }
 
-    fn set_token_index(&self, _v: usize) {
+    fn set_token_index(&mut self, _v: usize) {
         self.token_index = _v
     }
 }

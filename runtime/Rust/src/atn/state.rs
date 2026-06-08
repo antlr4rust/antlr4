@@ -1,26 +1,22 @@
+use std::{collections::HashSet, range::Range};
 use std::fmt::Debug;
-use std::slice::Iter;
 
-use once_cell::sync::OnceCell;
+use crate::atn::{ATNStateRef, ATNTransitionRef};
 
-use crate::atn::ATNStateRef;
-use crate::lex::IntervalSet;
-use crate::atn::transition::Transition;
-
-pub(crate) const ATNSTATE_INVALID_TYPE: i32 = 0;
-pub(crate) const ATNSTATE_BASIC: i32 = 1;
-pub(crate) const ATNSTATE_RULE_START: i32 = 2;
-pub(crate) const ATNSTATE_BLOCK_START: i32 = 3;
-pub(crate) const ATNSTATE_PLUS_BLOCK_START: i32 = 4;
-pub(crate) const ATNSTATE_STAR_BLOCK_START: i32 = 5;
-pub(crate) const ATNSTATE_TOKEN_START: i32 = 6;
-pub(crate) const ATNSTATE_RULE_STOP: i32 = 7;
-pub(crate) const ATNSTATE_BLOCK_END: i32 = 8;
-pub(crate) const ATNSTATE_STAR_LOOP_BACK: i32 = 9;
-pub(crate) const ATNSTATE_STAR_LOOP_ENTRY: i32 = 10;
-pub(crate) const ATNSTATE_PLUS_LOOP_BACK: i32 = 11;
-pub(crate) const ATNSTATE_LOOP_END: i32 = 12;
-pub(crate) const ATNSTATE_INVALID_STATE_NUMBER: i32 = -1;
+pub(crate) const ATNSTATE_INVALID_TYPE: usize = 0;
+pub(crate) const ATNSTATE_BASIC: usize = 1;
+pub(crate) const ATNSTATE_RULE_START: usize = 2;
+pub(crate) const ATNSTATE_BLOCK_START: usize = 3;
+pub(crate) const ATNSTATE_PLUS_BLOCK_START: usize = 4;
+pub(crate) const ATNSTATE_STAR_BLOCK_START: usize = 5;
+pub(crate) const ATNSTATE_TOKEN_START: usize = 6;
+pub(crate) const ATNSTATE_RULE_STOP: usize = 7;
+pub(crate) const ATNSTATE_BLOCK_END: usize = 8;
+pub(crate) const ATNSTATE_STAR_LOOP_BACK: usize = 9;
+pub(crate) const ATNSTATE_STAR_LOOP_ENTRY: usize = 10;
+pub(crate) const ATNSTATE_PLUS_LOOP_BACK: usize = 11;
+pub(crate) const ATNSTATE_LOOP_END: usize = 12;
+// pub(crate) const ATNSTATE_INVALID_STATE_NUMBER: usize = -1;
 
 //might be changed later
 #[doc(hidden)]
@@ -36,23 +32,23 @@ pub enum ATNStateType {
     StarLoopbackState,
     BasicState,
     DecisionState {
-        decision: i32,
+        decision: usize,
         nongreedy: bool,
         state: ATNDecisionState,
     },
 }
 
 impl ATNStateType {
-    pub fn new(type_index: usize, rule_index: usize) -> Result<Self, ()> {
+    pub fn new(state_type: usize, rule_index: usize) -> Result<Self, ()> {
         Ok(
-            match type_index {
+            match state_type {
                 ATNSTATE_BASIC => ATNStateType::BasicState,
                 ATNSTATE_RULE_START => ATNStateType::RuleStartState {
                     stop_state: 0,
                     is_left_recursive: false,
                 },
                 ATNSTATE_BLOCK_START => ATNStateType::DecisionState {
-                    decision: -1,
+                    decision: usize::MAX,
                     nongreedy: false,
                     state: ATNDecisionState::BlockStartState {
                         end_state: 0,
@@ -60,7 +56,7 @@ impl ATNStateType {
                     },
                 },
                 ATNSTATE_PLUS_BLOCK_START => ATNStateType::DecisionState {
-                    decision: -1,
+                    decision: usize::MAX,
                     nongreedy: false,
                     state: ATNDecisionState::BlockStartState {
                         end_state: 0,
@@ -68,7 +64,7 @@ impl ATNStateType {
                     },
                 },
                 ATNSTATE_STAR_BLOCK_START => ATNStateType::DecisionState {
-                    decision: -1,
+                    decision: usize::MAX,
                     nongreedy: false,
                     state: ATNDecisionState::BlockStartState {
                         end_state: 0,
@@ -76,7 +72,7 @@ impl ATNStateType {
                     },
                 },
                 ATNSTATE_TOKEN_START => ATNStateType::DecisionState {
-                    decision: -1,
+                    decision: usize::MAX,
                     nongreedy: false,
                     state: ATNDecisionState::TokenStartState,
                 },
@@ -84,7 +80,7 @@ impl ATNStateType {
                 ATNSTATE_BLOCK_END => ATNStateType::BlockEndState(0),
                 ATNSTATE_STAR_LOOP_BACK => ATNStateType::StarLoopbackState,
                 ATNSTATE_STAR_LOOP_ENTRY => ATNStateType::DecisionState {
-                    decision: -1,
+                    decision: usize::MAX,
                     nongreedy: false,
                     state: ATNDecisionState::StarLoopEntry {
                         loop_back_state: 0,
@@ -92,7 +88,7 @@ impl ATNStateType {
                     },
                 },
                 ATNSTATE_PLUS_LOOP_BACK => ATNStateType::DecisionState {
-                    decision: -1,
+                    decision: usize::MAX,
                     nongreedy: false,
                     state: ATNDecisionState::PlusLoopBack,
                 },
@@ -130,29 +126,29 @@ pub enum ATNBlockStart {
 
 #[derive(Debug)]
 pub struct ATNState {
-    next_tokens_within_rule: IntervalSet,
+    next_tokens_within_rule: HashSet<Range<usize>>,
 
     epsilon_only_transitions: bool,
 
-    pub rule_index: i32,
+    pub rule_index: usize,
 
-    pub state_number: i32,
+    pub state_number: usize,
 
     pub state_type: ATNStateType,
 
-    transitions: Vec<Box<Transition>>,
+    transitions: HashSet<ATNTransitionRef>,
 }
 
 impl ATNState {
-    pub fn new(state_type: ATNStateType, rule_index: i32, state_number: i32 ) -> Self {
-        Self {
-            next_tokens_within_rule: IntervalSet::new(),
+    pub fn new(state_type: usize, rule_index: usize, state_number: usize ) -> Option<Self> {
+        Some(Self {
+            next_tokens_within_rule: HashSet::new(),
             epsilon_only_transitions: false,
             rule_index,
             state_number,
-            state_type,
-            transitions: Vec::new(),
-        }
+            state_type: ATNStateType::new(state_type, rule_index).ok()?,
+            transitions: HashSet::new(),
+        })
     }
 
     pub fn set_nongreedy(&mut self, ng: bool) {
@@ -176,15 +172,15 @@ impl ATNState {
     fn has_epsilon_only_transitions(&self) -> bool {
         self.epsilon_only_transitions
     }
-    pub fn get_rule_index(&self) -> i32 {
+    pub fn get_rule_index(&self) -> usize {
         self.rule_index
     }
 
-    fn set_rule_index(&self, _v: i32) {
+    fn set_rule_index(&self, _v: usize) {
         unimplemented!()
     }
 
-    fn get_next_tokens_within_rule(&self) -> &OnceCell<IntervalSet> {
+    fn get_next_tokens_within_rule(&self) -> &HashSet<Range<usize>> {
         &self.next_tokens_within_rule
     }
 
@@ -196,46 +192,19 @@ impl ATNState {
         &mut self.state_type
     }
 
-    fn get_state_number(&self) -> i32 {
+    pub fn get_state_number(&self) -> usize {
         self.state_number
     }
 
-    fn set_state_number(&self, _state_number: i32) {
+    fn set_state_number(&self, _state_number: usize) {
         unimplemented!()
     }
 
-    pub fn get_transitions(&self) -> &Vec<Box<Transition>> {
+    pub fn transitions(&self) -> &HashSet<ATNTransitionRef> {
         &self.transitions
     }
 
-    fn set_transitions(&self, _t: Vec<Box<Transition>>) {
-        unimplemented!()
-    }
-
-    fn add_transition(&mut self, trans: Box<Transition>) {
-        if self.transitions.is_empty() {
-            self.epsilon_only_transitions = trans.is_epsilon()
-        } else {
-            self.epsilon_only_transitions &= trans.is_epsilon()
-        }
-
-        let mut already_present = false;
-        for existing in self.transitions.iter() {
-            if existing.get_target() == trans.get_target() {
-                if existing.get_label().is_some()
-                    && trans.get_label().is_some()
-                    && existing.get_label() == trans.get_label()
-                {
-                    already_present = true;
-                    break;
-                } else if existing.is_epsilon() && trans.is_epsilon() {
-                    already_present = true;
-                    break;
-                }
-            }
-        }
-        if !already_present {
-            self.transitions.push(trans);
-        }
+    fn add_transition(&mut self, t: ATNTransitionRef) {
+        self.transitions.insert(t);
     }
 }
