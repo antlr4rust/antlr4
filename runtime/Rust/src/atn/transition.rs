@@ -111,6 +111,25 @@ impl Transition {
         
         let t = match transition_type {
             TransitionType::TRANSITION_EPSILON => Self::Epsilon { source, target, outermost_precedence_return: 0 },
+
+            // TODO: If arg3 != 0, start = EOF
+            TransitionType::TRANSITION_RANGE => Self::Range { source, target, start: arg1, stop: arg2 },
+
+            TransitionType::TRANSITION_RULE => Self::Rule { source, target, follow_state: arg1, rule_index: arg2, precedence: arg3 },
+
+            TransitionType::TRANSITION_PREDICATE => Self::Predicate { source, target, is_ctx_dependent: false, rule_index: arg1, pred_index: 2 },
+
+            TransitionType::TRANSITION_ATOM => Self::Atom { source, target, label: if arg3 == 0 { arg1 } else { usize::MAX } },
+
+            TransitionType::TRANSITION_ACTION => Self::Action { source, target, is_ctx_dependent: arg3 != 0, rule_index: arg1, action_index: arg2, pred_index: 0 },
+
+            TransitionType::TRANSITION_SET => panic!("SET panic"),
+
+            TransitionType::TRANSITION_NOTSET => panic!("NOTSET panic"),
+
+            TransitionType::TRANSITION_WILDCARD => Self::Wildcard { source, target },
+
+            TransitionType::TRANSITION_PRECEDENCE => Self::PrecedencePredicate { source, target, precedence: arg1 },
             _ => { return None }
         };
 

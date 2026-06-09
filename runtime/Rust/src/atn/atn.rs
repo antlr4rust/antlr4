@@ -4,7 +4,7 @@ use std::slice::Iter;
 use std::fmt::{Debug, Formatter};
 
 use crate::atn::ATNRuleRef;
-use crate::atn::parse::read_edges;
+use crate::atn::parse::{read_edges, read_modes, read_rules, read_sets, read_states};
 use crate::atn::rule::ATNRule;
 use crate::atn::state::ATNState;
 use crate::atn::transition::Transition;
@@ -29,11 +29,16 @@ impl ATNType {
 
 pub const INVALID_ALT: usize = 0;
 
-enum ATNConstructionErr {
+#[derive(Debug)]
+pub enum ATNConstructionErr {
     VersionMismatch,
     InsufficientData,
     InvalidGrammarType,
-    ReadEdges
+    ReadStates,
+    ReadRules,
+    ReadEdges,
+    ReadModes,
+    ReadSets
 }
 /// Augmented Transition Network
 ///
@@ -56,9 +61,9 @@ impl Debug for ATN {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ATN")
             .field("grammar_type", &self.grammar_type)
-            .field("max_token_type", &self.max_token_type)
-            .field("states count", &self.states.len())
-            .field("..", &"..")
+            .field("rules", &self.rules)
+            .field("states", &self.states)
+            .field("transitions", &self.transitions)
             .finish()
     }
 }
@@ -66,7 +71,8 @@ impl Debug for ATN {
 impl ATN {
     const SERIALIZED_VERSION: usize = 4;
 
-    pub fn from_serialized(data: &mut Iter<usize>, verify_atn: bool) -> Result<Self, ATNConstructionErr> {
+    pub fn from_serialized(data: Vec<usize>, verify_atn: bool) -> Result<Self, ATNConstructionErr> {
+        let mut data = data.iter();
         let version = *data.next().ok_or(ATNConstructionErr::InsufficientData)?;
         if version != Self::SERIALIZED_VERSION {
             return Err(ATNConstructionErr::VersionMismatch);
@@ -88,8 +94,17 @@ impl ATN {
             transitions: Vec::new()
         };
 
-        in_construction_atn.transitions = read_edges(data).ok_or(ATNConstructionErr::ReadEdges)?;
+        in_construction_atn.states = read_states(&mut data).ok_or(ATNConstructionErr::ReadStates)?;
+        in_construction_atn.rules = read_rules(&mut data, false).ok_or(ATNConstructionErr::ReadRules)?;
+        read_modes(&mut data).ok_or(ATNConstructionErr::ReadModes)?;
+        read_sets(&mut data).ok_or(ATNConstructionErr::ReadSets)?;
+        
+        in_construction_atn.transitions = read_edges(&mut data).ok_or(ATNConstructionErr::ReadEdges)?;
  
+        // read_decisions
+        // read_lexer_actions (if lexer)
+        // mark_precedence_decisions
+
         Ok(in_construction_atn)
     }
 
