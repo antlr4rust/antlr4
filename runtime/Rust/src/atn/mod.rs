@@ -11,4 +11,5 @@ pub use state::ATNState;
 
 pub type ATNStateRef = usize;
 pub type ATNRuleRef = usize;
+pub type ATNSetRef = usize;
 pub type ATNTransitionRef = usize;

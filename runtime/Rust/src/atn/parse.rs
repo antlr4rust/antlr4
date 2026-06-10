@@ -1,10 +1,8 @@
-use std::{collections::HashSet, range::Range, slice::Iter};
+use std::{collections::{HashSet, VecDeque}, range::Range, slice::Iter};
 
-use crate::{
-    atn::{
-        atn::{ATN, ATNType}, rule::ATNRule, state::{ATNDecisionState, ATNState, ATNStateType}, transition::Transition
-    },
-};
+use crate::atn::{
+        ATNStateRef, atn::{ATN, ATNType}, rule::ATNRule, state::{ATNDecisionState, ATNState, ATNStateType}, transition::Transition
+    };
 
 // If an error happens, check these for early returns on a parse error resulting in an empty Vec
 pub fn read_states(data: &mut Iter<usize>) -> Option<Vec<ATNState>> {
@@ -13,6 +11,10 @@ pub fn read_states(data: &mut Iter<usize>) -> Option<Vec<ATNState>> {
 
     for i in 0..state_count {
         let state_type = *data.next()?;
+        
+        // Is this even necessary?
+        if state_type == 0 { continue }
+
         let rule_index = *data.next()?;
 
         let mut state = ATNState::new(state_type, rule_index, i)?;
@@ -42,7 +44,7 @@ pub fn read_states(data: &mut Iter<usize>) -> Option<Vec<ATNState>> {
     }
 
     let left_recursive_count = *data.next()?;
-    for _ in 0..nongreedy_count {
+    for _ in 0..left_recursive_count {
         let state_index = *data.next()?;
         if let Some(s) = states.get_mut(state_index as usize) {
             s.set_left_recursive(true);
@@ -52,6 +54,8 @@ pub fn read_states(data: &mut Iter<usize>) -> Option<Vec<ATNState>> {
     Some(states)
 }
 
+/// This function only handles reading from a serialized array. The stop states for each rule
+/// need to be modified by reading states, by finding each RuleStopState and adding it's value for the correct rule_index
 pub fn read_rules(data: &mut Iter<usize>, lex: bool) -> Option<Vec<ATNRule>> {
     // Start states
     let nrules = *data.next()? as usize;
@@ -74,106 +78,63 @@ pub fn read_rules(data: &mut Iter<usize>, lex: bool) -> Option<Vec<ATNRule>> {
     Some(rules)
 }
 
-pub fn read_modes(data: &mut Iter<usize>) -> Option<Vec<usize>> {
-    let mut mode_to_start_state = Vec::new();
+pub fn read_modes(data: &mut Iter<usize>) -> Option<Vec<ATNStateRef>> {
+    let mut modes = Vec::new();
 
     let nmodes = *data.next()?;
     for _ in 0..nmodes {
-        mode_to_start_state.push(*data.next()?);
+        modes.push(*data.next()?);
     }
 
-    Some(mode_to_start_state)
+    Some(modes)
 }
 
-pub fn read_sets(data: &mut Iter<usize>) -> Option<Vec<HashSet<Range<usize>>>> {
-    let nsets = *data.next()?;
+pub fn read_sets(data: &mut Iter<usize>) -> Option<Vec<HashSet<usize>>> {
+    // For now, instead of IntervalSet stuff, just add every item in the set to the HashSet manually
+    let num_sets = *data.next()?;
     let mut sets = Vec::new();
 
-    for _ in 0..nsets {
-        let intervals = *data.next()?;
+    for _ in 0..num_sets {
+        let mut set = HashSet::new();
 
-        // let mut set = HashSet::new();
+        let num_intervals =  *data.next()?;
+        if *data.next()? != 0 {
+            // Contains EOF
+            set.insert(usize::MAX);
+        }
 
-        // // check if contains eof
-        // if *data.next()? != 0 {
-        //     set.add_one(-1)
-        // }
+        for _ in 0..num_intervals {
+            let begin = *data.next()?;
+            let end = *data.next()?;
 
-        // for _ in 0..intervals {
-        //     set.add_range(*data.next()?, *data.next()?);
-        // }
-        // sets.push(set);
+            (begin..=end).for_each(|value| { set.insert(value); });
+        }
+
+        sets.push(set);
     }
 
     Some(sets)
 }
 
-pub fn read_edges(data: &mut Iter<usize>) -> Option<Vec<Transition>> {
+pub fn read_edges(data: Iter<usize>) -> Option<Vec<Transition>> {
+    // TODO: For debugging fix later make it normal
+    let data = data.collect::<VecDeque<&usize>>();
+    let mut data = data.iter().map(|x| **x).collect::<VecDeque<usize>>();
+
     let mut edges = Vec::new();
-    let nedges = *data.next()?;
+    let nedges = data.pop_front()?;
 
     for _i in 0..nedges {
-        edges.push(Transition::new(data)?);
+        let x = [data.pop_front()?, data.pop_front()?, data.pop_front()?, data.pop_front()?, data.pop_front()?, data.pop_front()?];
+
+        // necessary?
+        if x[0] == 0 { continue }
+        
+        let transition = Transition::new(&mut x.iter())?;
+        edges.push(transition);
     };
 
     Some(edges)
-    // let mut new_tr = Vec::new();
-    // for i in &atn.states {
-    //     for tr in i.transitions() {
-    //         match tr.get_serialization_type() {
-    //             TransitionType::TRANSITION_RULE => {
-    //                 let tr = tr.as_ref().cast::<RuleTransition>();
-    //                 let target = atn.states.get(tr.get_target() as usize)?;
-
-    //                 let outermost_prec_return = if let ATNStateType::RuleStartState {
-    //                     is_left_recursive: true,
-    //                     ..
-    //                 } = atn
-    //                     .states
-    //                     .get(atn.rule_to_start_state[target.get_rule_index() as usize] as usize)?
-    //                     .get_state_type()
-    //                 {
-    //                     if tr.precedence == 0 {
-    //                         target.get_rule_index() as usize
-    //                     } else {
-    //                         -1
-    //                     }
-    //                 } else {
-    //                     -1
-    //                 };
-
-    //                 let return_tr = EpsilonTransition {
-    //                     target: tr.follow_state,
-    //                     outermost_precedence_return: outermost_prec_return,
-    //                 };
-    //                 new_tr.push((
-    //                     atn.rule_to_stop_state[target.get_rule_index() as usize],
-    //                     Box::new(return_tr),
-    //                 ));
-    //             }
-    //             _ => continue,
-    //         }
-    //     }
-    // }
-    // new_tr
-    //     .drain(..)
-    //     .for_each(|(state, tr)| atn.states[state as usize].add_transition(tr));
-
-    // for i in 0..atn.states.len() {
-    //     let atn_state = atn.states.get(i)?;
-    //     match atn_state.get_state_type() {
-    //         ATNStateType::DecisionState {
-    //             state:
-    //                 ATNDecisionState::BlockStartState {
-    //                     end_state: _,
-    //                     en: _,
-    //                 },
-    //             ..
-    //         } => {}
-
-    //         _x => { /*println!("{:?}",x);*/ }
-    //     }
-    // }
 }
 
 fn read_decisions(atn: &mut ATN, data: &mut Iter<usize>) -> Option<()> {

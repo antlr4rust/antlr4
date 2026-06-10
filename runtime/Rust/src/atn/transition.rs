@@ -1,6 +1,7 @@
 use std::slice::Iter;
 
 use crate::atn::ATNStateRef;
+use crate::atn::ATNSetRef;
 
 #[allow(non_camel_case_types)]
 #[derive(Debug, Eq, PartialEq)]
@@ -86,14 +87,16 @@ pub enum Transition {
         start: usize,
         stop: usize,
     },
-    // Set {
-    //     target: ATNStateRef,
-    //     set: IntervalSet,
-    // },
-    // NotSet {
-    //     target: ATNStateRef,
-    //     set: IntervalSet,
-    // },
+    Set {
+        source: ATNStateRef,
+        target: ATNStateRef,
+        set: ATNSetRef,
+    },
+    NotSet {
+        source: ATNStateRef,
+        target: ATNStateRef,
+        not_set: ATNSetRef,
+    },
     Wildcard {
         source: ATNStateRef,
         target: ATNStateRef,
@@ -123,9 +126,9 @@ impl Transition {
 
             TransitionType::TRANSITION_ACTION => Self::Action { source, target, is_ctx_dependent: arg3 != 0, rule_index: arg1, action_index: arg2, pred_index: 0 },
 
-            TransitionType::TRANSITION_SET => panic!("SET panic"),
+            TransitionType::TRANSITION_SET => Self::Set { source, target, set: arg1 },
 
-            TransitionType::TRANSITION_NOTSET => panic!("NOTSET panic"),
+            TransitionType::TRANSITION_NOTSET => Self::NotSet { source, target, not_set: arg1 },
 
             TransitionType::TRANSITION_WILDCARD => Self::Wildcard { source, target },
 
@@ -144,8 +147,8 @@ impl Transition {
             | Self::Epsilon { source, .. }
             | Self::Range { source, .. }
             | Self::Action { source, .. }
-            // | Self::Set { source, .. }
-            // | Self::NotSet { source, .. }
+            | Self::Set { source, .. }
+            | Self::NotSet { source, .. }
             | Self::Wildcard { source, .. }
             | Self::Predicate { source, .. }
             | Self::PrecedencePredicate { source, .. } => *source,
@@ -159,8 +162,8 @@ impl Transition {
             | Self::Epsilon { target, .. }
             | Self::Range { target, .. }
             | Self::Action { target, .. }
-            // | Self::Set { target, .. }
-            // | Self::NotSet { target, .. }
+            | Self::Set { target, .. }
+            | Self::NotSet { target, .. }
             | Self::Wildcard { target, .. }
             | Self::Predicate { target, .. }
             | Self::PrecedencePredicate { target, .. } => *target,

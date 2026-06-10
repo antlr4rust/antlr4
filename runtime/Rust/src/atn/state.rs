@@ -3,7 +3,6 @@ use std::fmt::Debug;
 
 use crate::atn::{ATNStateRef, ATNTransitionRef};
 
-pub(crate) const ATNSTATE_INVALID_TYPE: usize = 0;
 pub(crate) const ATNSTATE_BASIC: usize = 1;
 pub(crate) const ATNSTATE_RULE_START: usize = 2;
 pub(crate) const ATNSTATE_BLOCK_START: usize = 3;
@@ -16,7 +15,6 @@ pub(crate) const ATNSTATE_STAR_LOOP_BACK: usize = 9;
 pub(crate) const ATNSTATE_STAR_LOOP_ENTRY: usize = 10;
 pub(crate) const ATNSTATE_PLUS_LOOP_BACK: usize = 11;
 pub(crate) const ATNSTATE_LOOP_END: usize = 12;
-// pub(crate) const ATNSTATE_INVALID_STATE_NUMBER: usize = -1;
 
 //might be changed later
 #[doc(hidden)]
