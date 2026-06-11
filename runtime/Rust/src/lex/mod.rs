@@ -1,5 +1,6 @@
+mod action;
 pub mod token;
 mod lexer;
 
 pub use lexer::Lexer;
-pub use lexer::LexerAction;
+pub use action::LexerAction;

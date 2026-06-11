@@ -1,8 +1,8 @@
 use std::{collections::{HashSet, VecDeque}, range::Range, slice::Iter};
 
-use crate::atn::{
+use crate::{atn::{
         ATNStateRef, atn::{ATN, ATNType}, rule::ATNRule, state::{ATNDecisionState, ATNState, ATNStateType}, transition::Transition
-    };
+    }, lex::LexerAction};
 
 // If an error happens, check these for early returns on a parse error resulting in an empty Vec
 pub fn read_states(data: &mut Iter<usize>) -> Option<Vec<ATNState>> {
@@ -116,16 +116,12 @@ pub fn read_sets(data: &mut Iter<usize>) -> Option<Vec<HashSet<usize>>> {
     Some(sets)
 }
 
-pub fn read_edges(data: Iter<usize>) -> Option<Vec<Transition>> {
-    // TODO: For debugging fix later make it normal
-    let data = data.collect::<VecDeque<&usize>>();
-    let mut data = data.iter().map(|x| **x).collect::<VecDeque<usize>>();
-
+pub fn read_edges(data: &mut Iter<usize>) -> Option<Vec<Transition>> {
     let mut edges = Vec::new();
-    let nedges = data.pop_front()?;
+    let nedges = *data.next()?;
 
     for _i in 0..nedges {
-        let x = [data.pop_front()?, data.pop_front()?, data.pop_front()?, data.pop_front()?, data.pop_front()?, data.pop_front()?];
+        let x = [*data.next()?, *data.next()?, *data.next()?, *data.next()?, *data.next()?, *data.next()?];
 
         // necessary?
         if x[0] == 0 { continue }
@@ -137,39 +133,32 @@ pub fn read_edges(data: Iter<usize>) -> Option<Vec<Transition>> {
     Some(edges)
 }
 
-fn read_decisions(atn: &mut ATN, data: &mut Iter<usize>) -> Option<()> {
+pub fn read_decisions(data: &mut Iter<usize>) -> Option<Vec<ATNStateRef>> {
+    let mut decisions = Vec::new();
+
     let ndecisions = *data.next()?;
     for i in 0..ndecisions {
-        let s = *data.next()?;
-
-        if let Some(dec_state) = atn.states.get_mut(s as usize) {
-            // atn.decision_states.push(s);
-
-            if let ATNStateType::DecisionState { decision, .. } = dec_state.get_state_type_mut() {
-                *decision = i
-            }
-        }
+        decisions.push(*data.next()?);
     }
     
-    Some(())
+    Some(decisions)
 }
 
-fn read_lexer_actions(_data: &mut Iter<usize>) -> Option<()> {
-    //lexer actions are always supported here
-    let nactions = *_data.next()?;
+pub fn read_lex_actions(data: &mut Iter<usize>) -> Option<Vec<LexerAction>> {
 
-    for _i in 0..nactions {
-        let action_type = *_data.next()?;
+    let mut actions = Vec::new();
+    let nactions = *data.next()?;
 
-        let data1 = *_data.next()?;
-        let data2 = *_data.next()?;
+    for _ in 0..nactions {
+        let action_type = *data.next()?;
 
-        // let lexer_action = self.lexer_action_factory(action_type, data1, data2);
+        let arg1 = *data.next()?;
+        let arg2 = *data.next()?;
 
-        // atn.lexer_actions.push(lexer_action);
+        actions.push(LexerAction::new(action_type, arg1, arg2)?);
     }
 
-    Some(())
+    Some(actions)
 }
 
 fn mark_precedence_decisions(_atn: &mut ATN, _data: &mut Iter<usize>) {

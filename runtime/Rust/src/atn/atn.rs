@@ -5,7 +5,7 @@ use std::fmt::{Debug, Formatter};
 
 use crate::atn::state::ATNStateType;
 use crate::atn::{ATNRuleRef, ATNStateRef};
-use crate::atn::parse::{read_edges, read_modes, read_rules, read_sets, read_states};
+use crate::atn::parse::{read_decisions, read_edges, read_lex_actions, read_modes, read_rules, read_sets, read_states};
 use crate::atn::rule::ATNRule;
 use crate::atn::state::ATNState;
 use crate::atn::transition::Transition;
@@ -39,8 +39,11 @@ pub enum ATNConstructionErr {
     ReadRules,
     ReadEdges,
     ReadModes,
-    ReadSets
+    ReadSets,
+    ReadDecisions,
+    ReadLexActions
 }
+
 /// Augmented Transition Network
 ///
 /// Basically NFA(graph) of states and possible(maybe multiple) transitions on a given particular symbol.
@@ -57,6 +60,8 @@ pub struct ATN {
     pub(super) modes: Vec<ATNStateRef>,
     pub(super) sets: Vec<HashSet<usize>>,
     pub(super) transitions: Vec<Transition>,
+    pub(super) decisions: Vec<ATNStateRef>,
+    pub(super) lex_actions: Vec<LexerAction>
 }
 
 impl Debug for ATN {
@@ -70,7 +75,9 @@ impl Debug for ATN {
             .field("modes", &self.modes)
             .field("sets", &self.sets)
             .field("transitions", &self.transitions)
-            
+            .field("decisions", &self.decisions)
+            .field("lex_actions", &self.lex_actions)
+
             .finish()
     }
 }
@@ -86,12 +93,13 @@ impl ATN {
         };
 
         let grammar_type = *data.next().ok_or(ATNConstructionErr::InsufficientData)?;
+       
         let grammar_type = ATNType::new(grammar_type).map_err(|_| ATNConstructionErr::InvalidGrammarType)?;
 
         let max_token_type = *data.next().ok_or(ATNConstructionErr::InsufficientData)?;
 
-
-        let states = read_states(&mut data).ok_or(ATNConstructionErr::ReadStates)?;
+        let mut states = read_states(&mut data).ok_or(ATNConstructionErr::ReadStates)?;
+        
         let mut rules = read_rules(&mut data, false).ok_or(ATNConstructionErr::ReadRules)?;
         for state in states.iter() {
             if state.state_type == ATNStateType::RuleStopState {
@@ -105,9 +113,24 @@ impl ATN {
         }
         
         let modes = read_modes(&mut data).ok_or(ATNConstructionErr::ReadModes)?;
-        let sets = read_sets(&mut data).ok_or(ATNConstructionErr::ReadSets)?;
-        let edges = read_edges(data).ok_or(ATNConstructionErr::ReadEdges)?;
         
+        let sets = read_sets(&mut data).ok_or(ATNConstructionErr::ReadSets)?;
+        
+        let transitions = read_edges(&mut data).ok_or(ATNConstructionErr::ReadEdges)?;
+        for (index, transition) in transitions.iter().enumerate() {
+            if let Some(state) = states.get_mut(transition.source()) {
+                state.add_transition(index);
+            }
+        }
+
+        let decisions = read_decisions(&mut data).ok_or(ATNConstructionErr::ReadDecisions)?;
+        
+        let lex_actions = if grammar_type == ATNType::LEXER {
+            read_lex_actions(&mut data).ok_or(ATNConstructionErr::ReadLexActions)?
+        } else {
+            Vec::new()
+        };
+
         Ok(ATN {
             grammar_type,
             max_token_type,
@@ -117,7 +140,9 @@ impl ATN {
             rule_stack: VecDeque::new(),
             modes,
             sets,
-            transitions: edges,
+            transitions,
+            decisions,
+            lex_actions,
         })
     }
 

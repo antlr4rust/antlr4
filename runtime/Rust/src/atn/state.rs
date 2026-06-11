@@ -202,7 +202,7 @@ impl ATNState {
         &self.transitions
     }
 
-    fn add_transition(&mut self, t: ATNTransitionRef) {
+    pub fn add_transition(&mut self, t: ATNTransitionRef) {
         self.transitions.insert(t);
     }
 }
