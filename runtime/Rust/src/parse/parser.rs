@@ -1,12 +1,12 @@
-use std::marker::PhantomData;
+use std::{cell::LazyCell, marker::PhantomData};
 
 use crate::{atn::{ATN, ATNRuleRef}, lex::{Lex, Lexer}};
 
 pub trait Parse {
-    const RULE_NAMES: Vec<String>;
-    const LITERAL_NAMES: Vec<String>;
-    const SYMBOLIC_NAMES: Vec<String>;
-    const ATN: ATN;
+    const RULE_NAMES: LazyCell<Vec<&'static str>>;
+    const LITERAL_NAMES: LazyCell<Vec<Option<&'static str>>>;
+    // const SYMBOLIC_NAMES: LazyCell<Vec<Option<&'static str>>>;
+    const ATN: LazyCell<ATN>;
 }
 
 pub struct Parser<T: Parse> {
@@ -19,7 +19,7 @@ impl<T: Parse> Parser<T> {
         Self {
             _p: PhantomData,
 
-            atn: T::ATN,
+            atn: LazyCell::into_inner(T::ATN).unwrap(),
         }
     }
 

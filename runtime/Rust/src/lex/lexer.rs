@@ -1,11 +1,14 @@
 //! Lexer implementation
 
-use std::{collections::VecDeque, iter::Peekable, marker::PhantomData, str::Chars};
+use std::{cell::LazyCell, collections::VecDeque, iter::Peekable, marker::PhantomData, str::Chars};
 
 use crate::{atn::ATN, lex::{token::{TokenChannel, Token, TokenType}}};
 
 pub trait Lex {
-    
+    const CHANNEL_NAMES: LazyCell<Vec<&'static str>>;
+    const MODE_NAMES: LazyCell<Vec<&'static str>>;
+    const RULE_NAMES: LazyCell<Vec<&'static str>>;
+    const LITERAL_NAMES: LazyCell<Vec<Option<&'static str>>>;
 }
 
 #[derive(Debug)]
