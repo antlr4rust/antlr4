@@ -31,26 +31,19 @@ impl ATN {
                         if input > *start && input < *stop {
                             closure.insert(target);
                         }
-                    }
-                    _ => (), // Transition::Set {
-                             //     set,
-                             //     ..
-                             // } => {
+                    },
+                    _ => ()
+                    // Transition::Set { set, .. } => {
+                    //     if self.sets.contains(set) {
 
-                             // },
+                    //     }
+                    // }
 
-                             // Transition::NotSet {
-                             //     set,
-                             //     ..
-                             // } => {
+                    // Transition::NotSet { set, .. } => {}
 
-                             // },
-
-                             // Transition::Wildcard {
-                             //     target: ATNStateRef,
-                             // } => {
-
-                             // },
+                    // Transition::Wildcard {
+                    //     target: ATNStateRef,
+                    // } => {}
                 }
             }
         }

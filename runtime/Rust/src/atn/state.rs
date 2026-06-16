@@ -18,7 +18,7 @@ pub(crate) const ATNSTATE_LOOP_END: usize = 12;
 
 //might be changed later
 #[doc(hidden)]
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ATNStateType {
     RuleStartState {
         stop_state: ATNStateRef,
@@ -100,7 +100,7 @@ impl ATNStateType {
 }
 
 #[doc(hidden)]
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ATNDecisionState {
     StarLoopEntry {
         loop_back_state: ATNStateRef,
@@ -115,14 +115,14 @@ pub enum ATNDecisionState {
 }
 
 #[doc(hidden)]
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ATNBlockStart {
     BasicBlockStart,
     StarBlockStart,
     PlusBlockStart(ATNStateRef),
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ATNState {
     next_tokens_within_rule: HashSet<Range<usize>>,
 

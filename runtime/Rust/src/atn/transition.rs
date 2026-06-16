@@ -38,7 +38,7 @@ impl TransitionType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Transition {
     // Epsilon transitions
     Rule {

@@ -73,5 +73,6 @@
 
 pub mod atn;
 pub mod lex;
+pub mod parse;
 pub mod error;
 pub mod utils;

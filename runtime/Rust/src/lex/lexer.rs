@@ -1,8 +1,12 @@
 //! Lexer implementation
 
-use std::{collections::VecDeque, iter::Peekable, str::Chars};
+use std::{collections::VecDeque, iter::Peekable, marker::PhantomData, str::Chars};
 
 use crate::{atn::ATN, lex::{token::{TokenChannel, Token, TokenType}}};
+
+pub trait Lex {
+    
+}
 
 #[derive(Debug)]
 struct LexerPosition {
@@ -48,7 +52,8 @@ impl LexerPosition {
 ///
 /// Public fields in this struct are intended to be used by embedded actions
 #[allow(missing_docs)]
-pub struct Lexer<'input> {
+pub struct Lexer<'input, L: Lex> {
+    _p: PhantomData<L>,
     atn: ATN,
     input: Vec<char>,
     
@@ -74,7 +79,7 @@ pub enum LexerMode {
 pub(crate) const LEXER_MIN_CHAR_VALUE: usize = 0x0000;
 pub(crate) const LEXER_MAX_CHAR_VALUE: usize = 0x10FFFF;
 
-impl<'input> Lexer<'input>
+impl<'input, L: Lex> Lexer<'input, L>
 {
     /// Creates new lexer instance
     pub fn new(
@@ -82,6 +87,8 @@ impl<'input> Lexer<'input>
         atn: ATN
     ) -> Self {
         Self {
+            _p: PhantomData,
+
             atn,
             input: input.chars().collect(),
 

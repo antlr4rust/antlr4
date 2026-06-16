@@ -48,10 +48,14 @@ pub enum ATNConstructionErr {
 ///
 /// Basically NFA(graph) of states and possible(maybe multiple) transitions on a given particular symbol.
 ///
+#[derive(Clone)]
 pub struct ATN {
     grammar_type: ATNType,
 
-    max_token_type: usize,
+    // Keep positions while simulating
+    heads: HashSet<ATNStateRef>,
+
+    // max_token_type: usize,
     lexer_actions: Vec<LexerAction>,
 
     pub(super) states: Vec<ATNState>,
@@ -68,7 +72,7 @@ impl Debug for ATN {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ATN")
             .field("grammar_type", &self.grammar_type)
-            .field("max_token_type", &self.max_token_type)
+            // .field("max_token_type", &self.max_token_type)
             
             .field("states", &self.states)
             .field("rules", &self.rules)
@@ -100,7 +104,7 @@ impl ATN {
 
         let mut states = read_states(&mut data).ok_or(ATNConstructionErr::ReadStates)?;
         
-        let mut rules = read_rules(&mut data, false).ok_or(ATNConstructionErr::ReadRules)?;
+        let mut rules = read_rules(&mut data, grammar_type == ATNType::LEXER).ok_or(ATNConstructionErr::ReadRules)?;
         for state in states.iter() {
             if state.state_type == ATNStateType::RuleStopState {
                 if let Some(
@@ -133,8 +137,10 @@ impl ATN {
 
         Ok(ATN {
             grammar_type,
-            max_token_type,
+            heads: HashSet::new(),
+
             lexer_actions: Vec::new(),
+
             states,
             rules,
             rule_stack: VecDeque::new(),
@@ -150,4 +156,21 @@ impl ATN {
         self.grammar_type
     }
 
+    pub(crate) fn set_head(&mut self, head: usize) {
+        self.heads = HashSet::new();
+        self.heads.insert(head);
+    }
+    
+    pub(crate) fn set_heads(&mut self, heads: HashSet<ATNStateRef>) {
+        self.heads = heads;
+    }
+
+    pub(crate) fn enter_rule(&mut self, rule: ATNRuleRef) {
+        self.set_head(rule);
+        self.rule_stack.push_back(rule);
+    }
+
+    pub(crate) fn exit_rule(&mut self) -> Option<ATNRuleRef> {
+        self.rule_stack.pop_back()
+    }
 }
