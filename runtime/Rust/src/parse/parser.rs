@@ -1,6 +1,6 @@
 use std::{cell::LazyCell, marker::PhantomData};
 
-use crate::{atn::{ATN, ATNRuleRef}, lex::{Lex, Lexer}};
+use crate::{atn::{ATN, ATNRuleRef}, lex::{Lex, Lexer, token::Token}};
 
 pub trait Parse {
     const RULE_NAMES: LazyCell<Vec<&'static str>>;
@@ -9,17 +9,17 @@ pub trait Parse {
     const ATN: LazyCell<ATN>;
 }
 
-pub struct Parser<T: Parse> {
-    _p: PhantomData<T>,
-    atn: ATN
+pub struct Parser<'input> {
+    atn: ATN,
+    tokens: Vec<Token<'input>>
 }
 
-impl<T: Parse> Parser<T> {
-    pub fn new<L: Lex>(lexer: Lexer<L>) -> Self { 
+impl<'input> Parser<'input> {
+    pub fn new(atn: ATN, mut lexer: Lexer<'input>) -> Parser<'input> {
+        let tokens = lexer.emit_all();
         Self {
-            _p: PhantomData,
-
-            atn: LazyCell::into_inner(T::ATN).unwrap(),
+            atn,
+            tokens: tokens
         }
     }
 

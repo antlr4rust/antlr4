@@ -1,27 +1,9 @@
 SerializedATN(model) ::= <<
-	lazy_static!{
-		static ref _ATN: Arc\<ATN> =
-			Arc::new(ATN::from_serialized(_serializedATN.into_iter(), false).unwrap());
-		
-		static ref decisions_to_dfas: Vec\<DFA> = {
-			let mut dfa = Vec::new();
-			for decision_state, i in _ATN.decision_states().iter() {
-				dfa.push(
-					DFA::new(
-						_ATN.clone(),
-						decision_state
-						i,
-					)
-				)
-			}
-
-			dfa
-		};
-
-		static ref _serializedATN: Vec\<i32> = vec![
-			<model.serialized; separator=", ", wrap>
-		];
-	}
+const ATN: LazyCell\<ATN> = LazyCell::new(|| {
+    ATN::from_serialized(vec![
+		<model.serialized; separator=", ", wrap>
+	], false).unwrap()
+});
 >>
 
 RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,finallyAction,postamble,exceptions) ::= <<
@@ -32,9 +14,7 @@ RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,fina
 <ruleCtx>
 <altLabelCtxs:{l | <altLabelCtxs.(l)>}; separator="\n">
 
-impl\<'input, I> <parser.name>\<'input, I>
-where
-    I: TokenStream\<'input, TF = <TokenFactory()> > + TidAble\<'input>,
+impl\<'input> <parser.name>\<'input>
 {
 	<if(currentRule.modifiers)><currentRule.modifiers:{f | <f> }><else>pub <endif>fn <currentRule.escapedName>(&mut self,<args; separator=",">)
 	-> Result\<Rc\<<currentRule.ctxType>All\<'input>\>,ANTLRError> {
@@ -79,26 +59,11 @@ where
 RuleTypeForAlt(currentRule,ruleCtx,altLabelCtxs) ::= <<
 <if(ruleCtx.struct.provideCopyFrom)>
 #[derive(Debug)]
-pub enum <currentRule.ctxType>All\<'input>{
+pub enum <currentRule.ctxType>\<'input>{
 	<altLabelCtxs:{l | <altLabelCtxs.(l).struct.escapedName>(<altLabelCtxs.(l).struct.escapedName>\<'input>),
-	}>Error(<ruleCtx.struct.escapedName>\<'input>)
+	}>
 }
-antlr4rust::tid!{<currentRule.ctxType>All\<'a>}
 
-impl\<'input> antlr4rust::parser_rule_context::DerefSeal for <currentRule.ctxType>All\<'input>{}
-
-impl\<'input> <parser.name>Context\<'input> for <currentRule.ctxType>All\<'input>{}
-
-impl\<'input> Deref for <currentRule.ctxType>All\<'input>{
-	type Target = dyn <currentRule.ctxType>Attrs\<'input> + 'input;
-	fn deref(&self) -> &Self::Target{
-		use <currentRule.ctxType>All::*;
-		match self{
-			<altLabelCtxs:{l | <altLabelCtxs.(l).struct.escapedName>(inner) => inner,
-			}>Error(inner) => inner
-		}
-	}
-}
 <if(parser.file.genVisitor)>
 impl\<'input,'a> Visitable\<dyn <parser.grammarName>Visitor\<'input> + 'a> for <currentRule.ctxType>All\<'input>{
 	fn accept(&self, visitor: &mut (dyn <parser.grammarName>Visitor\<'input> + 'a)) { self.deref().accept(visitor) }
@@ -110,11 +75,6 @@ impl\<'input,'a> Listenable\<dyn <parser.grammarName>Listener\<'input> + 'a> for
     fn exit(&self, listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) -> Result\<(), ANTLRError> { self.deref().exit(listener) }
 }
 <endif>
-
-<else>
-pub type <currentRule.ctxType>All\<'input> = <ruleCtx.struct.escapedName>\<'input>;
-<endif>
-
 >>
 
 ContextRuleGetterDecl(r)       ::= <<

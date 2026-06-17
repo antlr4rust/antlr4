@@ -4,13 +4,6 @@ use std::{cell::LazyCell, collections::VecDeque, iter::Peekable, marker::Phantom
 
 use crate::{atn::ATN, lex::{token::{TokenChannel, Token, TokenType}}};
 
-pub trait Lex {
-    const CHANNEL_NAMES: LazyCell<Vec<&'static str>>;
-    const MODE_NAMES: LazyCell<Vec<&'static str>>;
-    const RULE_NAMES: LazyCell<Vec<&'static str>>;
-    const LITERAL_NAMES: LazyCell<Vec<Option<&'static str>>>;
-}
-
 #[derive(Debug)]
 struct LexerPosition {
     absolute: usize,
@@ -55,8 +48,7 @@ impl LexerPosition {
 ///
 /// Public fields in this struct are intended to be used by embedded actions
 #[allow(missing_docs)]
-pub struct Lexer<'input, L: Lex> {
-    _p: PhantomData<L>,
+pub struct Lexer<'input> {
     atn: ATN,
     input: Vec<char>,
     
@@ -82,7 +74,7 @@ pub enum LexerMode {
 pub(crate) const LEXER_MIN_CHAR_VALUE: usize = 0x0000;
 pub(crate) const LEXER_MAX_CHAR_VALUE: usize = 0x10FFFF;
 
-impl<'input, L: Lex> Lexer<'input, L>
+impl<'input> Lexer<'input>
 {
     /// Creates new lexer instance
     pub fn new(
@@ -90,8 +82,6 @@ impl<'input, L: Lex> Lexer<'input, L>
         atn: ATN
     ) -> Self {
         Self {
-            _p: PhantomData,
-
             atn,
             input: input.chars().collect(),
 
@@ -110,5 +100,9 @@ impl<'input, L: Lex> Lexer<'input, L>
 
     pub fn emit(&mut self) -> Option<Token<'_>> {
         self.token.take()
+    }
+
+    pub fn emit_all(&mut self) -> Vec<Token<'input>> {
+        todo!()
     }
 }

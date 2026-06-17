@@ -4,7 +4,7 @@ fileHeader(grammarFileName, ANTLRVersion) ::= <<
 // Generated from <grammarFileName> by ANTLR <ANTLRVersion>
 >>
 
-RuleContextNameSuffix() ::= "Context"
+RuleContextNameSuffix() ::= ""
 
 LabelsAssign(labels,assign) ::= <<
 <if(labels)>
