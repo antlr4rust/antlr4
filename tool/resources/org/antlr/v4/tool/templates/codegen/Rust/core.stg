@@ -9,54 +9,41 @@ const ATN: LazyCell\<ATN> = LazyCell::new(|| {
 RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,finallyAction,postamble,exceptions) ::= <<
 // RuleFunction
 //------------------- <currentRule.name> ----------------
-<RuleTypeForAlt(currentRule,ruleCtx,altLabelCtxs)>
 
+// RuleCtx - this leads in to structdecl
 <ruleCtx>
+
+// altLabelCtxs
 <altLabelCtxs:{l | <altLabelCtxs.(l)>}; separator="\n">
 
 impl\<'input> <parser.name>\<'input>
 {
-	<if(currentRule.modifiers)><currentRule.modifiers:{f | <f> }><else>pub <endif>fn <currentRule.escapedName>(&mut self,<args; separator=",">)
-	-> Result\<Rc\<<currentRule.ctxType>All\<'input>\>,ANTLRError> {
-		let mut recog = self;
-		<!keeping parent ctx here because otherwise if we are not building tree, parent would be referenced only by Weak reference from current ctx !>
-		let _parentctx = <self()>.ctx.take();
-		let mut _localctx = <currentRule.ctxType>Ext::new(_parentctx.clone(), <self()>.base.get_state()<currentRule.args:{a | , <a.escapedName>}>);
-        <self()>.base.enter_rule(_localctx.clone(), <currentRule.startState>, RULE_<currentRule.name>);
-        let mut _localctx: Rc\<<currentRule.ctxType>All> = _localctx;
-		<namedActions.init>
-		<locals; separator="\n">
-		let result: Result\<(), ANTLRError> = (|| {
+<if(currentRule.modifiers)>
+<currentRule.modifiers:{f | <f> }>
+<else>pub<endif> fn <currentRule.escapedName>(&mut self, <args; separator=",">)	-> Result\<<currentRule.ctxType>\<'input>\>, ANTLRError> {		
+	self.parser.enter_rule(<currentRule.startState>, RULE_<currentRule.name>);
 
-	<if(currentRule.hasLookaheadBlock)>
-			let mut _alt: i32;
-	<endif>
-			<code>
-			<postamble; separator="\n">
-			<namedActions.after>
-			Ok(())
-		})();
-		match result {
-		Ok(_)=>{},
-		<if(exceptions)>
-        <exceptions; separator="\n">
-        <endif>
-        Err(e @ ANTLRError::FallThrough(_)) => return Err(e),
-		Err(ref re) => {
-				//_localctx.exception = re;
-				<self()>.err_handler.report_error(&mut <self()>.base, re);
-				<self()>.err_handler.recover(&mut <self()>.base, re)?;
-			}
-		}
-		<finallyAction>
-		<self()>.base.exit_rule()?;
+// namedActions.init
+<namedActions.init>
+<locals; separator="\n">
 
-		Ok(_localctx)
-	}
+
+<if(currentRule.hasLookaheadBlock)>
+let mut _alt: i32;
+<endif>
+<code>
+<postamble; separator="\n">
+<namedActions.after>
+<finallyAction>
+self.parser.exit_rule()?;
+
+Ok(_localctx)
+}
 }
 >>
 
 RuleTypeForAlt(currentRule,ruleCtx,altLabelCtxs) ::= <<
+// RuleTypeForAlt
 <if(ruleCtx.struct.provideCopyFrom)>
 #[derive(Debug)]
 pub enum <currentRule.ctxType>\<'input>{
@@ -79,60 +66,57 @@ impl\<'input,'a> Listenable\<dyn <parser.grammarName>Listener\<'input> + 'a> for
 
 ContextRuleGetterDecl(r)       ::= <<
 // ContextRuleGetterDecl
-fn <r.escapedName>(&self) -> Option\<Rc\<<r.ctxName>All\<'input>\>> where Self:Sized{
-	self.child_of_type(0)
+fn <r.escapedName>(&self) -> &<r.ctxName>\<'input>\> {
+	self.<r.ctxName>
 }
 >>
-ContextRuleListGetterDecl(r)   ::= <<
+
+ContextRuleListGetterDecl(r) ::= <<
 // ContextRuleListGetterDecl
-fn <r.name>_all(&self) ->  Vec\<Rc\<<r.ctxName>All\<'input>\>> where Self:Sized{
-	self.children_of_type()
+fn <r.name>_all(&self) ->  &Vec\<<r.ctxName>\<'input>\>> {
+	self.<r.ctxName>
 }
 >>
-ContextRuleListIndexedGetterDecl(r)   ::= <<
+
+ContextRuleListIndexedGetterDecl(r) ::= <<
 // ContextRuleListIndexedGetterDecl
-fn <r.escapedName>(&self, i: usize) -> Option\<Rc\<<r.ctxName>All\<'input>\>> where Self:Sized{
-	self.child_of_type(i)
+fn <r.escapedName>(&self, i: usize) -> Option\<&<r.ctxName>\<'input>\>>{
+	self.<r.ctxName>.get(i)
 }
 >>
 
 CodeBlockForOuterMostAlt(currentOuterMostAltCodeBlock, locals, preamble, ops) ::= <<
 // CodeBlockForOuterMostAlt
-	<if(currentOuterMostAltCodeBlock.altLabel)>
-	let tmp = <currentOuterMostAltCodeBlock.altLabel; format="cap">ContextExt::new(&**_localctx);
-	<self()>.base.enter_outer_alt(Some(tmp.clone()), <currentOuterMostAltCodeBlock.alt.altNum>)?;
-	_localctx = tmp;
-	<else>
-	//<self()>.base.enter_outer_alt(_localctx.clone(), <currentOuterMostAltCodeBlock.alt.altNum>)?;
-	<self()>.base.enter_outer_alt(None, <currentOuterMostAltCodeBlock.alt.altNum>)?;
-	<endif>
-	<CodeBlockForAlt(currentAltCodeBlock=currentOuterMostAltCodeBlock, ...)>
+<if(currentOuterMostAltCodeBlock.altLabel)>
+// With Alt label
+let AltWOEIFJWE = self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
+<else>
+// Without Alt label
+self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
+<endif>
+<CodeBlockForAlt(currentAltCodeBlock=currentOuterMostAltCodeBlock, ...)>
 >>
 
-ThrowNoViableAlt(t) ::= "ANTLRError::NoAltError(NoViableAltError::new(&mut <self()>.base))"
+ThrowNoViableAlt(t) ::= "ANTLRError::NoAltError(NoViableAltError::new(&mut self.parser))"
 
 InvokeRule(r, argExprsChunks) ::= <<
-// InvokeRule
-/*InvokeRule <r.escapedName>*/
-<self()>.base.set_state(<r.stateNumber>);
-<LabelsAssign(r.labels,{<self()>.<r.escapedName><if(r.ast.options.p)>_rec<endif>(<if(r.ast.options.p)><r.ast.options.p><if(argExprsChunks)>,<endif><endif><argExprsChunks>)?})>
+// InvokeRule <r.escapedName>
+self.parser.set_state(<r.stateNumber>);
+<LabelsAssign(r.labels, {self.<r.escapedName><if(r.ast.options.p)>_rec<endif>(<if(r.ast.options.p)><r.ast.options.p><if(argExprsChunks)>,<endif><endif><argExprsChunks>)?})>
 >>
 
 MatchToken(m) ::= <<
 // MatchToken
-<self()>.base.set_state(<m.stateNumber>);
-<LabelsAssign(m.labels,{<self()>.base.match_token(<parser.grammarName>_<m.escapedName>,&mut <self()>.err_handler)?})>
+self.parser.set_state(<m.stateNumber>);
+<LabelsAssign(m.labels,{self.parser.match_token(<parser.grammarName>_<m.escapedName>)?})>
 >>
 
 LL1PlusBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
-LL1PlusBlockSingleAlt
-<self()>.base.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
-<self()>.err_handler.sync(&mut <self()>.base)?;
+self.parser.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
 <preamble; separator="\n">
 loop {
 	<alts; separator="\n">
-	<self()>.base.set_state(<choice.stateNumber>); <! loopback/exit decision !>
-	<self()>.err_handler.sync(&mut <self()>.base)?;
+	self.parser.set_state(<choice.stateNumber>); <! loopback/exit decision !>
 	<iteration>
 	if !(<loopExpr>) {break}
 }
@@ -140,20 +124,23 @@ loop {
 
 CodeBlockForAlt(currentAltCodeBlock, locals, preamble, ops) ::= <<
 // CodeBlockForAlt
-{
+
+// Locals
 <locals; separator="\n">
+
+// Preamble
 <preamble; separator="\n">
+
+// Ops
 <ops; separator="\n">
-}
 >>
 
 AltBlock(choice, preamble, alts, error) ::= <<
 // AltBlock
-<self()>.base.set_state(<choice.stateNumber>);
-<self()>.err_handler.sync(&mut <self()>.base)?;
-<if(choice.label)><labelref(choice.label,{ = <self()>.base.input.lt(1).cloned();})><endif>
+self.parser.set_state(<choice.stateNumber>);
+<if(choice.label)><labelref(choice.label,{ = self.parser.input.lt(1).cloned();})><endif>
 <preamble; separator="\n">
-match  <self()>.interpreter.adaptive_predict(<choice.decision>,&mut <self()>.base)? {
+match  self.parser.adaptive_predict(<choice.decision>)? {
 <alts:{alt |
 	<i> =>{
 		<alt>
@@ -165,16 +152,26 @@ match  <self()>.interpreter.adaptive_predict(<choice.decision>,&mut <self()>.bas
 
 LL1AltBlock(choice, preamble, alts, error) ::= <<
 // LL1AltBlock
-<self()>.base.set_state(<choice.stateNumber>);
-<self()>.err_handler.sync(&mut <self()>.base)?;
-<if(choice.label)><labelref(choice.label,{ = <self()>.base.input.lt(1).cloned();})><endif>
+self.parser.set_state(<choice.stateNumber>);
+<if(choice.label)><labelref(choice.label,{ = self.parser.input.lt(1).cloned();})><endif>
 <preamble; separator="\n">
-match <self()>.base.input.la(1) {
+match self.parser.input.la(1) {
 <choice.altLook,alts:{look,alt| <cases(tokens=look)>
 	=> {
 		<alt>
 	\}
 	}; separator="\n">
 	_ => Err(<error>)?
+}
+>>
+
+LL1StarBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
+// LL1StarBlockSingleAlt
+self.parser.set_state(<choice.stateNumber>);
+<preamble; separator="\n">
+while <loopExpr> {
+	<alts; separator="\n">
+	self.parser.set_state(<choice.loopBackStateNumber>);
+	<iteration>
 }
 >>

@@ -139,3 +139,5 @@ runtime/Cpp/runtime/libantlr4-runtime.dylib
 **/*.pprof
 *.interp
 *.tokens
+
+test/

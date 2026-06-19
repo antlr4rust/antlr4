@@ -1,50 +1,68 @@
-TokenTypeDecl(t) ::= "let mut <t.name>: i32 = -1;"
+TokenTypeDecl(t) ::= "let mut <t.name>: usize = -1;"
+
+StructDecl(struct,ctorAttrs,attrs,getters,dispatchMethods,interfaces,extensionMembers) ::= <<
+// StructDecl
+
+// struct.ctorAttrs, ctorAttrs, attrs have length 0
+//bb
+<getters>
+<length(getters)>
+<struct.attributeDecls:{a | <a.initValue> }>
+<struct.ctorAttrs:{a | <a.initValue> }>
+<ctorAttrs:{a | <a.initValue> }>
+
+<struct.attributeDecls:{a | fn get_<a.escapedName>\<'a>(&'a self) -> &'a <RustTypeMap.(a.type)> where 'input: 'a { &self.borrow().<a.escapedName> \}  }; separator = "\n\n">
+<struct.attributeDecls:{a | fn set_<a.escapedName>(&mut self,attr: <RustTypeMap.(a.type)>) { self.borrow_mut().<a.escapedName> = attr; \}  }; separator = "\n\n">
+<getters:{g | <g>}; separator="\n">
+	<!<if(ctorAttrs)>pub fn new(parent: ParserRuleContext, invokingState:usize) { Self {base:super(parent, invokingState);} }<endif>!>
+
+<extensionMembers; separator="\n">
+
+// #[derive(Clone)]
+// pub struct <struct.escapedName>\<'input>{
+// 	<attrs:{a | pub <a>,
+// 	}>	ph:PhantomData\<&'input str>
+// }
+ 
+// impl\<'input> <struct.escapedName>\<'input>{
+// 	fn new(parent: Option\<dyn <parser.name>Context\<'input> + 'input>, invoking_state: i32<ctorAttrs:{a | , <a>}>) -> <struct.escapedName>\<'input> {
+// 		<struct.attributeDecls:{a | let mut _init_<a.escapedName> = <rustTypeInitMap.(a.type)>;
+// 		 }>
+// 		 <struct.ctorAttrs:{a | _init_<a.escapedName> = <a.escapedName>;
+// 		 }>
+// 		<if(struct.provideCopyFrom)><struct.escapedName>All::Error(<endif>
+// 			<struct.escapedName> {
+// 			<!<attrs:{a | <a.escapedName>:None,}>!>
+// 				<struct.tokenDecls:{a | <a.escapedName>: None, }>
+// 				<struct.tokenTypeDecls:{a | <a.escapedName>: -1, }>
+// 				<struct.tokenListDecls:{a | <a.escapedName>: Vec::new(), }>
+// 				<struct.ruleContextDecls:{a | <a.escapedName>: None, }>
+// 				<struct.attributeDecls:{a | <a.escapedName>: _init_<a.escapedName>, }>
+// 				<struct.ruleContextListDecls:{a | <a.escapedName>: Vec::new(), }>
+
+// 				ph: PhantomData
+// 			},
+// 		<if(struct.provideCopyFrom)>)<endif>
+// 		)
+// 	}
+// }
 
 
-StructDecl(struct,ctorAttrs,attrs,getters,dispatchMethods,interfaces,extensionMembers)
-	::= <<
-#[derive(Clone)]
-pub struct <struct.escapedName>\<'input>{
-	<attrs:{a | pub <a>,
-	}>ph:PhantomData\<&'input str>
-}
-
-<if(parser.file.genVisitor)>
-impl\<'input,'a> Visitable\<dyn <parser.grammarName>Visitor\<'input> + 'a> for <struct.escapedName>\<'input>{
-	<last(dispatchMethods)>
-}
-<endif>
-
-impl\<'input> <struct.escapedName>\<'input>{
-	fn new(parent: Option\<Rc\<dyn <parser.name>Context\<'input> + 'input > >, invoking_state: i32<ctorAttrs:{a | , <a>}>) -> Rc\<<struct.escapedName>All\<'input>\> {
-		<struct.attributeDecls:{a | let mut _init_<a.escapedName> = <rustTypeInitMap.(a.type)>;
-		 }>
-		 <struct.ctorAttrs:{a | _init_<a.escapedName> = <a.escapedName>;
-		 }>
-		Rc::new(
-		<if(struct.provideCopyFrom)><struct.escapedName>All::Error(<endif>
-			<if(contextSuperClass)><contextSuperClass><else>BaseParserRuleContext<endif>::new_parser_ctx(parent, invoking_state,<struct.escapedName>Ext{
-			<!<attrs:{a | <a.escapedName>:None,}>!>
-				<struct.tokenDecls:{a | <a.escapedName>: None, }>
-				<struct.tokenTypeDecls:{a | <a.escapedName>: -1, }>
-				<struct.tokenListDecls:{a | <a.escapedName>: Vec::new(), }>
-				<struct.ruleContextDecls:{a | <a.escapedName>: None, }>
-				<struct.attributeDecls:{a | <a.escapedName>: _init_<a.escapedName>, }>
-				<struct.ruleContextListDecls:{a | <a.escapedName>: Vec::new(), }>
-
-				ph:PhantomData
-			}),
-		<if(struct.provideCopyFrom)>)<endif>
-		)
-	}
-}
+// EndStructDecl
 >>
 
 AltLabelStructDecl(struct,attrs,getters,dispatchMethods) ::= <<
 
+pub struct <struct.escapedName>\<'input> {
+	context: ParserContext,
+	<attrs:{a | <a>,
+}>	ph:PhantomData\<&'input str>
+}
+
+
+// AltLabelStructDecl
 impl\<'input> <struct.escapedName>\<'input>{
-	fn new(ctx: &dyn <currentRule.name; format="cap">ContextAttrs\<'input>) -> Rc\<<currentRule.name; format="cap">ContextAll\<'input>\>  {
-		Rc::new(
+	fn new(ctx: &dyn <currentRule.name; format="cap">ContextAttrs\<'input>) -> <currentRule.name; format="cap">\<'input>  {
 			<currentRule.name; format="cap">ContextAll::<struct.escapedName>(
 				<if(contextSuperClass)><contextSuperClass><else>BaseParserRuleContext<endif>::copy_from(ctx,<struct.escapedName>Ext{
 					<!base:<currentRule.name; format="cap">Context{..*base}!>
@@ -59,15 +77,14 @@ impl\<'input> <struct.escapedName>\<'input>{
         			<!<struct.ctorAttrs:{a | <a.escapedName> }; separator=",\n">!>
 				})
 			)
-		)
-		<!<struct.attrs:{a | result.<a.escapedName> = ctx.<a.escapedName>;}; separator="\n">!>
 	}
 }
 >>
 
-ContextTokenGetterDecl(t)      ::= <<
+ContextTokenGetterDecl(t) ::= <<
 /// Retrieves first TerminalNode corresponding to token <t.name>
 /// Returns `None` if there is no child corresponding to token <t.name>
-fn <t.name>(&self) -> Option\<Rc\<TerminalNode\<'input,<parser.name>ContextType>\>> where Self:Sized{
+fn <t.name>(&self) -> Option\<TerminalNode\<'input,<parser.name>ContextType>\> {
 	self.get_token(<parser.grammarName>_<t.name>, 0)
-}>>
+}
+>>

@@ -57,33 +57,17 @@ const _: () = {
 >>
 
 
-LL1StarBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
-<self()>.base.set_state(<choice.stateNumber>);
-<self()>.err_handler.sync(&mut <self()>.base)?;
-<preamble; separator="\n">
-while <loopExpr> {
-	<alts; separator="\n">
-	<self()>.base.set_state(<choice.loopBackStateNumber>);
-	<self()>.err_handler.sync(&mut <self()>.base)?;
-	<iteration>
-}
->>
-
-
-
-
-
-
-Parser(parser, funcs, atn, sempredFuncs, superClass) ::= <<
+Parser(parser, funcs, atn, sempredFuncs, superClass) ::= <<     
 <Parser_(ctor="parser_ctor", ...)>
 >>
 
 Parser_(parser, funcs, atn, sempredFuncs, ctor, superClass) ::= <<
+// Parser
 <if(parser.tokens)>
-<parser.tokens:{k | pub const <parser.grammarName>_<k>:i32=<parser.tokens.(k)>;}; separator=" \n">
+<parser.tokens:{k | pub const TOKEN_<k>: usize = <parser.tokens.(k)>;}; separator=" \n">
 <endif>
 
-<parser.rules:{r | pub const RULE_<r.name>:usize = <r.index>;}; separator=" \n">
+<parser.rules:{r | pub const RULE_<r.name>: usize = <r.index>;}; separator=" \n">
 
 pub const RULE_NAMES: LazyCell\<Vec\<&'static str\>> = LazyCell::new(|| vec![
     <parser.ruleNames:{r | "<r>"}; separator=", ", wrap, anchor>

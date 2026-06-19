@@ -1,4 +1,4 @@
 TokenFactory() ::= "// LocalTokenFactory\<'input>"
 
-CaptureNextToken(d) ::= "<d.varName> = <self()>.base.input.lt(1).unwrap().clone();"
-CaptureNextTokenType(d) ::= "<d.varName> = <self()>.base.input.la(1);"
+CaptureNextToken(d) ::= "<d.varName> = self.parser.input.lt(1).unwrap().clone();"
+CaptureNextTokenType(d) ::= "<d.varName> = self.parser.input.la(1);"
