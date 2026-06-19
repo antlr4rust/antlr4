@@ -28,5 +28,8 @@ bitsetInlineComparison(s, bits) ::= <%
 <bits.tokens:{ttype | <s.varName>==<parser.grammarName>_<ttype.name>}; separator=" || ">
 %>
 
-// Try to get rid of this if possible
-self() ::= "recog"
+vocabulary(literalNames, symbolicNames) ::= <<
+pub const LITERAL_NAMES: LazyCell\<Vec\<Option\<&'static str\>\>> = LazyCell::new(|| vec![
+	<literalNames:{t | Some(<t>)}; null="None", separator=", ", wrap, anchor>
+]);
+>>

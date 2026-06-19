@@ -1,27 +1,15 @@
 TokenTypeDecl(t) ::= "let mut <t.name>: usize = -1;"
 
+
 StructDecl(struct,ctorAttrs,attrs,getters,dispatchMethods,interfaces,extensionMembers) ::= <<
+<struct>
+// Check if fields don't appear bc they're not guaranteed
 // StructDecl
 
-// struct.ctorAttrs, ctorAttrs, attrs have length 0
-//bb
-<getters>
-<length(getters)>
-<struct.attributeDecls:{a | <a.initValue> }>
-<struct.ctorAttrs:{a | <a.initValue> }>
-<ctorAttrs:{a | <a.initValue> }>
-
-<struct.attributeDecls:{a | fn get_<a.escapedName>\<'a>(&'a self) -> &'a <RustTypeMap.(a.type)> where 'input: 'a { &self.borrow().<a.escapedName> \}  }; separator = "\n\n">
-<struct.attributeDecls:{a | fn set_<a.escapedName>(&mut self,attr: <RustTypeMap.(a.type)>) { self.borrow_mut().<a.escapedName> = attr; \}  }; separator = "\n\n">
-<getters:{g | <g>}; separator="\n">
-	<!<if(ctorAttrs)>pub fn new(parent: ParserRuleContext, invokingState:usize) { Self {base:super(parent, invokingState);} }<endif>!>
-
-<extensionMembers; separator="\n">
-
 // #[derive(Clone)]
-// pub struct <struct.escapedName>\<'input>{
+// pub struct <struct.escapedName>\<'input> {
 // 	<attrs:{a | pub <a>,
-// 	}>	ph:PhantomData\<&'input str>
+// 	}>	ph: PhantomData\<&'input str>
 // }
  
 // impl\<'input> <struct.escapedName>\<'input>{
@@ -52,33 +40,8 @@ StructDecl(struct,ctorAttrs,attrs,getters,dispatchMethods,interfaces,extensionMe
 >>
 
 AltLabelStructDecl(struct,attrs,getters,dispatchMethods) ::= <<
-
-pub struct <struct.escapedName>\<'input> {
-	context: ParserContext,
-	<attrs:{a | <a>,
-}>	ph:PhantomData\<&'input str>
-}
-
-
-// AltLabelStructDecl
-impl\<'input> <struct.escapedName>\<'input>{
-	fn new(ctx: &dyn <currentRule.name; format="cap">ContextAttrs\<'input>) -> <currentRule.name; format="cap">\<'input>  {
-			<currentRule.name; format="cap">ContextAll::<struct.escapedName>(
-				<if(contextSuperClass)><contextSuperClass><else>BaseParserRuleContext<endif>::copy_from(ctx,<struct.escapedName>Ext{
-					<!base:<currentRule.name; format="cap">Context{..*base}!>
-					<!<struct.attrs:{a | <a.escapedName>:None,}>!>
-					<struct.tokenDecls:{a | <a.escapedName>:None, }>
-        			<struct.tokenTypeDecls:{a | <a.escapedName>:-1, }>
-        			<struct.tokenListDecls:{a | <a.escapedName>:Vec::new(), }>
-        			<struct.ruleContextDecls:{a | <a.escapedName>:None, }>
-        			<struct.ruleContextListDecls:{a | <a.escapedName>:Vec::new(), }>
-        			base: ctx.borrow().clone(),
-        			ph:PhantomData
-        			<!<struct.ctorAttrs:{a | <a.escapedName> }; separator=",\n">!>
-				})
-			)
-	}
-}
+// AltLabelStructDecl	
+<struct.escapedName>(<struct.escapedName>\<'input>)
 >>
 
 ContextTokenGetterDecl(t) ::= <<

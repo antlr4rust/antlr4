@@ -10,6 +10,8 @@ RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,fina
 // RuleFunction
 //------------------- <currentRule.name> ----------------
 
+<RuleTypeForAlt(currentRule,ruleCtx,altLabelCtxs)>
+
 // RuleCtx - this leads in to structdecl
 <ruleCtx>
 
@@ -44,24 +46,10 @@ Ok(_localctx)
 
 RuleTypeForAlt(currentRule,ruleCtx,altLabelCtxs) ::= <<
 // RuleTypeForAlt
-<if(ruleCtx.struct.provideCopyFrom)>
 #[derive(Debug)]
-pub enum <currentRule.ctxType>\<'input>{
-	<altLabelCtxs:{l | <altLabelCtxs.(l).struct.escapedName>(<altLabelCtxs.(l).struct.escapedName>\<'input>),
-	}>
+pub enum <currentRule.ctxType>\<'input> {
+	<altLabelCtxs:{l | <altLabelCtxs.(l).struct.escapedName>(<altLabelCtxs.(l).struct.escapedName>\<'input>),<\n>}>
 }
-
-<if(parser.file.genVisitor)>
-impl\<'input,'a> Visitable\<dyn <parser.grammarName>Visitor\<'input> + 'a> for <currentRule.ctxType>All\<'input>{
-	fn accept(&self, visitor: &mut (dyn <parser.grammarName>Visitor\<'input> + 'a)) { self.deref().accept(visitor) }
-}
-<endif>
-<if(parser.file.genListener)>
-impl\<'input,'a> Listenable\<dyn <parser.grammarName>Listener\<'input> + 'a> for <currentRule.ctxType>All\<'input>{
-    fn enter(&self, listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) -> Result\<(), ANTLRError> { self.deref().enter(listener) }
-    fn exit(&self, listener: &mut (dyn <parser.grammarName>Listener\<'input> + 'a)) -> Result\<(), ANTLRError> { self.deref().exit(listener) }
-}
-<endif>
 >>
 
 ContextRuleGetterDecl(r)       ::= <<
