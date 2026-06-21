@@ -7,48 +7,38 @@ const ATN: LazyCell\<ATN> = LazyCell::new(|| {
 >>
 
 RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,finallyAction,postamble,exceptions) ::= <<
-// RuleFunction
-//------------------- <currentRule.name> ----------------
+// ------------------- <currentRule.name> ----------------
 
-<RuleTypeForAlt(currentRule,ruleCtx,altLabelCtxs)>
+// Struct version
+<RuleTypeForStruct(currentRule, ruleCtx)>
 
-// RuleCtx - this leads in to structdecl
-<ruleCtx>
+// Enum version
+<RuleTypeForEnum(currentRule, ruleCtx, altLabelCtxs)>
 
-// altLabelCtxs
-<altLabelCtxs:{l | <altLabelCtxs.(l)>}; separator="\n">
-
-impl\<'input> <parser.name>\<'input>
-{
-<if(currentRule.modifiers)>
-<currentRule.modifiers:{f | <f> }>
-<else>pub<endif> fn <currentRule.escapedName>(&mut self, <args; separator=",">)	-> Result\<<currentRule.ctxType>\<'input>\>, ANTLRError> {		
-	self.parser.enter_rule(<currentRule.startState>, RULE_<currentRule.name>);
-
-// namedActions.init
-<namedActions.init>
-<locals; separator="\n">
-
-
-<if(currentRule.hasLookaheadBlock)>
-let mut _alt: i32;
-<endif>
-<code>
-<postamble; separator="\n">
-<namedActions.after>
-<finallyAction>
-self.parser.exit_rule()?;
-
-Ok(_localctx)
+impl <currentRule.ctxType> {
+	pub fn new() -> Self {
+		Self {
+			
+		}
+	}
 }
+
+impl <parser.name> {
+	pub fn <currentRule.escapedName>() -> <currentRule.ctxType> {
+		<code>
+	}
 }
 >>
 
-RuleTypeForAlt(currentRule,ruleCtx,altLabelCtxs) ::= <<
-// RuleTypeForAlt
-#[derive(Debug)]
+RuleTypeForStruct(currentRule,ruleCtx) ::= <<
+<ruleCtx>
+>>
+
+RuleTypeForEnum(currentRule,ruleCtx,altLabelCtxs) ::= <<
+// RuleTypeForEnum
+#[derive(Clone, Debug)]
 pub enum <currentRule.ctxType>\<'input> {
-	<altLabelCtxs:{l | <altLabelCtxs.(l).struct.escapedName>(<altLabelCtxs.(l).struct.escapedName>\<'input>),<\n>}>
+	<altLabelCtxs:{l | <altLabelCtxs.(l)>}; separator="\n">
 }
 >>
 
@@ -130,7 +120,7 @@ self.parser.set_state(<choice.stateNumber>);
 <preamble; separator="\n">
 match  self.parser.adaptive_predict(<choice.decision>)? {
 <alts:{alt |
-	<i> =>{
+	<i> => {
 		<alt>
 	\}
 	}; separator=",\n">

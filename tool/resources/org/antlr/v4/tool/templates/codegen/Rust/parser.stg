@@ -40,7 +40,7 @@ pub const RULE_NAMES: LazyCell\<Vec\<&'static str\>> = LazyCell::new(|| vec![
 
 <atn>
 
-impl\<'input> for <parser.name>\<'input>{
+impl\<'input> <parser.name>\<'input>{
 	fn grammar_file_name(&self) -> &str { "<parser.grammarFileName>" }
 }
 

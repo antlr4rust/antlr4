@@ -48,7 +48,7 @@ public class StructDecl extends Decl {
 	@Override
 	public String toString() {
 		return 
-			"ClassName {" +
+			"StructDecl {" +
 			"  derivedFromName=" + derivedFromName +
 			", provideCopyFrom=" + provideCopyFrom +
 			", attrs=" + attrs +

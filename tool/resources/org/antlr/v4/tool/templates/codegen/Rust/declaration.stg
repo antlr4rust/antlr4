@@ -2,46 +2,16 @@ TokenTypeDecl(t) ::= "let mut <t.name>: usize = -1;"
 
 
 StructDecl(struct,ctorAttrs,attrs,getters,dispatchMethods,interfaces,extensionMembers) ::= <<
-<struct>
-// Check if fields don't appear bc they're not guaranteed
-// StructDecl
+// <struct>
 
-// #[derive(Clone)]
-// pub struct <struct.escapedName>\<'input> {
-// 	<attrs:{a | pub <a>,
-// 	}>	ph: PhantomData\<&'input str>
-// }
- 
-// impl\<'input> <struct.escapedName>\<'input>{
-// 	fn new(parent: Option\<dyn <parser.name>Context\<'input> + 'input>, invoking_state: i32<ctorAttrs:{a | , <a>}>) -> <struct.escapedName>\<'input> {
-// 		<struct.attributeDecls:{a | let mut _init_<a.escapedName> = <rustTypeInitMap.(a.type)>;
-// 		 }>
-// 		 <struct.ctorAttrs:{a | _init_<a.escapedName> = <a.escapedName>;
-// 		 }>
-// 		<if(struct.provideCopyFrom)><struct.escapedName>All::Error(<endif>
-// 			<struct.escapedName> {
-// 			<!<attrs:{a | <a.escapedName>:None,}>!>
-// 				<struct.tokenDecls:{a | <a.escapedName>: None, }>
-// 				<struct.tokenTypeDecls:{a | <a.escapedName>: -1, }>
-// 				<struct.tokenListDecls:{a | <a.escapedName>: Vec::new(), }>
-// 				<struct.ruleContextDecls:{a | <a.escapedName>: None, }>
-// 				<struct.attributeDecls:{a | <a.escapedName>: _init_<a.escapedName>, }>
-// 				<struct.ruleContextListDecls:{a | <a.escapedName>: Vec::new(), }>
+#[derive(Clone)]
+pub struct <struct.escapedName>\<'input> {
 
-// 				ph: PhantomData
-// 			},
-// 		<if(struct.provideCopyFrom)>)<endif>
-// 		)
-// 	}
-// }
-
-
-// EndStructDecl
+}
 >>
 
-AltLabelStructDecl(struct,attrs,getters,dispatchMethods) ::= <<
-// AltLabelStructDecl	
-<struct.escapedName>(<struct.escapedName>\<'input>)
+AltLabelStructDecl(decl,attrs,getters,dispatchMethods) ::= <<
+<decl.escapedName>(<decl.escapedName>\<'input>),
 >>
 
 ContextTokenGetterDecl(t) ::= <<
