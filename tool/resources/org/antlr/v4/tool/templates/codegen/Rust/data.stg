@@ -1,0 +1,28 @@
+Tokens(tokens) ::= <<
+<tokens:
+    {k | pub const TOKEN_<k>: usize = <parser.tokens.(k)>;};
+    separator="\n"
+>
+>>
+
+Rules(rules, names) ::= <<
+<rules:{r | pub const RULE_<r.name>: usize = <r.index>;}; separator="\n">
+
+pub const RULE_NAMES: LazyCell\<Vec\<&'static str\>> = LazyCell::new(|| vec![
+    <names:{ r | "<r>"}; separator=", ", wrap, anchor>
+]);
+>>
+
+Vocabulary(literalNames) ::= <<
+pub const LITERAL_NAMES: LazyCell\<Vec\<Option\<&'static str\>\>> = LazyCell::new(|| vec![
+	<literalNames:{t | Some(<t>)}; null="None", separator=", ", wrap, anchor>
+]);
+>>
+
+SerializedATN(model) ::= <<
+const ATN: LazyCell\<ATN> = LazyCell::new(|| {
+    ATN::from_serialized(vec![
+		<model.serialized; separator=", ", wrap>
+	], false).unwrap()
+});
+>>

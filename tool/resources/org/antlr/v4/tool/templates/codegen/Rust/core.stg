@@ -1,10 +1,4 @@
-SerializedATN(model) ::= <<
-const ATN: LazyCell\<ATN> = LazyCell::new(|| {
-    ATN::from_serialized(vec![
-		<model.serialized; separator=", ", wrap>
-	], false).unwrap()
-});
->>
+
 
 RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,finallyAction,postamble,exceptions) ::= <<
 // ------------------- <currentRule.name> ----------------
@@ -18,13 +12,13 @@ RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,fina
 impl <currentRule.ctxType> {
 	pub fn new() -> Self {
 		Self {
-			
+
 		}
 	}
 }
 
 impl <parser.name> {
-	pub fn <currentRule.escapedName>() -> <currentRule.ctxType> {
+	pub fn <currentRule.escapedName>(&mut self) -> Result\<<currentRule.ctxType>, ANTLRError> {
 		<code>
 	}
 }
@@ -38,9 +32,13 @@ RuleTypeForEnum(currentRule,ruleCtx,altLabelCtxs) ::= <<
 // RuleTypeForEnum
 #[derive(Clone, Debug)]
 pub enum <currentRule.ctxType>\<'input> {
-	<altLabelCtxs:{l | <altLabelCtxs.(l)>}; separator="\n">
+	<altLabelCtxs:{l | <altLabelCtxs.(l).escapedName>}; separator="\n">
 }
+
+<altLabelCtxs:{l | <altLabelCtxs.(l)>}; separator="\n\n">
 >>
+
+EnumVariantDecl(name) ::= <<  >>
 
 ContextRuleGetterDecl(r)       ::= <<
 // ContextRuleGetterDecl
@@ -65,14 +63,21 @@ fn <r.escapedName>(&self, i: usize) -> Option\<&<r.ctxName>\<'input>\>>{
 
 CodeBlockForOuterMostAlt(currentOuterMostAltCodeBlock, locals, preamble, ops) ::= <<
 // CodeBlockForOuterMostAlt
+
+
 <if(currentOuterMostAltCodeBlock.altLabel)>
 // With Alt label
-let AltWOEIFJWE = self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
+self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
+
+Alt_ENUM_NAME_HERE_TODO(
+<CodeBlockForAlt(currentAltCodeBlock=currentOuterMostAltCodeBlock, ...)>
+)
 <else>
 // Without Alt label
 self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
-<endif>
 <CodeBlockForAlt(currentAltCodeBlock=currentOuterMostAltCodeBlock, ...)>
+<endif>
+
 >>
 
 ThrowNoViableAlt(t) ::= "ANTLRError::NoAltError(NoViableAltError::new(&mut self.parser))"
@@ -80,24 +85,13 @@ ThrowNoViableAlt(t) ::= "ANTLRError::NoAltError(NoViableAltError::new(&mut self.
 InvokeRule(r, argExprsChunks) ::= <<
 // InvokeRule <r.escapedName>
 self.parser.set_state(<r.stateNumber>);
-<LabelsAssign(r.labels, {self.<r.escapedName><if(r.ast.options.p)>_rec<endif>(<if(r.ast.options.p)><r.ast.options.p><if(argExprsChunks)>,<endif><endif><argExprsChunks>)?})>
+<LabelsAssign(r.labels, {let <r.escapedName> = self.<r.escapedName>()?})>
 >>
 
 MatchToken(m) ::= <<
 // MatchToken
 self.parser.set_state(<m.stateNumber>);
 <LabelsAssign(m.labels,{self.parser.match_token(<parser.grammarName>_<m.escapedName>)?})>
->>
-
-LL1PlusBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
-self.parser.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
-<preamble; separator="\n">
-loop {
-	<alts; separator="\n">
-	self.parser.set_state(<choice.stateNumber>); <! loopback/exit decision !>
-	<iteration>
-	if !(<loopExpr>) {break}
-}
 >>
 
 CodeBlockForAlt(currentAltCodeBlock, locals, preamble, ops) ::= <<
@@ -113,6 +107,14 @@ CodeBlockForAlt(currentAltCodeBlock, locals, preamble, ops) ::= <<
 <ops; separator="\n">
 >>
 
+
+//////////////////
+// ALT HANDLING //
+//////////////////
+AltCases(tokens) ::= <<
+<tokens:{t | <parser.grammarName>_<t.name> }; separator="| ", wrap>
+>>
+
 AltBlock(choice, preamble, alts, error) ::= <<
 // AltBlock
 self.parser.set_state(<choice.stateNumber>);
@@ -122,24 +124,36 @@ match  self.parser.adaptive_predict(<choice.decision>)? {
 <alts:{alt |
 	<i> => {
 		<alt>
-	\}
-	}; separator=",\n">
+	\},
+
+}>
 	_ => {}
 }
 >>
 
+// unkown, List<srcOp>, List<CodeBlockForAlt>, ThrowNoViableAlt
 LL1AltBlock(choice, preamble, alts, error) ::= <<
 // LL1AltBlock
 self.parser.set_state(<choice.stateNumber>);
 <if(choice.label)><labelref(choice.label,{ = self.parser.input.lt(1).cloned();})><endif>
 <preamble; separator="\n">
 match self.parser.input.la(1) {
-<choice.altLook,alts:{look,alt| <cases(tokens=look)>
-	=> {
+	<choice.altLook, alts:{look, alt | <AltCases(tokens=look)> => {
 		<alt>
 	\}
 	}; separator="\n">
-	_ => Err(<error>)?
+	_ => Err(ANTLRError::NoViableAlt)?
+}
+>>
+
+LL1PlusBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
+self.parser.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
+<preamble; separator="\n">
+loop {
+	<alts; separator="\n">
+	self.parser.set_state(<choice.stateNumber>); <! loopback/exit decision !>
+	<iteration>
+	if !(<loopExpr>) {break}
 }
 >>
 

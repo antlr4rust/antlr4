@@ -29,6 +29,7 @@
  */
 
 import "core.stg"
+import "data.stg"
 import "declaration.stg"
 import "lexer.stg"
 import "listener.stg"

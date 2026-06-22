@@ -26,22 +26,24 @@ const _: () = {
 
 Parser(parser, funcs, atn, sempredFuncs, superClass) ::= <<     
 // Parser
-<if(parser.tokens)>
-<parser.tokens:{k | pub const TOKEN_<k>: usize = <parser.tokens.(k)>;}; separator=" \n">
-<endif>
-
-<parser.rules:{r | pub const RULE_<r.name>: usize = <r.index>;}; separator=" \n">
-
-pub const RULE_NAMES: LazyCell\<Vec\<&'static str\>> = LazyCell::new(|| vec![
-    <parser.ruleNames:{r | "<r>"}; separator=", ", wrap, anchor>
-]);
-
-<vocabulary(parser.literalNames, parser.symbolicNames)>
+<Tokens(parser.tokens)>
+<Rules(parser.rules, parser.ruleNames)>
+<Vocabulary(parser.literalNames)>
 
 <atn>
 
+pub struct <parser.name>\<'input> {
+    parser: Parser\<'input>
+}
+
 impl\<'input> <parser.name>\<'input>{
-	fn grammar_file_name(&self) -> &str { "<parser.grammarFileName>" }
+    pub fn new(lexer: Lexer\<'input>) -> <parser.name> {
+        Self {
+            parser: Parser::new(lexer)
+        }
+    }
+
+	pub fn grammar_file_name(&self) -> &str { "<parser.grammarFileName>" }
 }
 
 // Funcs

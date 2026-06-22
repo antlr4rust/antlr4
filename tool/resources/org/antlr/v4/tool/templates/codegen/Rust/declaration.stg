@@ -11,7 +11,11 @@ pub struct <struct.escapedName>\<'input> {
 >>
 
 AltLabelStructDecl(decl,attrs,getters,dispatchMethods) ::= <<
-<decl.escapedName>(<decl.escapedName>\<'input>),
+pub struct <decl.escapedName>\<'input> {
+}
+
+impl <decl.escapedName>\<'input> {
+}
 >>
 
 ContextTokenGetterDecl(t) ::= <<
