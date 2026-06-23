@@ -9,19 +9,12 @@ RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,fina
 // Enum version
 <RuleTypeForEnum(currentRule, ruleCtx, altLabelCtxs)>
 
-impl <currentRule.ctxType> {
-	pub fn new() -> Self {
-		Self {
-
-		}
-	}
-}
-
 impl <parser.name> {
 	pub fn <currentRule.escapedName>(&mut self) -> Result\<<currentRule.ctxType>, ANTLRError> {
 		<code>
 	}
 }
+// ---------------- End <currentRule.name> ----------------
 >>
 
 RuleTypeForStruct(currentRule,ruleCtx) ::= <<
@@ -120,7 +113,7 @@ AltBlock(choice, preamble, alts, error) ::= <<
 self.parser.set_state(<choice.stateNumber>);
 <if(choice.label)><labelref(choice.label,{ = self.parser.input.lt(1).cloned();})><endif>
 <preamble; separator="\n">
-match  self.parser.adaptive_predict(<choice.decision>)? {
+match self.parser.adaptive_predict(<choice.decision>)? {
 <alts:{alt |
 	<i> => {
 		<alt>
@@ -165,5 +158,18 @@ while <loopExpr> {
 	<alts; separator="\n">
 	self.parser.set_state(<choice.loopBackStateNumber>);
 	<iteration>
+}
+>>
+
+StarBlock(choice, alts, sync, iteration) ::= <<
+self.parser.set_state(<choice.stateNumber>);
+alt = self.parser.adaptive_predict(<choice.decision>)?;
+while { alt != <choice.exitAlt> && alt != INVALID_ALT } {
+	if alt == 1<if(!choice.ast.greedy)> + 1<endif> {
+		<iteration>
+		<alts> <! should only be one !>
+	}
+	self.parser.set_state(<choice.loopBackStateNumber>);
+	alt = self.parser.adaptive_predict(<choice.decision>)?;
 }
 >>
