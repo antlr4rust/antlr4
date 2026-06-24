@@ -1,19 +1,17 @@
-
-
 RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,finallyAction,postamble,exceptions) ::= <<
 // ------------------- <currentRule.name> ----------------
 
-// Struct version
-<RuleTypeForStruct(currentRule, ruleCtx)>
-
-// Enum version
+<if(altLabelCtxs)>
 <RuleTypeForEnum(currentRule, ruleCtx, altLabelCtxs)>
+<else>
+<RuleTypeForStruct(currentRule, ruleCtx)>
 
 impl <parser.name> {
 	pub fn <currentRule.escapedName>(&mut self) -> Result\<<currentRule.ctxType>, ANTLRError> {
 		<code>
 	}
 }
+<endif>
 // ---------------- End <currentRule.name> ----------------
 >>
 
@@ -21,7 +19,7 @@ RuleTypeForStruct(currentRule,ruleCtx) ::= <<
 <ruleCtx>
 >>
 
-RuleTypeForEnum(currentRule,ruleCtx,altLabelCtxs) ::= <<
+RuleTypeForEnum(currentRule, ruleCtx, altLabelCtxs) ::= <<
 // RuleTypeForEnum
 #[derive(Clone, Debug)]
 pub enum <currentRule.ctxType>\<'input> {
@@ -29,29 +27,6 @@ pub enum <currentRule.ctxType>\<'input> {
 }
 
 <altLabelCtxs:{l | <altLabelCtxs.(l)>}; separator="\n\n">
->>
-
-EnumVariantDecl(name) ::= <<  >>
-
-ContextRuleGetterDecl(r)       ::= <<
-// ContextRuleGetterDecl
-fn <r.escapedName>(&self) -> &<r.ctxName>\<'input>\> {
-	self.<r.ctxName>
-}
->>
-
-ContextRuleListGetterDecl(r) ::= <<
-// ContextRuleListGetterDecl
-fn <r.name>_all(&self) ->  &Vec\<<r.ctxName>\<'input>\>> {
-	self.<r.ctxName>
-}
->>
-
-ContextRuleListIndexedGetterDecl(r) ::= <<
-// ContextRuleListIndexedGetterDecl
-fn <r.escapedName>(&self, i: usize) -> Option\<&<r.ctxName>\<'input>\>>{
-	self.<r.ctxName>.get(i)
-}
 >>
 
 CodeBlockForOuterMostAlt(currentOuterMostAltCodeBlock, locals, preamble, ops) ::= <<
@@ -62,9 +37,7 @@ CodeBlockForOuterMostAlt(currentOuterMostAltCodeBlock, locals, preamble, ops) ::
 // With Alt label
 self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
 
-Alt_ENUM_NAME_HERE_TODO(
 <CodeBlockForAlt(currentAltCodeBlock=currentOuterMostAltCodeBlock, ...)>
-)
 <else>
 // Without Alt label
 self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
@@ -73,7 +46,7 @@ self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
 
 >>
 
-ThrowNoViableAlt(t) ::= "ANTLRError::NoAltError(NoViableAltError::new(&mut self.parser))"
+ThrowNoViableAlt(t) ::= "Err(ANTLRError::NoAltError)?"
 
 InvokeRule(r, argExprsChunks) ::= <<
 // InvokeRule <r.escapedName>
@@ -104,6 +77,12 @@ CodeBlockForAlt(currentAltCodeBlock, locals, preamble, ops) ::= <<
 //////////////////
 // ALT HANDLING //
 //////////////////
+
+// Here's what the Alt tree looks like:
+// AltBlock | LL1AltBlock
+//   CodeBlockForOuterMostAlt
+//     CodeBlockForAlt
+
 AltCases(tokens) ::= <<
 <tokens:{t | <parser.grammarName>_<t.name> }; separator="| ", wrap>
 >>
@@ -111,31 +90,45 @@ AltCases(tokens) ::= <<
 AltBlock(choice, preamble, alts, error) ::= <<
 // AltBlock
 self.parser.set_state(<choice.stateNumber>);
-<if(choice.label)><labelref(choice.label,{ = self.parser.input.lt(1).cloned();})><endif>
-<preamble; separator="\n">
 match self.parser.adaptive_predict(<choice.decision>)? {
 <alts:{alt |
-	<i> => {
+	<i> => above::AltEnumNameTodo({
 		<alt>
-	\},
+	\}),
 
 }>
 	_ => {}
 }
 >>
 
-// unkown, List<srcOp>, List<CodeBlockForAlt>, ThrowNoViableAlt
+// LL1AltBlock, List<srcOp>, List<CodeBlockForAlt>, ThrowNoViableAlt
 LL1AltBlock(choice, preamble, alts, error) ::= <<
-// LL1AltBlock
+// LL1AltBlock choice <choice>
 self.parser.set_state(<choice.stateNumber>);
-<if(choice.label)><labelref(choice.label,{ = self.parser.input.lt(1).cloned();})><endif>
-<preamble; separator="\n">
 match self.parser.input.la(1) {
-	<choice.altLook, alts:{look, alt | <AltCases(tokens=look)> => {
-		<alt>
-	\}
+	<choice.altLook, alts:{look, alt | <AltCases(tokens=look)>=> above::AltEnumNameTodo({
+	<alt>
+\}),
 	}; separator="\n">
 	_ => Err(ANTLRError::NoViableAlt)?
+}
+>>
+
+PlusBlock(choice, alts, error) ::= <<
+self.parser.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
+alt = 1<if(!choice.ast.greedy)> + 1<endif>;
+loop {
+	match alt {
+	<alts:{alt|
+    <i><if(!choice.ast.greedy)>+1<endif> => {
+		<alt>
+	\}}; separator=",\n">
+		_ => Err(<error>)?
+	}
+
+	self.parser.set_state(<choice.loopBackStateNumber>); <! loopback/exit decision !>
+	alt = self.parser.adaptive_predict(<choice.decision>)?;
+	if alt == <choice.exitAlt> || alt == INVALID_ALT { break }
 }
 >>
 
