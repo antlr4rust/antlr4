@@ -1,6 +1,6 @@
 Tokens(tokens) ::= <<
 <tokens:
-    {k | pub const TOKEN_<k>: usize = <parser.tokens.(k)>;};
+    {k | pub const TOKEN_<k>: usize = <tokens.(k)>;};
     separator="\n"
 >
 >>
@@ -13,9 +13,27 @@ pub const RULE_NAMES: LazyCell\<Vec\<&'static str\>> = LazyCell::new(|| vec![
 ]);
 >>
 
+LexerRules(rules) ::= <<
+pub const RULE_NAMES: LazyCell\<Vec\<Option\<&'static str\>\>> = LazyCell::new(|| vec![
+    <rules:{r | "<r>"}; separator=", ", wrap, anchor>
+]);
+>>
+
 Vocabulary(literalNames) ::= <<
 pub const LITERAL_NAMES: LazyCell\<Vec\<Option\<&'static str\>\>> = LazyCell::new(|| vec![
 	<literalNames:{t | Some(<t>)}; null="None", separator=", ", wrap, anchor>
+]);
+>>
+
+ChannelNames(names) ::= <<
+pub const CHANNEL_NAMES: LazyCell\<Vec\<&'static str\>> = LazyCell::new(|| vec![
+    "DEFAULT_TOKEN_CHANNEL", "HIDDEN"<if (lexer.channelNames)>, <lexer.channelNames:{c| "<c>"}; separator=", ", wrap, anchor><endif>
+]);
+>>
+
+ModeNames(names) ::= <<
+pub const MODE_NAMES: LazyCell\<Vec\<&'static str\>> = LazyCell::new(|| vec![
+    <names:{n| "<n>"}; separator=", ", wrap, anchor>
 ]);
 >>
 

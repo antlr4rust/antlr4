@@ -1,6 +1,41 @@
 LexerFile(lexerFile, lexer, namedActions) ::= <<
 <fileHeader(lexerFile.grammarFileName, lexerFile.ANTLRVersion)>
+#![allow(nonstandard_style)]
+
+const _: () = {
+    assert!(
+        antlr4rust::const_check::version("0", "6"),
+        "Incompatible version: either switch to v0.6 or regenerate with this version"
+    );
+};
+
+<lexer>
 >>
 
 Lexer(lexer, atn, actionFuncs, sempredFuncs, superClass) ::= <<
+<Tokens(lexer.tokens)>
+
+<Vocabulary(lexer.literalNames)>
+
+<LexerRules(lexer.ruleNames)>
+
+<ChannelNames(lexer.channelNames)>
+
+<ModeNames(lexer.modes)>
+
+<atn>
+
+pub struct <lexer.name>\<'input> {
+    lexer: Lexer\<'input>
+}
+
+impl\<'input> <lexer.name>\<'input>{
+    pub fn new(input: &'input str) -> <lexer.name>\<'input> {
+        Self {
+            lexer: Lexer::new(ATN.clone(), input)
+        }
+    }
+
+	pub fn grammar_file_name(&self) -> &str { "<lexer.grammarFileName>" }
+}
 >>

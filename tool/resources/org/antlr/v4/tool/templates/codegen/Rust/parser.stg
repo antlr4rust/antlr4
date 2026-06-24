@@ -1,8 +1,6 @@
 ParserFile(file, parser, namedActions, contextSuperClass) ::= <<
 <fileHeader(file.grammarFileName, file.ANTLRVersion)>
-
-// namedActions.header
-<namedActions.header>
+#![allow(nonstandard_style)]
 
 <if(file.genListener)>
 use super::<file.grammarName; format="lower">listener::*;

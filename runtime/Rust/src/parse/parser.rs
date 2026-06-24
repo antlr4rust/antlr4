@@ -1,6 +1,6 @@
 use std::{cell::LazyCell, marker::PhantomData};
 
-use crate::{atn::{ATN, ATNRuleRef}, lex::{Lex, Lexer, token::Token}};
+use crate::{atn::{ATN, ATNRuleRef}, lex::{Lexer, token::Token}};
 
 pub trait Parse {
     const RULE_NAMES: LazyCell<Vec<&'static str>>;

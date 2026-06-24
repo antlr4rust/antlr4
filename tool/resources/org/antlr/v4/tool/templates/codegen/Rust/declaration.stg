@@ -2,20 +2,22 @@ TokenTypeDecl(t) ::= "let mut <t.name>: usize = -1;"
 
 
 StructDecl(decl) ::= <<
+// <decl>
+
 #[derive(Clone)]
-pub struct <decl.escapedName>\<'input> {
+pub struct <decl.ctxType>\<'input> {
 	<decl.getters:{g | <g.ctxName; format="lower">: <g.ctxName>\<'input>}; separator=",\n">
 }
 
 impl <decl.escapedName>\<'input> {
 	pub fn new(<decl.getters:{g | <g.ctxName; format="lower">: <g.ctxName>\<'input>}; separator=", ">) -> <decl.escapedName>\<'input> {
-		<decl.escapedName> {
+		<decl.ctxType> {
 			<decl.getters:{g | <g.ctxName; format="lower">}; separator=",\n">
 		}
 	}
 
 	<decl.getters:{g | pub fn <g.ctxName; format="lower">(&self) -> &<g.ctxName>\<'input> {
-	self.<g.ctxName; format="lower">
+	&self.<g.ctxName; format="lower">
 \}
 
 }>
@@ -37,8 +39,9 @@ impl <decl.escapedName>\<'input> {
 		}
 	}
 
+	// CODEGEN: Maybe just use \<g> to gen the getter by default?
 	<decl.getters:{g | pub fn <g.ctxName; format="lower">(&self) -> &<g.ctxName>\<'input> {
-	self.<g.ctxName; format="lower">
+	&self.<g.ctxName; format="lower">
 \}
 
 }>
