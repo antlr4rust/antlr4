@@ -1,5 +1,5 @@
 RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,finallyAction,postamble,exceptions) ::= <<
-// ------------------- <currentRule.name> ----------------
+// -------------- Start <currentRule.name> ----------------
 
 <if(altLabelCtxs)>
 <RuleTypeForEnum(currentRule, ruleCtx, altLabelCtxs)>

@@ -3,16 +3,13 @@ TokenTypeDecl(t) ::= "let mut <t.name>: usize = -1;"
 
 StructDecl(decl) ::= <<
 // StructDecl <decl>
-
-// AltLabelStructDecl <decl>
-// Parent rule: <decl.parentRule>
 #[derive(Clone)]
 pub struct <decl.escapedName>\<'input> {
-	<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="upper">\<'input>}; separator=",\n">
+	<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="cap">\<'input>}; separator=",\n">
 }
 
 impl <decl.escapedName>\<'input> {
-	pub fn new(<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="upper">\<'input>}; separator=", ">) -> <decl.escapedName>\<'input> {
+	pub fn new(<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="cap">\<'input>}; separator=", ">) -> <decl.escapedName>\<'input> {
 		<decl.escapedName> {
 			<decl.getters:{g | <g.escapedName; format="lower">}; separator=",\n">
 		}
@@ -32,18 +29,18 @@ AltLabelStructDecl(decl) ::= <<
 // Parent rule: <decl.parentRule>
 #[derive(Clone)]
 pub struct <decl.escapedName>\<'input> {
-	<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="upper">\<'input>}; separator=",\n">
+	<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="cap">\<'input>}; separator=",\n">
 }
 
 impl <decl.escapedName>\<'input> {
-	pub fn new(<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="upper">\<'input>}; separator=", ">) -> <decl.escapedName>\<'input> {
+	pub fn new(<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="cap">\<'input>}; separator=", ">) -> <decl.escapedName>\<'input> {
 		<decl.escapedName> {
 			<decl.getters:{g | <g.escapedName; format="lower">}; separator=",\n">
 		}
 	}
 
 	// CODEGEN: Maybe just use \<g> to gen the getter by default?
-	<decl.getters:{g | pub fn <g.escapedName; format="lower">(&self) -> &<g.escapedName>\<'input> {
+	<decl.getters:{g | pub fn <g.escapedName; format="lower">(&self) -> &<g.escapedName; format="cap">\<'input> {
 	&self.<g.escapedName; format="lower">
 \}
 
