@@ -26,4 +26,8 @@ public class ContextRuleListGetterDecl extends ContextGetterDecl {
 	public ContextGetterDecl getSignatureDecl() {
 		return new ContextRuleListGetterDecl(factory, name, ctxName, true);
 	}
+
+	public boolean getIsVec() {
+		return true;
+	}
 }

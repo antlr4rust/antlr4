@@ -26,4 +26,8 @@ public class ContextTokenListIndexedGetterDecl extends ContextTokenListGetterDec
 	public ContextGetterDecl getSignatureDecl() {
 		return new ContextTokenListIndexedGetterDecl(factory, name, true);
 	}
+
+	boolean getIsIndexed() {
+		return true;
+	}
 }

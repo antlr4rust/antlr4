@@ -9,9 +9,10 @@ pub struct <decl.escapedName>\<'input> {
 }
 
 impl <decl.escapedName>\<'input> {
-	pub fn new(<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="cap">\<'input>}; separator=", ">) -> <decl.escapedName>\<'input> {
+	pub fn new(<decl.getters:{g | <g.escapedName; format="lower">: <g>\<'input>}; separator=", ">) -> <decl.escapedName>\<'input> {
 		<decl.escapedName> {
-			<decl.getters:{g | <g.escapedName; format="lower">}; separator=",\n">
+			<decl.getters:{g | <g>
+				<g.escapedName; format="lower">}; separator=",\n">
 		}
 	}
 
@@ -29,13 +30,14 @@ AltLabelStructDecl(decl) ::= <<
 // Parent rule: <decl.parentRule>
 #[derive(Clone)]
 pub struct <decl.escapedName>\<'input> {
-	<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="cap">\<'input>}; separator=",\n">
+	// This abomination brought to you by ContextRuleGetterDecls not rendering properly
+	<decl.getters:{g | <if(!g.isIndexed)><g.escapedName; format="lower">: <if(g.isVec)>Vec\<<endif><g.escapedName; format="cap"><if(g.isVec)>\><endif><endif>}; separator=",\n">
 }
 
 impl <decl.escapedName>\<'input> {
-	pub fn new(<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="cap">\<'input>}; separator=", ">) -> <decl.escapedName>\<'input> {
+	pub fn new(<decl.getters:{g | <if(!g.isIndexed)><g.escapedName; format="lower">: <g>\<'input><endif>}; separator=", ">) -> <decl.escapedName>\<'input> {
 		<decl.escapedName> {
-			<decl.getters:{g | <g.escapedName; format="lower">}; separator=",\n">
+			<decl.getters:{g | <if(!g.isIndexed)><g.escapedName; format="lower"><endif>}; separator=",\n">
 		}
 	}
 
@@ -47,6 +49,15 @@ impl <decl.escapedName>\<'input> {
 }>
 }
 >>
+
+// THESE ARE ONLY TYPE DECLS so "A\<'input>"" for example. The rest is added later on 
+ContextRuleGetterDecl(r) ::= <<
+<r.ctxName>\<'input\>>
+>>
+ContextRuleListGetterDecl(r) ::= <<
+Vec\<<r.ctxName>\<'input>\>>
+>>
+ContextRuleListIndexedGetterDecl(r) ::= <<>>
 
 ContextTokenGetterDecl(t) ::= <<
 /// Retrieves first TerminalNode corresponding to token <t.name>
