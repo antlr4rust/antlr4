@@ -1,29 +1,38 @@
 TokenTypeDecl(t) ::= "let mut <t.name>: usize = -1;"
 
+TypeOfDecl(d) ::= <<
+<if(d.isVec)>Vec\<<endif><\\>
+<d.escapedName; format="cap"><\\>
+\<'input\><\\>
+<if(d.isVec)>\><endif><\\>
+
+>>
 
 StructDecl(decl) ::= <<
 // StructDecl <decl>
 #[derive(Clone)]
 pub struct <decl.escapedName>\<'input> {
-	<decl.getters:{g | <g.escapedName; format="lower">: <g.escapedName; format="cap">\<'input>}; separator=",\n">
+	// This abomination brought to you by ContextRuleGetterDecls not rendering properly
+	<decl.getters:{g | <if(!g.isIndexed)><g.escapedName; format="lower">: <TypeOfDecl(g)><endif>}; separator=",\n">
 }
 
 impl <decl.escapedName>\<'input> {
-	pub fn new(<decl.getters:{g | <g.escapedName; format="lower">: <g>\<'input>}; separator=", ">) -> <decl.escapedName>\<'input> {
+	pub fn new(<decl.getters:{g | <if(!g.isIndexed)><g.escapedName; format="lower">: <TypeOfDecl(g)><endif>}; separator=", ">) -> <decl.escapedName>\<'input> {
 		<decl.escapedName> {
-			<decl.getters:{g | <g>
-				<g.escapedName; format="lower">}; separator=",\n">
+			<decl.getters:{g | <if(!g.isIndexed)><g.escapedName; format="lower"><endif>}; separator=",\n">
 		}
 	}
 
 	// CODEGEN: Maybe just use \<g> to gen the getter by default?
-	<decl.getters:{g | pub fn <g.escapedName; format="lower">(&self) -> &<g.escapedName>\<'input> {
+	<decl.getters:{g | <if(!g.isIndexed)>pub fn <g.escapedName; format="lower">(&self) -> &<TypeOfDecl(g)> {
 	&self.<g.escapedName; format="lower">
-\}
+\}<endif>
 
 }>
 }
 >>
+
+
 
 AltLabelStructDecl(decl) ::= <<
 // AltLabelStructDecl <decl>
@@ -31,20 +40,20 @@ AltLabelStructDecl(decl) ::= <<
 #[derive(Clone)]
 pub struct <decl.escapedName>\<'input> {
 	// This abomination brought to you by ContextRuleGetterDecls not rendering properly
-	<decl.getters:{g | <if(!g.isIndexed)><g.escapedName; format="lower">: <if(g.isVec)>Vec\<<endif><g.escapedName; format="cap"><if(g.isVec)>\><endif><endif>}; separator=",\n">
+	<decl.getters:{g | <if(!g.isIndexed)><g.escapedName; format="lower">: <TypeOfDecl(g)><endif>}; separator=",\n">
 }
 
 impl <decl.escapedName>\<'input> {
-	pub fn new(<decl.getters:{g | <if(!g.isIndexed)><g.escapedName; format="lower">: <g>\<'input><endif>}; separator=", ">) -> <decl.escapedName>\<'input> {
+	pub fn new(<decl.getters:{g | <if(!g.isIndexed)><g.escapedName; format="lower">: <TypeOfDecl(g)><endif>}; separator=", ">) -> <decl.escapedName>\<'input> {
 		<decl.escapedName> {
 			<decl.getters:{g | <if(!g.isIndexed)><g.escapedName; format="lower"><endif>}; separator=",\n">
 		}
 	}
 
 	// CODEGEN: Maybe just use \<g> to gen the getter by default?
-	<decl.getters:{g | pub fn <g.escapedName; format="lower">(&self) -> &<g.escapedName; format="cap">\<'input> {
+	<decl.getters:{g | <if(!g.isIndexed)>pub fn <g.escapedName; format="lower">(&self) -> &<TypeOfDecl(g)> {
 	&self.<g.escapedName; format="lower">
-\}
+\}<endif>
 
 }>
 }
