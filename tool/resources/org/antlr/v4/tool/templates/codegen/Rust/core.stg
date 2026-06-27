@@ -29,6 +29,43 @@ pub enum <currentRule.ctxType>\<'input> {
 <altLabelCtxs:{l | <altLabelCtxs.(l)>}; separator="\n\n">
 >>
 
+InvokeRule(r, argExprsChunks) ::= <<
+// InvokeRule <r.escapedName>
+self.parser.set_state(<r.stateNumber>);
+let <r.escapedName> = self.<r.escapedName>()?;
+>>
+
+MatchToken(m) ::= <<
+// MatchToken
+self.parser.set_state(<m.stateNumber>);
+self.parser.match_token(<parser.grammarName>_<m.escapedName>)?;
+>>
+
+//////////////////
+// ALT HANDLING //
+//////////////////
+
+// Here's what the Alt tree looks like:
+// AltBlock | LL1AltBlock
+//   CodeBlockForOuterMostAlt
+//     CodeBlockForAlt
+
+CodeBlockForAlt(currentAltCodeBlock, locals, preamble, ops) ::= <<
+// CodeBlockForAlt
+
+// Locals
+<locals; separator="\n">
+
+// Preamble
+<preamble; separator="\n">
+
+// Ops
+<ops; separator="\n">
+
+// supercool try
+<ops:{op | #<op.class>#<op.name>#<op.escapedName>#<op.ctxName># }>
+>>
+
 CodeBlockForOuterMostAlt(currentOuterMostAltCodeBlock, locals, preamble, ops) ::= <<
 // CodeBlockForOuterMostAlt
 
@@ -45,43 +82,6 @@ self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
 <endif>
 
 >>
-
-ThrowNoViableAlt(t) ::= "Err(ANTLRError::NoAltError)?"
-
-InvokeRule(r, argExprsChunks) ::= <<
-// InvokeRule <r.escapedName>
-self.parser.set_state(<r.stateNumber>);
-<LabelsAssign(r.labels, {let <r.escapedName> = self.<r.escapedName>()?})>
->>
-
-MatchToken(m) ::= <<
-// MatchToken
-self.parser.set_state(<m.stateNumber>);
-<LabelsAssign(m.labels,{self.parser.match_token(<parser.grammarName>_<m.escapedName>)?})>
->>
-
-CodeBlockForAlt(currentAltCodeBlock, locals, preamble, ops) ::= <<
-// CodeBlockForAlt
-
-// Locals
-<locals; separator="\n">
-
-// Preamble
-<preamble; separator="\n">
-
-// Ops
-<ops; separator="\n">
->>
-
-
-//////////////////
-// ALT HANDLING //
-//////////////////
-
-// Here's what the Alt tree looks like:
-// AltBlock | LL1AltBlock
-//   CodeBlockForOuterMostAlt
-//     CodeBlockForAlt
 
 AltCases(tokens) ::= <<
 <tokens:{t | <parser.grammarName>_<t.name> }; separator="| ", wrap>
@@ -113,6 +113,9 @@ match self.parser.input.la(1) {
 	_ => Err(ANTLRError::NoViableAlt)?
 }
 >>
+
+
+
 
 PlusBlock(choice, alts, error) ::= <<
 self.parser.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
@@ -157,12 +160,34 @@ while <loopExpr> {
 StarBlock(choice, alts, sync, iteration) ::= <<
 self.parser.set_state(<choice.stateNumber>);
 alt = self.parser.adaptive_predict(<choice.decision>)?;
-while { alt != <choice.exitAlt> && alt != INVALID_ALT } {
+while alt != <choice.exitAlt> {
 	if alt == 1<if(!choice.ast.greedy)> + 1<endif> {
 		<iteration>
 		<alts> <! should only be one !>
 	}
 	self.parser.set_state(<choice.loopBackStateNumber>);
 	alt = self.parser.adaptive_predict(<choice.decision>)?;
+}
+>>
+
+LL1OptionalBlock(choice, alts, error) ::= <<
+self.parser.set_state(<choice.stateNumber>);
+match self.parser.la(1) {
+<choice.altLook,alts:{look,alt| <cases(tokens=look)>
+	=> {
+    	<alt>
+    \}
+    }; separator="\n">
+	_ => {}
+}
+>>
+
+LL1OptionalBlockSingleAlt(choice, expr, alts, preamble, error, followExpr) ::= <<
+self.parser.set_state(<choice.stateNumber>);
+<preamble; separator="\n">
+if <expr> {
+	<alts; separator="\n">
+} else {
+	None
 }
 >>
