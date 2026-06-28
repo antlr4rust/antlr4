@@ -5,13 +5,12 @@ RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,fina
 <RuleTypeForEnum(currentRule, ruleCtx, altLabelCtxs)>
 <else>
 <RuleTypeForStruct(currentRule, ruleCtx)>
-
+<endif>
 impl <parser.name> {
 	pub fn <currentRule.escapedName>(&mut self) -> Result\<<currentRule.ctxType>, ANTLRError> {
 		<code>
 	}
 }
-<endif>
 // ---------------- End <currentRule.name> ----------------
 >>
 
@@ -61,9 +60,6 @@ CodeBlockForAlt(currentAltCodeBlock, locals, preamble, ops) ::= <<
 
 // Ops
 <ops; separator="\n">
-
-// supercool try
-<ops:{op | #<op.class>#<op.name>#<op.escapedName>#<op.ctxName># }>
 >>
 
 CodeBlockForOuterMostAlt(currentOuterMostAltCodeBlock, locals, preamble, ops) ::= <<
@@ -119,14 +115,14 @@ match self.parser.input.la(1) {
 
 PlusBlock(choice, alts, error) ::= <<
 self.parser.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
-alt = 1<if(!choice.ast.greedy)> + 1<endif>;
+alt = <if(choice.ast.greedy)>1<else>2<endif>;
 loop {
 	match alt {
 	<alts:{alt|
     <i><if(!choice.ast.greedy)>+1<endif> => {
 		<alt>
 	\}}; separator=",\n">
-		_ => Err(<error>)?
+		_ => Err(ANTLRError::NoViableAlt)?
 	}
 
 	self.parser.set_state(<choice.loopBackStateNumber>); <! loopback/exit decision !>
@@ -136,12 +132,16 @@ loop {
 >>
 
 LL1PlusBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
+let mut result = Vec::new()
+
 self.parser.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
 <preamble; separator="\n">
 loop {
 	<alts; separator="\n">
 	self.parser.set_state(<choice.stateNumber>); <! loopback/exit decision !>
-	<iteration>
+	result.push({
+		<iteration>
+	})
 	if !(<loopExpr>) {break}
 }
 >>
@@ -150,27 +150,42 @@ LL1StarBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
 // LL1StarBlockSingleAlt
 self.parser.set_state(<choice.stateNumber>);
 <preamble; separator="\n">
+
+let mut result = Vec::new()
+
 while <loopExpr> {
 	<alts; separator="\n">
 	self.parser.set_state(<choice.loopBackStateNumber>);
-	<iteration>
+	result.push({
+		<iteration>
+	})
 }
+
+result
 >>
 
 StarBlock(choice, alts, sync, iteration) ::= <<
+let mut result = Vec::new();
+
 self.parser.set_state(<choice.stateNumber>);
 alt = self.parser.adaptive_predict(<choice.decision>)?;
 while alt != <choice.exitAlt> {
 	if alt == 1<if(!choice.ast.greedy)> + 1<endif> {
-		<iteration>
-		<alts> <! should only be one !>
+		result.push({
+			<iteration>
+			<alts> <! should only be one !>
+		})
 	}
+
 	self.parser.set_state(<choice.loopBackStateNumber>);
 	alt = self.parser.adaptive_predict(<choice.decision>)?;
 }
+
+result
 >>
 
 LL1OptionalBlock(choice, alts, error) ::= <<
+// THIS WILL BE BROKEN?
 self.parser.set_state(<choice.stateNumber>);
 match self.parser.la(1) {
 <choice.altLook,alts:{look,alt| <cases(tokens=look)>
@@ -186,7 +201,9 @@ LL1OptionalBlockSingleAlt(choice, expr, alts, preamble, error, followExpr) ::= <
 self.parser.set_state(<choice.stateNumber>);
 <preamble; separator="\n">
 if <expr> {
-	<alts; separator="\n">
+	Some({
+		<alts; separator="\n">
+	})
 } else {
 	None
 }

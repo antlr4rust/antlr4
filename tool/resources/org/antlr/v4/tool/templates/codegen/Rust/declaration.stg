@@ -1,10 +1,11 @@
 TokenTypeDecl(t) ::= "let mut <t.name>: usize = -1;"
 
 TypeOfDecl(d) ::= <<
+<if(d.optional)>Option\<<endif><\\>
 <if(d.isVec)>Vec\<<endif><\\>
-<d.escapedName; format="cap"><\\>
-\<'input\><\\>
+<d.escapedName; format="cap">\<'input\><\\>
 <if(d.isVec)>\><endif><\\>
+<if(d.optional)>\><endif><\\>
 
 >>
 
