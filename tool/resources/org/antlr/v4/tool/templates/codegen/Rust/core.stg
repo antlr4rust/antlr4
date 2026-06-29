@@ -8,6 +8,7 @@ RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,fina
 <endif>
 impl <parser.name> {
 	pub fn <currentRule.escapedName>(&mut self) -> Result\<<currentRule.ctxType>, ANTLRError> {
+		type ANTLRLocalResultType = <currentRule.ctxType>;
 		<code>
 	}
 }
@@ -77,6 +78,8 @@ self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
 <CodeBlockForAlt(currentAltCodeBlock=currentOuterMostAltCodeBlock, ...)>
 <endif>
 
+<! TODO: this is an ugly workaround to get the name of the result type here !>
+ANTLRLocalResultType::new(/* stuff here */)
 >>
 
 AltCases(tokens) ::= <<
@@ -114,14 +117,16 @@ match self.parser.input.la(1) {
 
 
 PlusBlock(choice, alts, error) ::= <<
+// Multiple alt
 self.parser.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
 alt = <if(choice.ast.greedy)>1<else>2<endif>;
 loop {
 	match alt {
 	<alts:{alt|
-    <i><if(!choice.ast.greedy)>+1<endif> => {
+	<alt>
+    <i><if(!choice.ast.greedy)> + 1<endif> => AnonymousAlt<! rule's alt index here too? !><i>({
 		<alt>
-	\}}; separator=",\n">
+	\}),}; separator=",\n">
 		_ => Err(ANTLRError::NoViableAlt)?
 	}
 
@@ -132,7 +137,8 @@ loop {
 >>
 
 LL1PlusBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
-let mut result = Vec::new()
+// Single alt
+let mut result = Vec::new();
 
 self.parser.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
 <preamble; separator="\n">
@@ -151,7 +157,7 @@ LL1StarBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
 self.parser.set_state(<choice.stateNumber>);
 <preamble; separator="\n">
 
-let mut result = Vec::new()
+let mut result = Vec::new();
 
 while <loopExpr> {
 	<alts; separator="\n">
