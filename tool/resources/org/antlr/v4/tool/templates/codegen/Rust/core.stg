@@ -1,0 +1,216 @@
+RuleFunction(currentRule,args,code,locals,ruleCtx,altLabelCtxs,namedActions,finallyAction,postamble,exceptions) ::= <<
+// -------------- Start <currentRule.name> ----------------
+
+<if(altLabelCtxs)>
+<RuleTypeForEnum(currentRule, ruleCtx, altLabelCtxs)>
+<else>
+<RuleTypeForStruct(currentRule, ruleCtx)>
+<endif>
+impl <parser.name> {
+	pub fn <currentRule.escapedName>(&mut self) -> Result\<<currentRule.ctxType>, ANTLRError> {
+		type ANTLRLocalResultType = <currentRule.ctxType>;
+		<code>
+	}
+}
+// ---------------- End <currentRule.name> ----------------
+>>
+
+RuleTypeForStruct(currentRule,ruleCtx) ::= <<
+<ruleCtx>
+>>
+
+RuleTypeForEnum(currentRule, ruleCtx, altLabelCtxs) ::= <<
+// RuleTypeForEnum
+#[derive(Clone, Debug)]
+pub enum <currentRule.ctxType>\<'input> {
+	<altLabelCtxs:{l | <altLabelCtxs.(l).escapedName>}; separator="\n">
+}
+
+<altLabelCtxs:{l | <altLabelCtxs.(l)>}; separator="\n\n">
+>>
+
+InvokeRule(r, argExprsChunks) ::= <<
+// InvokeRule <r.escapedName>
+self.parser.set_state(<r.stateNumber>);
+let <r.escapedName> = self.<r.escapedName>()?;
+>>
+
+MatchToken(m) ::= <<
+// MatchToken
+self.parser.set_state(<m.stateNumber>);
+self.parser.match_token(<parser.grammarName>_<m.escapedName>)?;
+>>
+
+//////////////////
+// ALT HANDLING //
+//////////////////
+
+// Here's what the Alt tree looks like:
+// AltBlock | LL1AltBlock
+//   CodeBlockForOuterMostAlt
+//     CodeBlockForAlt
+
+CodeBlockForAlt(currentAltCodeBlock, locals, preamble, ops) ::= <<
+// CodeBlockForAlt
+
+// Locals
+<locals; separator="\n">
+
+// Preamble
+<preamble; separator="\n">
+
+// Ops
+<ops; separator="\n">
+>>
+
+CodeBlockForOuterMostAlt(currentOuterMostAltCodeBlock, locals, preamble, ops) ::= <<
+// CodeBlockForOuterMostAlt
+
+
+<if(currentOuterMostAltCodeBlock.altLabel)>
+// With Alt label
+self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
+
+<CodeBlockForAlt(currentAltCodeBlock=currentOuterMostAltCodeBlock, ...)>
+<else>
+// Without Alt label
+self.parser.enter_outer_alt(<currentOuterMostAltCodeBlock.alt.altNum>)?;
+<CodeBlockForAlt(currentAltCodeBlock=currentOuterMostAltCodeBlock, ...)>
+<endif>
+
+<! TODO: this is an ugly workaround to get the name of the result type here !>
+ANTLRLocalResultType::new(/* stuff here */)
+>>
+
+AltCases(tokens) ::= <<
+<tokens:{t | <parser.grammarName>_<t.name> }; separator="| ", wrap>
+>>
+
+AltBlock(choice, preamble, alts, error) ::= <<
+// AltBlock
+self.parser.set_state(<choice.stateNumber>);
+match self.parser.adaptive_predict(<choice.decision>)? {
+<alts:{alt |
+	<i> => above::AltEnumNameTodo({
+		<alt>
+	\}),
+
+}>
+	_ => {}
+}
+>>
+
+// LL1AltBlock, List<srcOp>, List<CodeBlockForAlt>, ThrowNoViableAlt
+LL1AltBlock(choice, preamble, alts, error) ::= <<
+// LL1AltBlock choice <choice>
+self.parser.set_state(<choice.stateNumber>);
+match self.parser.input.la(1) {
+	<choice.altLook, alts:{look, alt | <AltCases(tokens=look)>=> above::AltEnumNameTodo({
+	<alt>
+\}),
+	}; separator="\n">
+	_ => Err(ANTLRError::NoViableAlt)?
+}
+>>
+
+
+
+
+PlusBlock(choice, alts, error) ::= <<
+// Multiple alt
+self.parser.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
+alt = <if(choice.ast.greedy)>1<else>2<endif>;
+loop {
+	match alt {
+	<alts:{alt|
+	<alt>
+    <i><if(!choice.ast.greedy)> + 1<endif> => AnonymousAlt<! rule's alt index here too? !><i>({
+		<alt>
+	\}),}; separator=",\n">
+		_ => Err(ANTLRError::NoViableAlt)?
+	}
+
+	self.parser.set_state(<choice.loopBackStateNumber>); <! loopback/exit decision !>
+	alt = self.parser.adaptive_predict(<choice.decision>)?;
+	if alt == <choice.exitAlt> || alt == INVALID_ALT { break }
+}
+>>
+
+LL1PlusBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
+// Single alt
+let mut result = Vec::new();
+
+self.parser.set_state(<choice.blockStartStateNumber>); <! alt block decision !>
+<preamble; separator="\n">
+loop {
+	<alts; separator="\n">
+	self.parser.set_state(<choice.stateNumber>); <! loopback/exit decision !>
+	result.push({
+		<iteration>
+	})
+	if !(<loopExpr>) {break}
+}
+>>
+
+LL1StarBlockSingleAlt(choice, loopExpr, alts, preamble, iteration) ::= <<
+// LL1StarBlockSingleAlt
+self.parser.set_state(<choice.stateNumber>);
+<preamble; separator="\n">
+
+let mut result = Vec::new();
+
+while <loopExpr> {
+	<alts; separator="\n">
+	self.parser.set_state(<choice.loopBackStateNumber>);
+	result.push({
+		<iteration>
+	})
+}
+
+result
+>>
+
+StarBlock(choice, alts, sync, iteration) ::= <<
+let mut result = Vec::new();
+
+self.parser.set_state(<choice.stateNumber>);
+alt = self.parser.adaptive_predict(<choice.decision>)?;
+while alt != <choice.exitAlt> {
+	if alt == 1<if(!choice.ast.greedy)> + 1<endif> {
+		result.push({
+			<iteration>
+			<alts> <! should only be one !>
+		})
+	}
+
+	self.parser.set_state(<choice.loopBackStateNumber>);
+	alt = self.parser.adaptive_predict(<choice.decision>)?;
+}
+
+result
+>>
+
+LL1OptionalBlock(choice, alts, error) ::= <<
+// THIS WILL BE BROKEN?
+self.parser.set_state(<choice.stateNumber>);
+match self.parser.la(1) {
+<choice.altLook,alts:{look,alt| <cases(tokens=look)>
+	=> {
+    	<alt>
+    \}
+    }; separator="\n">
+	_ => {}
+}
+>>
+
+LL1OptionalBlockSingleAlt(choice, expr, alts, preamble, error, followExpr) ::= <<
+self.parser.set_state(<choice.stateNumber>);
+<preamble; separator="\n">
+if <expr> {
+	Some({
+		<alts; separator="\n">
+	})
+} else {
+	None
+}
+>>

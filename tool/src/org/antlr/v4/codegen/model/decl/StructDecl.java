@@ -44,7 +44,29 @@ public class StructDecl extends Decl {
 	public OrderedHashSet<Decl> ruleContextDecls = new OrderedHashSet<Decl>();
 	public OrderedHashSet<Decl> ruleContextListDecls = new OrderedHashSet<Decl>();
 	public OrderedHashSet<Decl> attributeDecls = new OrderedHashSet<Decl>();
-
+	
+	@Override
+	public String toString() {
+		return 
+			"StructDecl {" +
+			"  derivedFromName=" + derivedFromName +
+			", provideCopyFrom=" + provideCopyFrom +
+			", attrs=" + attrs +
+			", getters=" + getters +
+			", ctorAttrs=" + ctorAttrs +
+			", dispatchMethods=" + dispatchMethods +
+			", interfaces=" + interfaces +
+			", extensionMembers=" + extensionMembers +
+			", signatures=" + signatures +
+			", tokenDecls=" + tokenDecls +
+			", tokenTypeDecls=" + tokenTypeDecls +
+			", tokenListDecls=" + tokenListDecls +
+			", ruleContextDecls=" + ruleContextDecls +
+			", ruleContextListDecls=" + ruleContextListDecls +
+			", attributeDecls=" + attributeDecls +
+			'}';
+	}
+	
 	public StructDecl(OutputModelFactory factory, Rule r) {
 		this(factory, r, null);
 	}

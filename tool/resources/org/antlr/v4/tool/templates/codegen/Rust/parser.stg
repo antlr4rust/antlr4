@@ -1,0 +1,49 @@
+ParserFile(file, parser, namedActions, contextSuperClass) ::= <<
+<fileHeader(file.grammarFileName, file.ANTLRVersion)>
+#![allow(nonstandard_style)]
+
+<if(file.genListener)>
+use super::<file.grammarName; format="lower">listener::*;
+<endif>
+<if(file.genVisitor)>
+use super::<file.grammarName; format="lower">visitor::*;
+<endif>
+
+
+const _: () = {
+    assert!(
+        antlr4rust::const_check::version("0", "6"),
+        "Incompatible version: either switch to v0.6 or regenerate with this version"
+    );
+};
+
+
+<parser>
+>>
+
+
+Parser(parser, funcs, atn, sempredFuncs, superClass) ::= <<     
+// Parser
+<Tokens(parser.tokens)>
+<Rules(parser.rules, parser.ruleNames)>
+<Vocabulary(parser.literalNames)>
+
+<atn>
+
+pub struct <parser.name>\<'input> {
+    parser: Parser\<'input>
+}
+
+impl\<'input> <parser.name>\<'input>{
+    pub fn new(lexer: Lexer\<'input>) -> <parser.name> {
+        Self {
+            parser: Parser::new(lexer)
+        }
+    }
+
+	pub fn grammar_file_name(&self) -> &str { "<parser.grammarFileName>" }
+}
+
+// Funcs
+<funcs; separator="\n">
+>>

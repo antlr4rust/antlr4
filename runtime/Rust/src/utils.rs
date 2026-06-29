@@ -24,33 +24,3 @@ where
     cell.set(new);
     new
 }
-
-// pub enum Cow2<'a,Ref,T:Borrow<Ref> = Ref>{
-//     Borrowed2(&'a Ref),
-//     Owned2(T)
-// }
-//
-// impl<'a,Ref,T:Borrow<Ref> + > Cow2<'a,Ref,T>{
-//     fn to_owned(&self) -> T
-// }
-//
-// impl<Ref,T:Borrow<Ref>> Borrow<Ref> for Cow2<'_,Ref,T>{
-//     fn borrow(&self) -> &Ref {
-//         match self{
-//             Cow2::Borrowed2(x) => x,
-//             Cow2::Owned2(x) => x.borrow(),
-//         }
-//     }
-// }
-//
-// impl<'a,Ref,T:Borrow<Ref>> From<&'a Ref> for Cow2<'a,Ref,T>{
-//     fn from(f: &'a Ref) -> Self {
-//         Borrowed2(f)
-//     }
-// }
-//
-// impl<'a,Ref,T:Borrow<Ref>> From<T> for Cow2<'a,Ref,T>{
-//     fn from(f: T) -> Self {
-//         Owned2(f)
-//     }
-// }

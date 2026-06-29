@@ -26,4 +26,8 @@ public class ContextRuleListIndexedGetterDecl extends ContextRuleListGetterDecl 
 	public ContextGetterDecl getSignatureDecl() {
 		return new ContextRuleListIndexedGetterDecl(factory, name, ctxName, true);
 	}
+
+	public boolean getIsIndexed() {
+		return true;
+	}
 }
