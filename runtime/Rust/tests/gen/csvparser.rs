@@ -323,7 +323,7 @@ where
 				recog.base.set_state(12); 
 				recog.err_handler.sync(&mut recog.base)?;
 				_la = recog.base.input.la(1);
-				if !((((_la) & !0x3f) == 0 && ((1usize << _la) & 110) != 0)) {break}
+				if !((((_la) & !0x3f) == 0 && ((1u64 << _la) & 110) != 0)) {break}
 			}
 			}
 			Ok(())
