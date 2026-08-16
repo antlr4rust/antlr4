@@ -15,15 +15,22 @@
 //! Implementations are written with the [`crate::tid!`] macro, which checks the shape of the `impl`
 //! for you; hand-written `unsafe impl`s of [`TidAble`] are possible but easy to get wrong.
 //!
+//! Note that the lifetime is load-bearing, not ceremony. Keying the type id off
+//! `T<'static>` and downcasting through a plain `TypeId` comparison — the only shape
+//! [`Any`] alone could take here — compiles in safe Rust and lets a caller launder a local
+//! borrow into a `&'static` reference. The `T: Tid<'a>` bound on the downcast methods, which
+//! ties the target type to the trait object's own lifetime, is what rules that out.
+//!
 //! Vendored from the `better_any` crate (v0.2.0) by Konstantin Anisimov,
 //! <https://github.com/rrevenantt/better_typeid>, dual licensed MIT OR Apache-2.0.
 //! Reduced to what this runtime needs: the `Any` interoperability layer (`AnyExt`,
-//! `TypeIdAdjuster`, `downcast_any_*`) and the derive macro are not included.
+//! `TypeIdAdjuster`, `downcast_any_*`), the derive macro, `downcast_arc`/`downcast_move`,
+//! `typeid_of`, and the blanket implementations for standard library wrapper types are all
+//! dropped. What remains is the `Rc`/`Box`/`&`/`&mut` downcasts that match how this runtime
+//! actually stores parse tree nodes, token factories and error strategies.
 
 use std::any::{Any, TypeId};
-use std::cell::{Cell, RefCell};
 use std::rc::Rc;
-use std::sync::{Arc, Mutex, RwLock};
 
 /// Indicates that this type can be substituted as a type parameter of another type
 /// so that the resulting type can implement [`Tid`].
@@ -66,6 +73,26 @@ pub trait TidExt<'a>: Tid<'a> {
     }
 
     /// Attempts to downcast `self` to `T` behind a reference
+    ///
+    /// The `T: Tid<'a>` bound ties the target type to the trait object's own lifetime. That
+    /// is the property which makes this sound and which [`Any`] could not provide: without
+    /// it, a caller could name a longer-lived target type and launder a borrow of local data
+    /// into a `&'static` reference.
+    ///
+    /// ```compile_fail
+    /// use antlr4rust::{tid, Tid, TidExt};
+    ///
+    /// struct Borrowing<'a>(&'a str);
+    /// tid!(Borrowing<'a>);
+    /// trait Node<'a>: Tid<'a> {}
+    /// tid! { impl<'a> TidAble<'a> for dyn Node<'a> + 'a }
+    /// impl<'a> Node<'a> for Borrowing<'a> {}
+    ///
+    /// // rejected (E0521): naming `Borrowing<'static>` as the target requires `'a: 'static`
+    /// fn launder<'a>(node: &(dyn Node<'a> + 'a)) -> Option<&'static str> {
+    ///     node.downcast_ref::<Borrowing<'static>>().map(|it| it.0)
+    /// }
+    /// ```
     fn downcast_ref<'b, T: Tid<'a>>(&'b self) -> Option<&'b T> {
         // `Tid<'a>` is implemented only for types with lifetime `'a`,
         // so the cast back is safe because the lifetime invariant is preserved.
@@ -95,15 +122,6 @@ pub trait TidExt<'a>: Tid<'a> {
         }
     }
 
-    /// Attempts to downcast `self` to `T` behind an [`Arc`]
-    fn downcast_arc<T: Tid<'a>>(self: Arc<Self>) -> Result<Arc<T>, Arc<Self>> {
-        if self.is::<T>() {
-            unsafe { Ok(Arc::from_raw(Arc::into_raw(self) as *const _)) }
-        } else {
-            Err(self)
-        }
-    }
-
     /// Attempts to downcast `self` to `T` behind a [`Box`]
     fn downcast_box<T: Tid<'a>>(self: Box<Self>) -> Result<Box<T>, Box<Self>> {
         if self.is::<T>() {
@@ -111,20 +129,6 @@ pub trait TidExt<'a>: Tid<'a> {
         } else {
             Err(self)
         }
-    }
-
-    /// Attempts to downcast owned `Self` to `T`,
-    /// useful only in generic context as a workaround for specialization
-    fn downcast_move<T: Tid<'a>>(self) -> Option<T>
-    where
-        Self: Sized,
-    {
-        if self.is::<T>() {
-            // can't use the `Option` trick here like with `Any`
-            let this = std::mem::MaybeUninit::new(self);
-            return Some(unsafe { std::mem::transmute_copy(&this) });
-        }
-        None
     }
 }
 
@@ -166,14 +170,6 @@ unsafe impl<'a, T: ?Sized + TidAble<'a>> Tid<'a> for T {
     {
         TypeId::of::<T::Static>()
     }
-}
-
-/// Returns the type id of `T`
-///
-/// Use it only when [`Tid::id`] is not enough because `T` is not `Sized`.
-#[inline]
-pub fn typeid_of<'a, T: ?Sized + TidAble<'a>>() -> TypeId {
-    TypeId::of::<T::Static>()
 }
 
 /// Safe implementation interface for [`Tid`]/[`TidAble`].
@@ -319,34 +315,14 @@ macro_rules! impl_block {
 /// Alias of the [`crate::tid!`] macro, for compatibility with the `better_any` naming.
 pub use crate::tid as type_id;
 
-tid!(impl<'a, T> TidAble<'a> for Box<T> where T:?Sized);
-tid!(impl<'a, T> TidAble<'a> for Rc<T>);
-tid!(impl<'a, T> TidAble<'a> for RefCell<T>);
-tid!(impl<'a, T> TidAble<'a> for Cell<T>);
-tid!(impl<'a, T> TidAble<'a> for Arc<T>);
-tid!(impl<'a, T> TidAble<'a> for Mutex<T>);
-tid!(impl<'a, T> TidAble<'a> for RwLock<T>);
-tid!(impl<'a, T> TidAble<'a> for Vec<T>);
-tid!(impl<'a, T, E> TidAble<'a> for Result<T, E>);
-tid!(impl<'a> TidAble<'a> for dyn Tid<'a> + 'a);
-
-// `tid! { impl<'a, T> TidAble<'a> for Option<T> }` cannot be written through the macro
-// because `Option` is not a path the macro can alias without shadowing the prelude name.
-const _: () = {
-    use core::marker::PhantomData;
-    type __Alias<'a, T> = Option<T>;
-    pub struct __TypeIdGenerator<'a, T: ?Sized>(PhantomData<&'a ()>, PhantomData<T>);
-    unsafe impl<'a, T: TidAble<'a>> TidAble<'a> for __Alias<'a, T> {
-        type Static = __TypeIdGenerator<'static, T::Static>;
-    }
-};
-
-// The logic behind these implementations is to connect `Any` with `Tid` somehow.
-// There is no way to implement `Tid<'a>` for `T: Any`, which makes
-// `impl<'a, T: Tid<'a>> Tid<'a> for &'a T {}` almost useless because it would not work even
-// for `&'a i32`. This way users are not required to newtype-wrap simple references.
-tid!(impl<'a, T: 'static> TidAble<'a> for &'a T);
-tid!(impl<'a, T: 'static> TidAble<'a> for &'a mut T);
+// `better_any` also ships blanket implementations for `Box`, `Rc`, `RefCell`, `Cell`, `Arc`,
+// `Mutex`, `RwLock`, `Vec`, `Option`, `Result`, `dyn Tid`, `&T` and `&mut T`. None of them are
+// reachable from this runtime: every type that needs a type id here names itself through the
+// `tid!` macro, and the wrapper types this runtime does use (`Box<dyn ErrorStrategy>`,
+// `Rc<dyn ParserRuleContext>`, `Box<CommonToken>`, `&'input CommonToken`) either carry their
+// own implementation or never need one. They were dropped rather than carried along; add back
+// only the specific one a use case demands, since the orphan rule means downstream crates
+// cannot write these themselves.
 
 #[cfg(test)]
 mod tests {
