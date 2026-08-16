@@ -3,10 +3,10 @@ use std::marker::PhantomData;
 use std::ops::{CoerceUnsized, Deref, DerefMut};
 use std::rc::Rc;
 
-use better_any::TidExt;
 use qcell::{TLCell, TLCellOwner};
 use typed_arena::Arena;
 
+use crate::tid::TidExt;
 use crate::parser_rule_context::ParserRuleContext;
 
 trait ContextFactory<'a, T: ?Sized> {

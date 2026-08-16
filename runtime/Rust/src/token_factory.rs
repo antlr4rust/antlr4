@@ -10,9 +10,9 @@ use std::sync::atomic::AtomicIsize;
 use typed_arena::Arena;
 
 use crate::char_stream::{CharStream, InputData};
+use crate::tid::TidAble;
 use crate::token::Token;
 use crate::token::{CommonToken, OwningToken, TOKEN_INVALID_TYPE};
-use better_any::TidAble;
 
 lazy_static! {
     pub(crate) static ref COMMON_TOKEN_FACTORY_DEFAULT: Box<CommonTokenFactory> =
@@ -82,7 +82,7 @@ pub trait TokenFactory<'a>: TidAble<'a> + Sized {
 #[derive(Default, Debug)]
 pub struct CommonTokenFactory;
 
-better_any::tid! {CommonTokenFactory}
+crate::tid! {CommonTokenFactory}
 
 impl Default for &'_ CommonTokenFactory {
     fn default() -> Self {
@@ -149,7 +149,7 @@ impl<'a> TokenFactory<'a> for CommonTokenFactory {
 #[derive(Default, Debug)]
 pub struct OwningTokenFactory;
 
-better_any::tid! {OwningTokenFactory}
+crate::tid! {OwningTokenFactory}
 
 impl<'a> TokenFactory<'a> for OwningTokenFactory {
     type Inner = OwningToken;
@@ -239,7 +239,7 @@ pub struct ArenaFactory<'input, TF, T> {
     pd: PhantomData<&'input str>,
 }
 
-better_any::tid! {impl<'input,TF,T> TidAble<'input> for ArenaFactory<'input,TF,T>}
+crate::tid! {impl<'input,TF,T> TidAble<'input> for ArenaFactory<'input,TF,T>}
 
 impl<TF: Debug, T> Debug for ArenaFactory<'_, TF, T> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {

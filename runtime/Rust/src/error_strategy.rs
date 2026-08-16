@@ -16,12 +16,12 @@ use crate::interval_set::IntervalSet;
 use crate::parser::{Parser, ParserNodeType};
 use crate::parser_rule_context::ParserRuleContext;
 use crate::rule_context::{CustomRuleContext, RuleContext};
+use crate::tid::{Tid, TidAble};
 use crate::token::{Token, TOKEN_DEFAULT_CHANNEL, TOKEN_EOF, TOKEN_EPSILON, TOKEN_INVALID_TYPE};
 use crate::token_factory::TokenFactory;
 use crate::transition::RuleTransition;
 use crate::tree::Tree;
 use crate::utils::escape_whitespaces;
-use better_any::{Tid, TidAble};
 
 /// The interface for defining strategies to deal with syntax errors encountered
 /// during a parse by ANTLR-generated parsers. We distinguish between three
@@ -96,7 +96,7 @@ pub trait ErrorStrategy<'a, T: Parser<'a>>: Tid<'a> {
 // pub type DynHandler<'a, T> = Box<dyn ErrorStrategy<'a, T> + 'a>;
 
 // impl<'a, T: Parser<'a> + TidAble<'a>> TidAble<'a> for Box<dyn ErrorStrategy<'a, T> + 'a> {}
-better_any::tid! { impl<'a, T> TidAble<'a> for Box<dyn ErrorStrategy<'a, T> + 'a> where T: Parser<'a>}
+crate::tid! { impl<'a, T> TidAble<'a> for Box<dyn ErrorStrategy<'a, T> + 'a> where T: Parser<'a>}
 
 impl<'a, T: Parser<'a> + TidAble<'a>> ErrorStrategy<'a, T> for Box<dyn ErrorStrategy<'a, T> + 'a> {
     #[inline(always)]
@@ -149,7 +149,7 @@ pub struct DefaultErrorStrategy<'input, Ctx: ParserNodeType<'input>> {
     next_tokens_ctx: Option<Rc<Ctx::Type>>,
 }
 
-better_any::tid! { impl<'i,Ctx> TidAble<'i> for DefaultErrorStrategy<'i,Ctx> where Ctx: ParserNodeType<'i>}
+crate::tid! { impl<'i,Ctx> TidAble<'i> for DefaultErrorStrategy<'i,Ctx> where Ctx: ParserNodeType<'i>}
 
 impl<'input, Ctx: ParserNodeType<'input>> Default for DefaultErrorStrategy<'input, Ctx> {
     fn default() -> Self {
@@ -563,7 +563,7 @@ pub struct BailErrorStrategy<'input, Ctx: ParserNodeType<'input>>(
     DefaultErrorStrategy<'input, Ctx>,
 );
 
-better_any::tid! {impl<'i,Ctx> TidAble<'i> for BailErrorStrategy<'i,Ctx> where Ctx:ParserNodeType<'i> }
+crate::tid! {impl<'i,Ctx> TidAble<'i> for BailErrorStrategy<'i,Ctx> where Ctx:ParserNodeType<'i> }
 
 impl<'input, Ctx: ParserNodeType<'input>> BailErrorStrategy<'input, Ctx> {
     /// Creates new instance of `BailErrorStrategy`
@@ -577,11 +577,9 @@ impl<'input, Ctx: ParserNodeType<'input>> BailErrorStrategy<'input, Ctx> {
         e: &ANTLRError,
     ) -> ANTLRError {
         let mut ctx = recognizer.get_parser_rule_context().clone();
-        let _: Option<()> = (|| {
-            loop {
-                ctx.set_exception(e.clone());
-                ctx = ctx.get_parent()?
-            }
+        let _: Option<()> = (|| loop {
+            ctx.set_exception(e.clone());
+            ctx = ctx.get_parent()?
         })();
         ANTLRError::FallThrough(Arc::new(ParseCancelledError(e.clone())))
     }
