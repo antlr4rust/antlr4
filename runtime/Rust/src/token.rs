@@ -10,7 +10,7 @@ use crate::char_stream::InputData;
 use crate::int_stream::EOF;
 use crate::token_factory::{INVALID_COMMON, INVALID_OWNING};
 
-use better_any::type_id;
+use crate::tid::type_id;
 
 /// Type of tokens that parser considers invalid
 pub const TOKEN_INVALID_TYPE: i32 = 0;

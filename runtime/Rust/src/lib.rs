@@ -62,7 +62,10 @@
 //! Rule context trait object support downcasting even for zero-copy case.
 //! Also generic types(currently these are `H:ErrorStrategy` and `I:`[`TokenStream`]) that you can
 //! access in generated parser from embedded actions also can be downcasted to concrete types.
-//! To do it `TidExt::downcast_*` extension methods should be used.
+//! To do it [`TidExt::downcast_*`](crate::tid::TidExt) extension methods should be used.
+//! [`std::any::Any`] cannot be used here because parse tree nodes borrow from the input;
+//! see the [`tid`](mod@crate::tid) module for the `Any` equivalent that works for a single
+//! lifetime.
 //!
 //! [`CharStream`]: crate::char_stream::CharStream
 //! [`TokenFactory`]: crate::token_factory::TokenFactory
@@ -81,7 +84,7 @@ pub use lazy_static::lazy_static;
 pub use parking_lot::RwLock;
 
 #[doc(hidden)]
-pub use better_any::{tid, Tid, TidAble, TidExt};
+pub use tid::{type_id, Tid, TidAble, TidExt};
 
 #[doc(inline)]
 pub use error_strategy::{BailErrorStrategy, DefaultErrorStrategy, ErrorStrategy};
@@ -158,6 +161,7 @@ pub mod trees;
 mod utils;
 //pub mod tokenstream_rewriter_test;
 mod atn_type;
+pub mod tid;
 // mod context_factory;
 pub mod rule_context;
 pub mod vocabulary;

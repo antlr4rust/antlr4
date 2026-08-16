@@ -16,6 +16,7 @@ use crate::parser_atn_simulator::ParserATNSimulator;
 use crate::parser_rule_context::ParserRuleContext;
 use crate::recognizer::{Actions, Recognizer};
 use crate::rule_context::{states_stack, CustomRuleContext, RuleContext};
+use crate::tid::TidAble;
 use crate::token::{Token, TOKEN_EOF};
 use crate::token_factory::{TokenAware, TokenFactory};
 use crate::token_stream::TokenStream;
@@ -23,7 +24,6 @@ use crate::tree::{ErrorNode, Listenable, ParseTreeListener, TerminalNode};
 use crate::utils::cell_update;
 use crate::vocabulary::Vocabulary;
 use crate::{CoerceFrom, CoerceTo};
-use better_any::TidAble;
 
 /// parser functionality required for `ParserATNSimulator` to work
 #[allow(missing_docs)] // todo rewrite it so downstream crates actually could meaningfully implement it
@@ -151,7 +151,7 @@ pub struct BaseParser<
     pd: PhantomData<fn() -> &'input str>,
 }
 
-better_any::tid! {
+crate::tid! {
     impl<'input, Ext, I, Ctx, T> TidAble<'input> for BaseParser<'input,Ext, I, Ctx, T>
     where I: TokenStream<'input>,
         Ctx: ParserNodeType<'input, TF = I::TF>,
