@@ -47,9 +47,21 @@ use std::rc::Rc;
 ///
 /// # Safety
 ///
-/// Soundness of downcasting relies on `Static` being a distinct type for every distinct
-/// `Self`, and on `Self` having at most the single lifetime `'a`. Use the [`crate::tid!`] macro,
-/// which guarantees both.
+/// Implementors must guarantee both of the following. [`crate::tid!`] establishes them by
+/// construction, which is why it is the only supported way to implement this trait.
+///
+/// 1. **`Static` is injective.** Two types that are not the same type constructor must not
+///    map to the same `Static`. Every [`crate::tid!`] invocation mints a fresh private
+///    witness struct inside its own `const _: () = { .. }` block, so no two invocations can
+///    collide, and generic parameters are threaded through as `P::Static` so they stay
+///    distinguishable. Violating this makes every downcast in [`TidExt`] type-confusable.
+///
+/// 2. **`Self` carries at most the single lifetime `'a`.** `Static` is `Self` with `'a`
+///    replaced by `'static`, so the type id says nothing about lifetimes; the lifetime is
+///    recovered purely from the `Tid<'a>` bound. A type with a second, independent lifetime
+///    would have that lifetime erased with nothing to recover it from. Unifying several
+///    lifetime parameters to the same `'a` (`tid! { impl<'a> TidAble<'a> for T<'a, 'a> }`)
+///    is fine, because then there is only one lifetime to recover.
 // The associated type allows the type id generator to be a private type,
 // and allows the trait to be implemented for generic types.
 // It has a lifetime and depends on `Tid` because it would be practically useless standalone:
@@ -94,9 +106,18 @@ pub trait TidExt<'a>: Tid<'a> {
     /// }
     /// ```
     fn downcast_ref<'b, T: Tid<'a>>(&'b self) -> Option<&'b T> {
-        // `Tid<'a>` is implemented only for types with lifetime `'a`,
-        // so the cast back is safe because the lifetime invariant is preserved.
         if self.is::<T>() {
+            // SAFETY: `is` compared the concrete type's `self_id` (a virtual call, so it is
+            // the id of the value actually behind `self`, not of `Self`) against `T::id()`.
+            // By the `TidAble` injectivity contract, equal ids mean the same type
+            // constructor; by the `Tid<'a>` bound shared by `Self` and `T`, both are
+            // instantiated at the same `'a`. Same constructor plus same lifetime is the same
+            // type, so `T` is the concrete type and reinterpreting is valid.
+            //
+            // `Self` may be `?Sized` (typically `dyn ParserRuleContext<'a>`) while `T` is
+            // always `Sized`; the cast drops the pointer metadata and keeps the data address,
+            // which is the address of the `T` itself. The returned reference borrows `self`
+            // for `'b`, so no lifetime is extended.
             Some(unsafe { &*(self as *const _ as *const T) })
         } else {
             None
@@ -105,8 +126,10 @@ pub trait TidExt<'a>: Tid<'a> {
 
     /// Attempts to downcast `self` to `T` behind a mutable reference
     fn downcast_mut<'b, T: Tid<'a>>(&'b mut self) -> Option<&'b mut T> {
-        // see `downcast_ref`
         if self.is::<T>() {
+            // SAFETY: as in `downcast_ref` for why `T` is the concrete type. Uniqueness of
+            // the resulting `&mut T` follows from the `&'b mut self` receiver: it is the only
+            // live reference to the value for `'b`, and it is consumed to produce this one.
             Some(unsafe { &mut *(self as *mut _ as *mut T) })
         } else {
             None
@@ -116,6 +139,12 @@ pub trait TidExt<'a>: Tid<'a> {
     /// Attempts to downcast `self` to `T` behind an [`Rc`]
     fn downcast_rc<T: Tid<'a>>(self: Rc<Self>) -> Result<Rc<T>, Rc<Self>> {
         if self.is::<T>() {
+            // SAFETY: as in `downcast_ref`, `T` is the concrete type behind `self`, so the
+            // allocation really is an `RcBox<T>`. `Rc::from_raw` recovers the box start by
+            // subtracting the offset of the value field within `RcBox<T>`, which is the same
+            // offset `Rc::into_raw` added, because it is the same `T`. The strong count is
+            // carried over unchanged: `into_raw` forgets one owner and `from_raw` takes it
+            // back, so the count is neither leaked nor double-decremented.
             unsafe { Ok(Rc::from_raw(Rc::into_raw(self) as *const _)) }
         } else {
             Err(self)
@@ -125,6 +154,9 @@ pub trait TidExt<'a>: Tid<'a> {
     /// Attempts to downcast `self` to `T` behind a [`Box`]
     fn downcast_box<T: Tid<'a>>(self: Box<Self>) -> Result<Box<T>, Box<Self>> {
         if self.is::<T>() {
+            // SAFETY: as in `downcast_ref`, `T` is the concrete type behind `self`, so the
+            // allocation was made for a `T` and `Box::from_raw` will free it with the same
+            // layout `Box::into_raw` gave up. Ownership transfers exactly once.
             unsafe { Ok(Box::from_raw(Box::into_raw(self) as *mut _)) }
         } else {
             Err(self)
@@ -145,8 +177,17 @@ impl<'a, X: ?Sized + Tid<'a>> TidExt<'a> for X {}
 ///
 /// # Safety
 ///
-/// Implement through [`TidAble`] (via the [`crate::tid!`] macro) rather than directly: the blanket
-/// implementation below is the only intended one.
+/// `self_id` and `id` must both return the type id of `Self`'s own type, and must agree with
+/// each other. [`TidExt`] treats a match between `self_id()` and `T::id()` as proof that the
+/// value behind the reference really is a `T` and reinterprets its bytes accordingly, so an
+/// implementation that returns some other type's id causes type confusion in entirely safe
+/// caller code.
+///
+/// Note that the blanket implementation over [`TidAble`] does *not* seal this trait: a
+/// hand-written `unsafe impl Tid` for a type that does not implement [`TidAble`] is accepted
+/// by coherence, and a wrong `self_id` there is enough to break every downcast. Implement
+/// [`TidAble`] through the [`crate::tid!`] macro instead and let the blanket implementation
+/// supply `Tid`.
 pub unsafe trait Tid<'a>: 'a {
     /// Returns the type id of the type of `self`
     fn self_id(&self) -> TypeId;
@@ -157,6 +198,10 @@ pub unsafe trait Tid<'a>: 'a {
         Self: Sized;
 }
 
+// SAFETY: `Tid` requires `self_id`/`id` to return the id of `Self`'s own type and to agree.
+// Both are defined here as `TypeId::of::<T::Static>()` — literally the same expression — so
+// they agree by construction, and they identify `Self` exactly as long as `T::Static` is
+// injective, which is obligation 1 of the `TidAble` contract.
 unsafe impl<'a, T: ?Sized + TidAble<'a>> Tid<'a> for T {
     #[inline]
     fn self_id(&self) -> TypeId {
@@ -207,12 +252,22 @@ unsafe impl<'a, T: ?Sized + TidAble<'a>> Tid<'a> for T {
 #[macro_export]
 macro_rules! tid {
 
+    // A plain type with no parameters at all.
     ($struct: ident) => {
+        // SAFETY: obligation 1 (injective `Static`) holds because `Static` is the type
+        // itself, and distinct types have distinct `TypeId`s. Obligation 2 (at most one
+        // lifetime) holds vacuously: this arm only matches a bare identifier, so the type has
+        // no lifetime parameter. The `Static: Any` bound rejects a non-`'static` type here.
         unsafe impl<'a> $crate::TidAble<'a> for $struct {
             type Static = $struct;
         }
     };
+    // A type whose only parameter is one lifetime.
     ($struct: ident < $lt: lifetime >) => {
+        // SAFETY: obligation 1 holds because `Static` is `$struct<'static>`, and distinct
+        // type constructors give distinct `TypeId`s at the same argument. Obligation 2 holds
+        // because this arm only matches a single lifetime and no type parameters, and the
+        // impl instantiates it at the trait's own `'a`.
         unsafe impl<'a> $crate::TidAble<'a> for $struct<'a> {
             type Static = $struct<'static>;
         }
@@ -226,6 +281,20 @@ macro_rules! tid {
     (inner impl <$lt:lifetime $(,$param:ident)* static $( $static_param:ident)* > Tid<$lt2:lifetime> for $($struct: tt)+ ) => {
         $crate::tid!{ inner impl <$lt $(,$param)* static $( $static_param)*> TidAble<$lt2> for $($struct)+  }
     };
+    // The general case. SAFETY for the `unsafe impl` produced below:
+    //
+    // Obligation 1 (injective `Static`): `__TypeIdGenerator` is declared inside this
+    // invocation's own `const _: () = { .. }` block, so every use of the macro mints a
+    // distinct type that no other invocation can name — two different types can never share a
+    // `Static`. Within one invocation, generic parameters are threaded through as
+    // `$param::Static` (injective by induction on the same contract) and `'static`-bounded
+    // parameters are passed through unchanged (injective via their own `TypeId`), so distinct
+    // instantiations stay distinct.
+    //
+    // Obligation 2 (at most one lifetime): the matcher accepts exactly one lifetime, `$lt`,
+    // and the impl is written for `__Alias<$lt, ..>`. Any lifetime appearing in the aliased
+    // type must therefore be `$lt` itself, and `$lt` is instantiated at the trait's `$lt2`.
+    // A second, independent lifetime cannot be expressed through this arm.
     (inner impl <$lt:lifetime $(,$param:ident)* static $( $static_param:ident)* > TidAble<$lt2:lifetime> for $($struct: tt)+ ) => {
         const _:() = {
             use core::marker::PhantomData;

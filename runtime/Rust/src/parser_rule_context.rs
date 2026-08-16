@@ -201,6 +201,20 @@ where
 pub fn cast_mut<'a, T: ParserRuleContext<'a> + 'a + ?Sized, Result: 'a>(
     ctx: &mut Rc<T>,
 ) -> &mut Result {
+    // SAFETY: NOT ESTABLISHED. Unlike `cast` above, which checks the type through
+    // `downcast_ref`, this reinterprets unconditionally: `Result` is constrained only by
+    // `Result: 'a`, so nothing relates it to the concrete type behind `ctx`, and nothing here
+    // would detect a mismatch. It also produces a `&mut` from `Rc::as_ptr`, which is a shared
+    // pointer, so the resulting reference aliases every other `Rc` handle to the same context
+    // for as long as it lives.
+    //
+    // Both are relied upon rather than proven. Callers are the generated parsers, which pass
+    // the `Result` type the codegen knows `_localctx` was just constructed as, and which use
+    // the reference to write one field immediately without storing or moving it. That keeps
+    // real parsers working but is a property of the generator, not something this signature
+    // enforces — which is why the function is `#[doc(hidden)]` and must not be called by
+    // hand. It is arguably mismarked: the original author's note below says as much.
+    //
     //    if Rc::strong_count(ctx) != 1 { panic!("cant mutate Rc with multiple strong ref count"); }
     // is it safe because parser does not save/move mutable references anywhere.
     // they are only used to write data immediately in the corresponding expression
