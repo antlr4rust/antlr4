@@ -76,6 +76,13 @@ impl dyn Transition {
     #[inline]
     pub fn cast<T: Transition>(&self) -> &T {
         assert_eq!(self.type_id(), TypeId::of::<T>());
+        // SAFETY: `Transition: Any` (so every implementor is `'static`, unlike the parse tree
+        // types which need `crate::tid`), and `Any::type_id` dispatches through the vtable to
+        // the concrete type. The assert above therefore establishes that the value behind
+        // `self` really is a `T` before any reinterpretation happens, and it panics rather
+        // than proceeding when it is not. `T` is `Sized`, so the cast drops the trait object
+        // metadata and keeps the data address. The result reborrows `self`, so no lifetime is
+        // extended and no aliasing is introduced.
         unsafe { &*(self as *const dyn Transition as *const T) }
     }
 }

@@ -494,6 +494,19 @@ where
             .iter()
             .position(|it| ListenerId::new(it).actual_id == listener_id.actual_id)
             .expect("listener not found");
+        // SAFETY: INCOMPLETE. The `position` search above only establishes that the found
+        // listener currently sits at the address recorded in `listener_id`, which implies it
+        // is the original listener *provided that listener was never dropped*. That holds
+        // while listeners are only ever removed through this method, because it consumes the
+        // `ListenerId` and `ListenerId` is not `Clone`. It does not hold once
+        // `remove_parse_listeners` has run: that drops the boxes without consuming their ids,
+        // so a later `add_parse_listener` can reuse a freed address and a stale id will then
+        // match a listener of a different type, which this call reinterprets. Reaching that
+        // requires no `unsafe` on the caller's part.
+        //
+        // Fixing it means giving listeners identities that are not addresses: hand out a
+        // monotonically increasing counter in `add_parse_listener` and store it alongside
+        // each listener, so an id can never be reused after its listener is dropped.
         unsafe { listener_id.into_listener(self.parse_listeners.remove(index)) }
     }
 
@@ -720,6 +733,15 @@ impl<T: ?Sized> ListenerId<T> {
 }
 
 impl<T> ListenerId<T> {
+    /// # Safety
+    ///
+    /// `boxed` must own the very same value this `ListenerId` was created from by
+    /// [`ListenerId::new`], so that its pointee really is a `T`. Matching `actual_id` alone
+    /// is *not* sufficient to establish this: `actual_id` is a heap address, and an address
+    /// is only unique among values that are alive at the same time. If the original box was
+    /// dropped and the allocator handed the same address to a later listener of a different
+    /// type, a stale `ListenerId` will match it and this call will reinterpret that listener
+    /// as a `T`. See the caller in [`BaseParser::remove_parse_listener`].
     unsafe fn into_listener<U: ?Sized>(self, boxed: Box<U>) -> Box<T> {
         Box::from_raw(Box::into_raw(boxed) as *mut T)
     }
