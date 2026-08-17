@@ -128,7 +128,7 @@ pub struct LeafNode<'input, Node: ParserNodeType<'input>, T: 'static> {
     pub symbol: <Node::TF as TokenFactory<'input>>::Tok,
     iserror: PhantomData<T>,
 }
-better_any::tid! { impl <'input, Node, T:'static> TidAble<'input> for LeafNode<'input, Node, T> where Node:ParserNodeType<'input> }
+crate::tid! { impl <'input, Node, T:'static> TidAble<'input> for LeafNode<'input, Node, T> where Node:ParserNodeType<'input> }
 
 impl<'input, Node: ParserNodeType<'input>, T: 'static> CustomRuleContext<'input>
     for LeafNode<'input, Node, T>
@@ -371,7 +371,9 @@ pub trait Visitable<Vis: ?Sized> {
     /// Calls corresponding visit callback on visitor`Vis`
     fn accept(&self, _visitor: &mut Vis) {
         if cfg!(feature = "debug") {
-            unreachable!("should have been properly implemented by generated context when reachable")
+            unreachable!(
+                "should have been properly implemented by generated context when reachable"
+            )
         }
     }
 }
@@ -381,7 +383,9 @@ pub trait Visitable<Vis: ?Sized> {
 pub trait VisitableDyn<Vis: ?Sized> {
     fn accept_dyn(&self, _visitor: &mut Vis) {
         if cfg!(feature = "debug") {
-            unreachable!("should have been properly implemented by generated context when reachable")
+            unreachable!(
+                "should have been properly implemented by generated context when reachable"
+            )
         }
     }
 }

@@ -4,6 +4,7 @@ use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use crate::atn::ATN;
@@ -16,6 +17,7 @@ use crate::parser_atn_simulator::ParserATNSimulator;
 use crate::parser_rule_context::ParserRuleContext;
 use crate::recognizer::{Actions, Recognizer};
 use crate::rule_context::{states_stack, CustomRuleContext, RuleContext};
+use crate::tid::TidAble;
 use crate::token::{Token, TOKEN_EOF};
 use crate::token_factory::{TokenAware, TokenFactory};
 use crate::token_stream::TokenStream;
@@ -23,7 +25,6 @@ use crate::tree::{ErrorNode, Listenable, ParseTreeListener, TerminalNode};
 use crate::utils::cell_update;
 use crate::vocabulary::Vocabulary;
 use crate::{CoerceFrom, CoerceTo};
-use better_any::TidAble;
 
 /// parser functionality required for `ParserATNSimulator` to work
 #[allow(missing_docs)] // todo rewrite it so downstream crates actually could meaningfully implement it
@@ -143,7 +144,9 @@ pub struct BaseParser<
     pub input: I,
     precedence_stack: Vec<i32>,
 
-    parse_listeners: Vec<Box<T>>,
+    /// Listeners paired with the id handed out by [`BaseParser::add_parse_listener`].
+    /// The id, not the listener's address, is what [`ListenerId`] refers to.
+    parse_listeners: Vec<(usize, Box<T>)>,
     _syntax_errors: Cell<i32>,
     error_listeners: RefCell<Vec<Box<dyn ErrorListener<'input, Self>>>>,
 
@@ -151,7 +154,7 @@ pub struct BaseParser<
     pd: PhantomData<fn() -> &'input str>,
 }
 
-better_any::tid! {
+crate::tid! {
     impl<'input, Ext, I, Ctx, T> TidAble<'input> for BaseParser<'input,Ext, I, Ctx, T>
     where I: TokenStream<'input>,
         Ctx: ParserNodeType<'input, TF = I::TF>,
@@ -274,7 +277,7 @@ where
                     .as_deref()
                     .unwrap()
                     .add_child(node.clone().coerce_rc_to());
-                for listener in &mut self.parse_listeners {
+                for (_, listener) in &mut self.parse_listeners {
                     listener.visit_error_node(&*node)
                 }
             } else {
@@ -283,7 +286,7 @@ where
                     .as_deref()
                     .unwrap()
                     .add_child(node.clone().coerce_rc_to());
-                for listener in &mut self.parse_listeners {
+                for (_, listener) in &mut self.parse_listeners {
                     listener.visit_terminal(&*node)
                 }
             }
@@ -478,8 +481,9 @@ where
     where
         L: CoerceTo<T>,
     {
-        let id = ListenerId::new(&listener);
-        self.parse_listeners.push(listener.coerce_box_to());
+        let id = ListenerId::next();
+        self.parse_listeners
+            .push((id.actual_id, listener.coerce_box_to()));
         id
     }
 
@@ -492,9 +496,16 @@ where
         let index = self
             .parse_listeners
             .iter()
-            .position(|it| ListenerId::new(it).actual_id == listener_id.actual_id)
+            .position(|(id, _)| *id == listener_id.actual_id)
             .expect("listener not found");
-        unsafe { listener_id.into_listener(self.parse_listeners.remove(index)) }
+        let (_, listener) = self.parse_listeners.remove(index);
+        // SAFETY: ids come from a process-global counter and are never reused, so a match on
+        // `actual_id` identifies exactly the `add_parse_listener` call that produced this
+        // `ListenerId` — and therefore the type `L` that call was handed. A listener dropped
+        // by `remove_parse_listeners` leaves no matching id behind, so the search above finds
+        // nothing and panics rather than reaching this point. Ids are also unique across
+        // parser instances, so an id from another parser cannot match here either.
+        unsafe { listener_id.into_listener(listener) }
     }
 
     /// Removes all added parse listeners without returning them
@@ -504,7 +515,7 @@ where
 
     pub fn trigger_enter_rule_event(&mut self) -> Result<(), ANTLRError> {
         let ctx = self.ctx.as_deref().unwrap();
-        for listener in self.parse_listeners.iter_mut() {
+        for (_, listener) in self.parse_listeners.iter_mut() {
             // listener.enter_every_rule(ctx);
             ctx.enter(listener)?;
         }
@@ -513,7 +524,7 @@ where
 
     pub fn trigger_exit_rule_event(&mut self) -> Result<(), ANTLRError> {
         let ctx = self.ctx.as_deref().unwrap();
-        for listener in self.parse_listeners.iter_mut().rev() {
+        for (_, listener) in self.parse_listeners.iter_mut().rev() {
             ctx.exit(listener)?;
             // listener.exit_every_rule(ctx);
         }
@@ -703,6 +714,15 @@ where
     //    fn set_trace(&self, trace: * TraceListener) { unimplemented!() }
 }
 
+/// Source of [`ListenerId::actual_id`].
+///
+/// Deliberately process-global rather than per parser. Ids must be unique across parser
+/// instances as well as over time: a `ListenerId` from one parser can be passed to
+/// `remove_parse_listener` on another parser of the same grammar and it type checks, so a
+/// per-parser counter would let two parsers both hand out id `0` and one would resurrect the
+/// other's listener at the wrong type.
+static NEXT_LISTENER_ID: AtomicUsize = AtomicUsize::new(0);
+
 /// Allows to safely cast listener back to user type
 #[derive(Debug)]
 pub struct ListenerId<T: ?Sized> {
@@ -711,15 +731,31 @@ pub struct ListenerId<T: ?Sized> {
 }
 
 impl<T: ?Sized> ListenerId<T> {
-    fn new(listener: &Box<T>) -> ListenerId<T> {
+    /// Mints an id that has never been used before and never will be again.
+    ///
+    /// This is the whole basis of [`ListenerId::into_listener`]'s soundness, so the counter
+    /// must only ever move forwards. `Relaxed` is enough: `fetch_add` is atomic, so every
+    /// caller observes a distinct value regardless of ordering, and no other memory is being
+    /// synchronised through it.
+    fn next() -> ListenerId<T> {
         ListenerId {
-            actual_id: listener.as_ref() as *const T as *const () as usize,
-            phantom: Default::default(),
+            actual_id: NEXT_LISTENER_ID.fetch_add(1, Ordering::Relaxed),
+            phantom: PhantomData,
         }
     }
 }
 
 impl<T> ListenerId<T> {
+    /// # Safety
+    ///
+    /// `boxed` must own the value that was passed to the [`BaseParser::add_parse_listener`]
+    /// call which returned this `ListenerId`, so that its pointee really is a `T`.
+    ///
+    /// Matching `actual_id` is sufficient to establish that, because ids come from
+    /// [`NEXT_LISTENER_ID`] and are never reused: an id identifies one `add_parse_listener`
+    /// call for the lifetime of the process, and that call fixes the type. It would *not* be
+    /// sufficient if `actual_id` were the listener's address, since an address is only unique
+    /// among values alive at the same time and could be reused after a drop.
     unsafe fn into_listener<U: ?Sized>(self, boxed: Box<U>) -> Box<T> {
         Box::from_raw(Box::into_raw(boxed) as *mut T)
     }

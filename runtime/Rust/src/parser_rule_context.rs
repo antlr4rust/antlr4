@@ -6,11 +6,10 @@ use std::fmt::{Debug, Error, Formatter};
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 
-use better_any::{Tid, TidAble, TidExt};
-
 use crate::errors::ANTLRError;
 use crate::parser::ParserNodeType;
 use crate::rule_context::{BaseRuleContext, CustomRuleContext, RuleContext};
+use crate::tid::{Tid, TidAble, TidExt};
 use crate::token::Token;
 use crate::token_factory::TokenFactory;
 use crate::tree::{ParseTree, ParseTreeVisitor, TerminalNode, Tree, VisitableDyn};
@@ -202,6 +201,20 @@ where
 pub fn cast_mut<'a, T: ParserRuleContext<'a> + 'a + ?Sized, Result: 'a>(
     ctx: &mut Rc<T>,
 ) -> &mut Result {
+    // SAFETY: NOT ESTABLISHED. Unlike `cast` above, which checks the type through
+    // `downcast_ref`, this reinterprets unconditionally: `Result` is constrained only by
+    // `Result: 'a`, so nothing relates it to the concrete type behind `ctx`, and nothing here
+    // would detect a mismatch. It also produces a `&mut` from `Rc::as_ptr`, which is a shared
+    // pointer, so the resulting reference aliases every other `Rc` handle to the same context
+    // for as long as it lives.
+    //
+    // Both are relied upon rather than proven. Callers are the generated parsers, which pass
+    // the `Result` type the codegen knows `_localctx` was just constructed as, and which use
+    // the reference to write one field immediately without storing or moving it. That keeps
+    // real parsers working but is a property of the generator, not something this signature
+    // enforces — which is why the function is `#[doc(hidden)]` and must not be called by
+    // hand. It is arguably mismarked: the original author's note below says as much.
+    //
     //    if Rc::strong_count(ctx) != 1 { panic!("cant mutate Rc with multiple strong ref count"); }
     // is it safe because parser does not save/move mutable references anywhere.
     // they are only used to write data immediately in the corresponding expression
@@ -241,7 +254,7 @@ pub struct BaseParserRuleContext<'input, Ctx: CustomRuleContext<'input>> {
     pub(crate) children: RefCell<Vec<Rc<<Ctx::Ctx as ParserNodeType<'input>>::Type>>>,
 }
 
-better_any::tid! { impl<'i,Ctx> TidAble<'i> for BaseParserRuleContext<'i,Ctx> where Ctx:CustomRuleContext<'i> }
+crate::tid! { impl<'i,Ctx> TidAble<'i> for BaseParserRuleContext<'i,Ctx> where Ctx:CustomRuleContext<'i> }
 
 impl<'input, Ctx: CustomRuleContext<'input>> Debug for BaseParserRuleContext<'input, Ctx> {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
@@ -430,8 +443,6 @@ impl<'input, Ctx: CustomRuleContext<'input>> Tree<'input> for BaseParserRuleCont
 impl<'input, Ctx: CustomRuleContext<'input> + TidAble<'input>> ParseTree<'input>
     for BaseParserRuleContext<'input, Ctx>
 {
-
-
     fn get_text(&self) -> String {
         let children = self.get_children();
         let mut result = String::new();
@@ -580,7 +591,6 @@ where
     T: DerefSeal<Target = I> + 'input + Debug + Tid<'input>,
     I: ParserRuleContext<'input> + 'input + ?Sized,
 {
-
     fn get_text(&self) -> String {
         self.deref().get_text()
     }
