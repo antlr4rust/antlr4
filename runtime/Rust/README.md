@@ -10,14 +10,7 @@
 ## [ANTLR4](https://github.com/antlr/antlr4) runtime for Rust programming language.
 
 For examples you can see [grammars](grammars), [tests/gen](tests/gen) for corresponding generated code 
-and [tests/my_tests.rs](tests/my_test.rs) for actual usage examples
-
-> [!IMPORTANT]  
-> This is an effort to pick things up where [Konstantin aka @rrevenantt](https://github.com/rrevenantt) left them a few years back.
-> This is work in progress and I'm mostly trying to solve my problem as of now, but I'd be real happy to either contribute this back
-> to the original repo and/or work towards making this a contribution to the antlr4 project.
->
-> Help, feedback et al are really appreciated!
+and [tests/general_tests.rs](tests/general_tests.rs) and [tests/visitors_tests.rs](tests/visitors_tests.rs) for actual usage examples
 
 ## ANTLR4 Tool(parser generator)
 
@@ -25,17 +18,15 @@ Can be built using maven, or downloaded from [github.com/antlr4rust/antlr4](http
 
 ### Implementation status
 
-For now development is going on in this repository 
-but eventually it will be merged to main ANTLR4 repo
+For now development is going on in this repository, it remains unclear how to best make this widely available.
 
-Since version `0.3` works on stable rust.
-Previous versions are not maintained any more 
-so in case of nightly breakage you should migrate to the latest version. 
+Previous versions are not maintained any more,
+so if you hit a problem, first migrate to the latest version.
 
 ### Usage
 
 You should use the ANTLR4 "tool" to generate a parser, that will use the ANTLR 
-runtime located here. You can run it with the following command, to have all generated rust sources outputed in directory/"module" `gen`:
+runtime located here. You can run it with the following command, to have all generated rust sources output in directory/"module" `gen`:
 ```bash
 java -jar <path to ANTLR4 tool> -Dlanguage=Rust <g4 location> -o gen
 ```
@@ -62,11 +53,11 @@ e   : a=e op='*' b=e   # mult
     | left=e '+' b=e   # add
 		 
 ```
-For such rule ANTLR will generate enum `EContextAll` containing `mult` and `add` alternatives, 
-so you will be able to match on them in your code. 
+For such rule ANTLR will generate enum `EContextAll` with a `MultContext` and an `AddContext` variant
+(plus an `Error` variant), so you will be able to match on them in your code.
 Also corresponding struct for each alternative will contain fields you labeled. 
-I.e. for `MultContext` struct will contain `a` and `b` fields containing child subtrees and 
-`op` field with `TerminalNode` type which corresponds to individual `Token`.
+I.e. `MultContext` will contain `a` and `b` fields holding the child subtrees (`Option<Rc<EContextAll>>`) and
+an `op` field holding the matched token (`Option<TokenType>`).
 It also is possible to disable generic parse tree creation to keep only selected children via
 `parser.build_parse_trees = false`, but unfortunately currently it will prevent visitors from working. 
   
@@ -90,14 +81,34 @@ there are quite some differences because Rust is not an OOP language and is much
  - All rule context variables (rule argument or rule return) should implement `Default + Clone`.
  
 ### Unsafe
-Currently, unsafe is used only for downcasting (through separate crate) 
-and to update data inside Rc via `get_mut_unchecked`(returned mutable reference is used immediately and not stored anywhere)
+`unsafe` is used in a few places; see the `# Safety` sections and `// SAFETY:` comments in the code for the details.
+
+ - Downcasting. Parse tree nodes, tokens and token factories borrow from the input, so `std::any::Any`,
+ which requires `'static`, can't downcast them. The [`tid`](src/tid.rs) module, adapted from the `better_any` crate,
+ provides the equivalent for types with a single lifetime: the unsafe traits `Tid` and `TidAble`, and the `TidExt` downcasts.
+ Implement `TidAble` for your own types through the `tid!` macro rather than by hand.
+ `Transition::cast` also downcasts, after checking the `Any` type id.
+ - Parse listeners. `remove_parse_listener` hands a listener back at the type it was added with.
+ That relies on listener ids never being reused, and on the unsafe `CoerceFrom`/`CoerceTo` traits,
+ which the `coerce_from!` macro implements for the generated listener and context traits.
+ - Filling in contexts. Generated parsers write label and attribute values into the context of the rule being parsed,
+ which the parser already shares through `Rc`. They use `cast_mut`, an `unsafe fn` equivalent to the standard library's
+ unstable `Rc::get_mut_unchecked`, in `unsafe` blocks whose borrow only covers a single field write.
+
+What this means for your code:
+
+ - Parsers generated from grammars that use labels (`x=…`, `xs+=…`) or assign rule attributes (`$v = …`) contain `unsafe` blocks,
+ so a crate with `#![forbid(unsafe_code)]` can't include them. Put them in a crate of their own,
+ or use `deny`, which a module-level `#[allow(unsafe_code)]` can override.
+ The `unsafe impl`s that `tid!` and `coerce_from!` expand to don't trigger the `unsafe_code` lint.
+ - In embedded actions, don't hold a reference into the current rule's context, for instance one obtained through `recog.ctx`,
+ across a label or `$attr` assignment: the generated write would alias it.
 
 ### Versioning
 In addition to usual Rust semantic versioning, 
 patch version changes of the crate should not require updating of generator part.
 
-Current MSRV for the crate is `1.80`.
+Current MSRV for the crate is `1.85`.
   
 ## Licence
 
@@ -106,3 +117,9 @@ Unless you explicitly state otherwise,
 any contribution intentionally submitted for inclusion in this project by you
 shall be licensed as above, without any additional terms or conditions.
 
+> [!NOTE]
+> This is an effort to pick things up where [Konstantin aka @rrevenantt](https://github.com/rrevenantt) left them a few years back.
+> This is work in progress and I'm mostly trying to solve my problem as of now, but I'd be real happy to either contribute this back
+> to the original repo and/or work towards making this a contribution to the antlr4 project.
+>
+> Help, feedback et al are really appreciated!
