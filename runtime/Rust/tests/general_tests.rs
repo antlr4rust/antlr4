@@ -43,20 +43,35 @@ mod gen {
         SimpleLRParser, SimpleLRParserContext, SimpleLRParserContextType, SimpleLRTreeWalker,
     };
 
+    #[rustfmt::skip]
     mod csvlexer;
+    #[rustfmt::skip]
     mod csvlistener;
+    #[rustfmt::skip]
     mod csvparser;
+    #[rustfmt::skip]
     mod csvvisitor;
+    #[rustfmt::skip]
     mod referencetoatnlexer;
+    #[rustfmt::skip]
     mod referencetoatnlistener;
+    #[rustfmt::skip]
     mod referencetoatnparser;
+    #[rustfmt::skip]
     mod simplelrlexer;
+    #[rustfmt::skip]
     mod simplelrlistener;
+    #[rustfmt::skip]
     mod simplelrparser;
+    #[rustfmt::skip]
     mod visitorcalclexer;
+    #[rustfmt::skip]
     mod visitorcalclistener;
+    #[rustfmt::skip]
     mod visitorcalcparser;
+    #[rustfmt::skip]
     mod visitorcalcvisitor;
+    #[rustfmt::skip]
     mod xmllexer;
 
     fn test_static<T: 'static>(_arg: T) {}
@@ -163,7 +178,10 @@ if (x < x && a > 0) then duh
     struct Listener {}
 
     impl<'input> ParseTreeListener<'input, CSVParserContextType> for Listener {
-        fn enter_every_rule(&mut self, ctx: &dyn CSVParserContext<'input>) -> Result<(), ANTLRError> {
+        fn enter_every_rule(
+            &mut self,
+            ctx: &dyn CSVParserContext<'input>,
+        ) -> Result<(), ANTLRError> {
             println!(
                 "rule entered {}",
                 csvparser::ruleNames
@@ -197,7 +215,10 @@ if (x < x && a > 0) then duh
     struct Listener2 {}
 
     impl<'input> ParseTreeListener<'input, ReferenceToATNParserContextType> for Listener2 {
-        fn enter_every_rule(&mut self, ctx: &dyn ReferenceToATNParserContext<'input>) -> Result<(), ANTLRError> {
+        fn enter_every_rule(
+            &mut self,
+            ctx: &dyn ReferenceToATNParserContext<'input>,
+        ) -> Result<(), ANTLRError> {
             println!(
                 "rule entered {}",
                 referencetoatnparser::ruleNames
@@ -235,7 +256,10 @@ if (x < x && a > 0) then duh
             println!("terminal node {}", node.symbol.get_text());
         }
 
-        fn enter_every_rule(&mut self, ctx: &dyn SimpleLRParserContext<'input>) -> Result<(), ANTLRError> {
+        fn enter_every_rule(
+            &mut self,
+            ctx: &dyn SimpleLRParserContext<'input>,
+        ) -> Result<(), ANTLRError> {
             println!(
                 "rule entered {}",
                 simplelrparser::ruleNames
@@ -245,7 +269,10 @@ if (x < x && a > 0) then duh
             Ok(())
         }
 
-        fn exit_every_rule(&mut self, ctx: &dyn SimpleLRParserContext<'input>) -> Result<(), ANTLRError> {
+        fn exit_every_rule(
+            &mut self,
+            ctx: &dyn SimpleLRParserContext<'input>,
+        ) -> Result<(), ANTLRError> {
             println!(
                 "rule exited {}",
                 simplelrparser::ruleNames
@@ -289,7 +316,10 @@ if (x < x && a > 0) then duh
             println!("enter terminal");
             let _ = writeln!(&mut self.data, "terminal node {}", node.symbol.get_text());
         }
-        fn enter_every_rule(&mut self, ctx: &dyn SimpleLRParserContext<'input>) -> Result<(), ANTLRError> {
+        fn enter_every_rule(
+            &mut self,
+            ctx: &dyn SimpleLRParserContext<'input>,
+        ) -> Result<(), ANTLRError> {
             println!(
                 "rule entered {}",
                 simplelrparser::ruleNames
@@ -332,8 +362,11 @@ if (x < x && a > 0) then duh
     #[test]
     fn test_byte_parser() {}
 
+    #[rustfmt::skip]
     mod labelslexer;
+    #[rustfmt::skip]
     mod labelslistener;
+    #[rustfmt::skip]
     mod labelsparser;
 
     #[test]

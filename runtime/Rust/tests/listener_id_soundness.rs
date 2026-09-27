@@ -21,12 +21,16 @@ mod gen {
     use csvparser::*;
 
     #[path = "csvlexer.rs"]
+    #[rustfmt::skip]
     pub mod csvlexer;
     #[path = "csvlistener.rs"]
+    #[rustfmt::skip]
     pub mod csvlistener;
     #[path = "csvparser.rs"]
+    #[rustfmt::skip]
     pub mod csvparser;
     #[path = "csvvisitor.rs"]
+    #[rustfmt::skip]
     pub mod csvvisitor;
 
     /// The two listener types are deliberately given the same size and alignment so that the
