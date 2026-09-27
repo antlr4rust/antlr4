@@ -1,16 +1,15 @@
 #![allow(non_snake_case)]
 //! Regression test for the `ListenerId` ABA type confusion.
 //!
-//! `ListenerId` identifies a listener by its heap address, but an address is only unique
+//! `ListenerId` used to identify a listener by its heap address, but an address is only unique
 //! among values that are alive at the same time. `remove_parse_listeners` drops every
 //! listener box *without* consuming the corresponding `ListenerId`s, so a later
-//! `add_parse_listener` can be handed the freed address. A stale id then matches a listener
-//! of a completely different type, and `remove_parse_listener` reinterprets it — reachable
+//! `add_parse_listener` could be handed the freed address. A stale id then matched a listener
+//! of a completely different type, and `remove_parse_listener` reinterpreted it — reachable
 //! without any `unsafe` on the caller's part.
 //!
-//! The expected behaviour is that a stale id matches nothing and the lookup panics. Until
-//! listener identity stops being an address, this test is red: no panic happens and a `B` is
-//! silently returned as a `Box<A>`.
+//! Ids now come from a process-global counter, so a stale id matches nothing and the lookup
+//! panics.
 
 mod gen {
     use antlr4rust::common_token_stream::CommonTokenStream;
@@ -34,8 +33,9 @@ mod gen {
     pub mod csvvisitor;
 
     /// The two listener types are deliberately given the same size and alignment so that the
-    /// allocator is likely to hand `B` the block just freed from `A`. That is what arms the
-    /// ABA; the test asserts below that it actually happened.
+    /// allocator is likely to hand `B` the block just freed from `A`, which is what used to make
+    /// the stale id match. The outcome must not depend on it: whether or not the block is
+    /// reused, the stale id must match nothing.
     struct A {
         tag: [u64; 4],
     }
@@ -66,7 +66,6 @@ mod gen {
         let a = Box::new(A {
             tag: [0xAAAA_AAAA_AAAA_AAAA; 4],
         });
-        let addr_a = &*a as *const A as usize;
         let id_a = parser.add_parse_listener(a);
 
         // Drops A's box without consuming `id_a`, which is now stale.
@@ -76,23 +75,16 @@ mod gen {
             text: String::from("hello world"),
             pad: 0,
         });
-        let addr_b = &*b as *const B as usize;
         parser.add_parse_listener(b);
 
-        // If the allocator did not reuse the block there is no ABA to observe and the test
-        // would pass for the wrong reason, so fail loudly and distinguishably instead.
-        assert_eq!(
-            addr_a, addr_b,
-            "allocator did not reuse the freed block, so the ABA was never set up - \
-             this run is inconclusive rather than a pass"
-        );
-
-        // Must panic: `id_a` refers to a listener that no longer exists. Today it instead
-        // matches `b` by address and hands back a `B` reinterpreted as an `A`.
+        // Must panic: `id_a` refers to a listener that no longer exists. With address-based
+        // ids it matched `b` whenever `b` reused `a`'s block, and handed back a `B`
+        // reinterpreted as an `A`.
         let confused = parser.remove_parse_listener(id_a);
 
-        // Only reached while the bug is live. Leak rather than free `B`'s allocation through
-        // `A`'s layout, so a red run does not compound the type confusion with a bad dealloc.
+        // Only reached if the bug comes back. Leak rather than free `B`'s allocation through
+        // `A`'s layout, so a failing run does not compound the type confusion with a bad
+        // dealloc.
         println!(
             "TYPE CONFUSION: read B as A, tag[0] = {:#x} (= {} = \"hello world\".len())",
             confused.tag[0], confused.tag[0]
