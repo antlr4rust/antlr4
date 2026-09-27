@@ -192,38 +192,34 @@ where
     // unsafe { &*(ctx as *const T as *const Result) }
 }
 
-/// Should be called from generated parser only
-/// Don't call it by yourself.
+/// Gives mutable access to a parse tree context that other `Rc`s may also point to.
+///
+/// Generated parsers use this to fill in the label and attribute fields of the context they
+/// are building, after the parser already holds its own handle to it. Don't call it by hand.
+///
+/// # Safety
+///
+/// The caller must ensure that, for as long as the returned borrow is used, no other `Rc` or
+/// `Weak` pointing to the same allocation is dereferenced or has an active borrow, and that
+/// every such pointer views the value either as exactly `T`, lifetimes included, or as a trait
+/// object that `T` was unsized to with the same lifetimes, like the parser's own
+/// `Rc<dyn ...Context>` handles. This is the contract of the standard library's unstable
+/// `Rc::get_mut_unchecked`, which requires exactly `T`; trait objects are allowed here because
+/// they see the same `T`, so any `T` written through the borrow stays valid for them. It holds
+/// trivially when no other pointer exists, for example right after `Rc::new`.
 #[inline]
 #[doc(hidden)]
-// technically should be unsafe but in order to not force unsafe into user code
-// it is just #[doc(hidden)]
-pub fn cast_mut<'a, T: ParserRuleContext<'a> + 'a + ?Sized, Result: 'a>(
-    ctx: &mut Rc<T>,
-) -> &mut Result {
-    // SAFETY: NOT ESTABLISHED. Unlike `cast` above, which checks the type through
-    // `downcast_ref`, this reinterprets unconditionally: `Result` is constrained only by
-    // `Result: 'a`, so nothing relates it to the concrete type behind `ctx`, and nothing here
-    // would detect a mismatch. It also produces a `&mut` from `Rc::as_ptr`, which is a shared
-    // pointer, so the resulting reference aliases every other `Rc` handle to the same context
-    // for as long as it lives.
+pub unsafe fn cast_mut<'a, T: ParserRuleContext<'a> + 'a + ?Sized>(ctx: &mut Rc<T>) -> &mut T {
+    // SAFETY: `Rc::as_ptr` points to the value inside `ctx`'s allocation, a valid `T` that stays
+    // alive at least as long as `ctx`, which the returned borrow cannot outlive. By this
+    // function's contract, nothing else reads or writes that value while the borrow is used,
+    // and every other pointer to it sees a `T` or a trait object over it, which stays valid
+    // whatever `T` is written through the borrow.
     //
-    // Both are relied upon rather than proven. Callers are the generated parsers, which pass
-    // the `Result` type the codegen knows `_localctx` was just constructed as, and which use
-    // the reference to write one field immediately without storing or moving it. That keeps
-    // real parsers working but is a property of the generator, not something this signature
-    // enforces — which is why the function is `#[doc(hidden)]` and must not be called by
-    // hand. It is arguably mismarked: the original author's note below says as much.
-    //
-    //    if Rc::strong_count(ctx) != 1 { panic!("cant mutate Rc with multiple strong ref count"); }
-    // is it safe because parser does not save/move mutable references anywhere.
-    // they are only used to write data immediately in the corresponding expression
-    // unsafe { &mut *(Rc::get_mut_unchecked(ctx) as *mut T as *mut Result) }
-    unsafe {
-        let ptr = Rc::as_ptr(ctx) as *mut T as *mut Result;
-
-        &mut *ptr
-    }
+    // std documents the pointer only as valid while strong counts remain, not as writable.
+    // Writing through it relies on std's `Rc` deriving it from the allocation rather than from
+    // a shared reference, as the unstable `Rc::get_mut_unchecked` also does.
+    unsafe { &mut *(Rc::as_ptr(ctx) as *mut T) }
 }
 
 // workaround newtype for cycle in trait definition

@@ -1230,10 +1230,20 @@ ctx(actionChunk) ::=
 <<<if(!actionChunk.ctx.provideCopyFrom)>(cast::\<_,<actionChunk.ctx.escapedName> >(&*_localctx))
 <else>if let <actionChunk.ctx.parentRule; format="cap">ContextAll::<actionChunk.ctx.escapedName>(ctx) = cast::\<_,<actionChunk.ctx.parentRule; format="cap">ContextAll >(&*_localctx){
 ctx } else {unreachable!("cant cast")}<endif> >>
-ctx_mut(actionChunk) ::= "cast_mut::\<_,<actionChunk.ctx.escapedName>>(&mut _localctx)"
+/** Mutable access to a field of the current rule's context, `_localctx`.
+ *
+ *  The parser and `_prevctx` hold other `Rc`s to that context, so `cast_mut`'s contract
+ *  requires that none of them is dereferenced while the borrow is used. Every caller passes an
+ *  `actionText` that keeps the borrow to a single field access whose operands are either
+ *  computed in an earlier statement (`SetAttr`, `AddToLabelList`, `LabelsAssign`) or read only
+ *  the token stream (`recog.base.input.lt(1)`). Keep it that way: an `actionText` that calls
+ *  back into the parser while the borrow is alive would break that contract.
+ */
 ctx_mut_action(actionChunk,actionText) ::=
-<<<if(!actionChunk.ctx.provideCopyFrom)> cast_mut::\<_,<actionChunk.ctx.escapedName> >(&mut _localctx)<actionText>
-<else>if let <actionChunk.ctx.parentRule; format="cap">ContextAll::<actionChunk.ctx.escapedName>(ctx) = cast_mut::\<_,<actionChunk.ctx.parentRule; format="cap">ContextAll >(&mut _localctx){
+<<<if(!actionChunk.ctx.provideCopyFrom)>// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+(unsafe { cast_mut::\<<actionChunk.ctx.escapedName> >(&mut _localctx) })<actionText>
+<else>// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+if let <actionChunk.ctx.parentRule; format="cap">ContextAll::<actionChunk.ctx.escapedName>(ctx) = unsafe { cast_mut::\<<actionChunk.ctx.parentRule; format="cap">ContextAll >(&mut _localctx) } {
 ctx<actionText> } else {unreachable!("cant cast");}<endif> >>
 
 // used for left-recursive rules
@@ -1248,10 +1258,11 @@ recRuleAltStartAction(ruleName, ctxName, label, isListLabel) ::= <<
 /*recRuleAltStartAction*/
 let mut tmp = <ctxName>ContextExt::new(_parentctx.clone(), _parentState);
 <if(label)>
+// SAFETY: `tmp` was just created, so no other handle to its context exists yet.
 <if(isListLabel)>
-(cast_mut::\<_,<ctxName>Context>(&mut tmp)).<label>.push(_prevctx.clone());
+(unsafe { cast_mut::\<<ctxName>Context >(&mut tmp) }).<label>.push(_prevctx.clone());
 <else>
-(cast_mut::\<_,<ctxName>Context>(&mut tmp)).<label> = Some(_prevctx.clone());
+(unsafe { cast_mut::\<<ctxName>Context >(&mut tmp) }).<label> = Some(_prevctx.clone());
 <!_localctx.<label> = Some(_prevctx);!>
 <endif>
 <endif>
@@ -1264,7 +1275,8 @@ recRuleLabeledAltStartAction(ruleName, currentAltLabel, label, isListLabel) ::= 
 /*recRuleLabeledAltStartAction*/
 let mut tmp = <currentAltLabel; format="cap">ContextExt::new(&**<ruleName; format="cap">ContextExt::new(_parentctx.clone(), _parentState));
 <if(label)>
-if let <ruleName; format="cap">ContextAll::<currentAltLabel; format="cap">Context(ctx) = cast_mut::\<_,<ruleName; format="cap">ContextAll >(&mut tmp){
+// SAFETY: `tmp` was just created, so no other handle to its context exists yet.
+if let <ruleName; format="cap">ContextAll::<currentAltLabel; format="cap">Context(ctx) = unsafe { cast_mut::\<<ruleName; format="cap">ContextAll >(&mut tmp) } {
 <if(isListLabel)>
 	ctx.<label>.push(_prevctx.clone());
 <else>

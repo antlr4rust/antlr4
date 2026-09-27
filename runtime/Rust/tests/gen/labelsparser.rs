@@ -317,7 +317,8 @@ where
 			/*InvokeRule e*/
 			recog.base.set_state(4);
 			let tmp = recog.e_rec(0)?;
-			 cast_mut::<_,SContext >(&mut _localctx).q = Some(tmp.clone());
+			// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+			(unsafe { cast_mut::<SContext >(&mut _localctx) }).q = Some(tmp.clone());
 			  
 
 			}
@@ -881,12 +882,14 @@ where
 
 					recog.base.set_state(7);
 					let tmp = recog.base.match_token(Labels_INT,&mut recog.err_handler)?;
-					if let EContextAll::AnIntContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+					// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+					if let EContextAll::AnIntContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 					ctx.INT = Some(tmp.clone()); } else {unreachable!("cant cast");}  
 
 					let tmp = { if let Some(it) = &if let EContextAll::AnIntContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 					ctx } else {unreachable!("cant cast")} .INT { it.get_text() } else { "null" } .to_owned()}.to_owned();
-					if let EContextAll::AnIntContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+					// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+					if let EContextAll::AnIntContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 					ctx.set_v(tmp); } else {unreachable!("cant cast");} 
 					}
 				}
@@ -904,7 +907,8 @@ where
 					/*InvokeRule e*/
 					recog.base.set_state(10);
 					let tmp = recog.e_rec(0)?;
-					if let EContextAll::ParensContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+					// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+					if let EContextAll::ParensContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 					ctx.x = Some(tmp.clone()); } else {unreachable!("cant cast");}  
 
 					recog.base.set_state(11);
@@ -912,7 +916,8 @@ where
 
 					let tmp = { if let EContextAll::ParensContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 					ctx } else {unreachable!("cant cast")} .x.as_ref().unwrap().get_v()}.to_owned();
-					if let EContextAll::ParensContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+					// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+					if let EContextAll::ParensContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 					ctx.set_v(tmp); } else {unreachable!("cant cast");} 
 					}
 				}
@@ -926,12 +931,14 @@ where
 					_prevctx = _localctx.clone();
 					recog.base.set_state(14);
 					let tmp = recog.base.match_token(Labels_ID,&mut recog.err_handler)?;
-					if let EContextAll::AnIDContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+					// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+					if let EContextAll::AnIDContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 					ctx.ID = Some(tmp.clone()); } else {unreachable!("cant cast");}  
 
 					let tmp = { if let Some(it) = &if let EContextAll::AnIDContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 					ctx } else {unreachable!("cant cast")} .ID { it.get_text() } else { "null" } .to_owned()}.to_owned();
-					if let EContextAll::AnIDContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+					// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+					if let EContextAll::AnIDContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 					ctx.set_v(tmp); } else {unreachable!("cant cast");} 
 					}
 				}
@@ -955,7 +962,8 @@ where
 							{
 							/*recRuleLabeledAltStartAction*/
 							let mut tmp = MultContextExt::new(&**EContextExt::new(_parentctx.clone(), _parentState));
-							if let EContextAll::MultContext(ctx) = cast_mut::<_,EContextAll >(&mut tmp){
+							// SAFETY: `tmp` was just created, so no other handle to its context exists yet.
+							if let EContextAll::MultContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut tmp) } {
 								ctx.a = Some(_prevctx.clone());
 							} else {unreachable!("cant cast");}
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
@@ -967,19 +975,22 @@ where
 							}
 							recog.base.set_state(19);
 							let tmp = recog.base.match_token(Labels_T__0,&mut recog.err_handler)?;
-							if let EContextAll::MultContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+							// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+							if let EContextAll::MultContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 							ctx.op = Some(tmp.clone()); } else {unreachable!("cant cast");}  
 
 							/*InvokeRule e*/
 							recog.base.set_state(20);
 							let tmp = recog.e_rec(8)?;
-							if let EContextAll::MultContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+							// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+							if let EContextAll::MultContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 							ctx.b = Some(tmp.clone()); } else {unreachable!("cant cast");}  
 
 							let tmp = { "* ".to_owned() + if let EContextAll::MultContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 							ctx } else {unreachable!("cant cast")} .a.as_ref().unwrap().get_v() + " " + if let EContextAll::MultContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 							ctx } else {unreachable!("cant cast")} .b.as_ref().unwrap().get_v()}.to_owned();
-							if let EContextAll::MultContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+							// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+							if let EContextAll::MultContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 							ctx.set_v(tmp); } else {unreachable!("cant cast");} 
 							}
 						}
@@ -988,7 +999,8 @@ where
 							{
 							/*recRuleLabeledAltStartAction*/
 							let mut tmp = AddContextExt::new(&**EContextExt::new(_parentctx.clone(), _parentState));
-							if let EContextAll::AddContext(ctx) = cast_mut::<_,EContextAll >(&mut tmp){
+							// SAFETY: `tmp` was just created, so no other handle to its context exists yet.
+							if let EContextAll::AddContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut tmp) } {
 								ctx.a = Some(_prevctx.clone());
 							} else {unreachable!("cant cast");}
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
@@ -1004,13 +1016,15 @@ where
 							/*InvokeRule e*/
 							recog.base.set_state(25);
 							let tmp = recog.e_rec(7)?;
-							if let EContextAll::AddContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+							// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+							if let EContextAll::AddContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 							ctx.b = Some(tmp.clone()); } else {unreachable!("cant cast");}  
 
 							let tmp = { "+ ".to_owned() + if let EContextAll::AddContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 							ctx } else {unreachable!("cant cast")} .a.as_ref().unwrap().get_v() + " " + if let EContextAll::AddContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 							ctx } else {unreachable!("cant cast")} .b.as_ref().unwrap().get_v()}.to_owned();
-							if let EContextAll::AddContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+							// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+							if let EContextAll::AddContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 							ctx.set_v(tmp); } else {unreachable!("cant cast");} 
 							}
 						}
@@ -1019,7 +1033,8 @@ where
 							{
 							/*recRuleLabeledAltStartAction*/
 							let mut tmp = IncContextExt::new(&**EContextExt::new(_parentctx.clone(), _parentState));
-							if let EContextAll::IncContext(ctx) = cast_mut::<_,EContextAll >(&mut tmp){
+							// SAFETY: `tmp` was just created, so no other handle to its context exists yet.
+							if let EContextAll::IncContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut tmp) } {
 								ctx.x = Some(_prevctx.clone());
 							} else {unreachable!("cant cast");}
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
@@ -1034,7 +1049,8 @@ where
 
 							let tmp = { " ++".to_owned() + if let EContextAll::IncContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 							ctx } else {unreachable!("cant cast")} .x.as_ref().unwrap().get_v()}.to_owned();
-							if let EContextAll::IncContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+							// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+							if let EContextAll::IncContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 							ctx.set_v(tmp); } else {unreachable!("cant cast");} 
 							}
 						}
@@ -1043,7 +1059,8 @@ where
 							{
 							/*recRuleLabeledAltStartAction*/
 							let mut tmp = DecContextExt::new(&**EContextExt::new(_parentctx.clone(), _parentState));
-							if let EContextAll::DecContext(ctx) = cast_mut::<_,EContextAll >(&mut tmp){
+							// SAFETY: `tmp` was just created, so no other handle to its context exists yet.
+							if let EContextAll::DecContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut tmp) } {
 								ctx.x = Some(_prevctx.clone());
 							} else {unreachable!("cant cast");}
 							recog.push_new_recursion_context(tmp.clone(), _startState, RULE_e)?;
@@ -1058,7 +1075,8 @@ where
 
 							let tmp = { " --".to_owned() + if let EContextAll::DecContext(ctx) = cast::<_,EContextAll >(&*_localctx){
 							ctx } else {unreachable!("cant cast")} .x.as_ref().unwrap().get_v()}.to_owned();
-							if let EContextAll::DecContext(ctx) = cast_mut::<_,EContextAll >(&mut _localctx){
+							// SAFETY: the borrow only covers this one field access, during which no other handle to the context is dereferenced.
+							if let EContextAll::DecContext(ctx) = unsafe { cast_mut::<EContextAll >(&mut _localctx) } {
 							ctx.set_v(tmp); } else {unreachable!("cant cast");} 
 							}
 						}
