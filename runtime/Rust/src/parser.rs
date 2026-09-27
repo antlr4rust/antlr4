@@ -482,6 +482,8 @@ where
         L: CoerceTo<T>,
     {
         let id = ListenerId::next();
+        // `remove_parse_listener` turns this box back into a `Box<L>`. That is sound only
+        // because the `CoerceTo` contract makes `coerce_box_to` return the caller's box itself.
         self.parse_listeners
             .push((id.actual_id, listener.coerce_box_to()));
         id
@@ -499,12 +501,19 @@ where
             .position(|(id, _)| *id == listener_id.actual_id)
             .expect("listener not found");
         let (_, listener) = self.parse_listeners.remove(index);
-        // SAFETY: ids come from a process-global counter and are never reused, so a match on
-        // `actual_id` identifies exactly the `add_parse_listener` call that produced this
-        // `ListenerId` — and therefore the type `L` that call was handed. A listener dropped
-        // by `remove_parse_listeners` leaves no matching id behind, so the search above finds
-        // nothing and panics rather than reaching this point. Ids are also unique across
-        // parser instances, so an id from another parser cannot match here either.
+        // SAFETY: `into_listener` requires `listener` to own the value passed to the
+        // `add_parse_listener` call that returned `listener_id`.
+        // - Ids come from a process-global counter and are never reused, so a match on
+        //   `actual_id` identifies exactly that call, and `listener` is the box it stored. A
+        //   listener dropped by `remove_parse_listeners` leaves no matching id behind, so the
+        //   search above finds nothing and panics rather than reaching this point. Ids are also
+        //   unique across parser instances, so an id from another parser cannot match either.
+        // - That call stored `coerce_box_to()` of the caller's `Box<L>`, which the `CoerceTo`
+        //   contract (an `unsafe trait`) requires to be the same box holding the same value,
+        //   only unsized. So `listener` owns the value that was passed in.
+        // - If this `L` differs from the type that call was handed, it is a supertype reached
+        //   through `ListenerId`'s covariance, and the result is what coercing the original
+        //   `Box` to `Box<L>` would give.
         unsafe { listener_id.into_listener(listener) }
     }
 
@@ -751,11 +760,16 @@ impl<T> ListenerId<T> {
     /// `boxed` must own the value that was passed to the [`BaseParser::add_parse_listener`]
     /// call which returned this `ListenerId`, so that its pointee really is a `T`.
     ///
-    /// Matching `actual_id` is sufficient to establish that, because ids come from
-    /// [`NEXT_LISTENER_ID`] and are never reused: an id identifies one `add_parse_listener`
-    /// call for the lifetime of the process, and that call fixes the type. It would *not* be
-    /// sufficient if `actual_id` were the listener's address, since an address is only unique
-    /// among values alive at the same time and could be reused after a drop.
+    /// Matching `actual_id` establishes that `boxed` is the box that call stored, because ids
+    /// come from [`NEXT_LISTENER_ID`] and are never reused: an id identifies one
+    /// `add_parse_listener` call for the lifetime of the process, and that call fixes the type.
+    /// It would *not* be enough if `actual_id` were the listener's address, since an address is
+    /// only unique among values alive at the same time and could be reused after a drop.
+    ///
+    /// That the stored box owns the value passed in, rather than some other value, is not
+    /// something a matching id can show. It holds because `add_parse_listener` stores
+    /// `coerce_box_to()` of the caller's box, and [`CoerceTo`] is an `unsafe trait` whose
+    /// implementations must return their argument's allocation, only unsized.
     unsafe fn into_listener<U: ?Sized>(self, boxed: Box<U>) -> Box<T> {
         Box::from_raw(Box::into_raw(boxed) as *mut T)
     }
