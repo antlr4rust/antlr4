@@ -282,7 +282,7 @@ impl ParserATNSimulator {
 
                     conflicting_alts = self.eval_semantic_context(local, &Dstate.predicates, true);
                     //                    println!("conflicting_alts {:?}",&conflicting_alts);
-                    if conflicting_alts.len() == 1 {
+                    if conflicting_alts.count() == 1 {
                         return Ok(conflicting_alts.iter().next().unwrap() as i32);
                     }
 
@@ -324,7 +324,7 @@ impl ParserATNSimulator {
                 local.input().seek(self.start_index.get());
 
                 let alts = self.eval_semantic_context(local, &Dstate.predicates, true);
-                match alts.len() {
+                match alts.count() {
                     0 => {
                         return Err(self.no_viable_alt(
                             local,
