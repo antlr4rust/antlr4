@@ -253,7 +253,7 @@ impl<'a, T: Parser<'a>> ErrorListener<'a, T> for DiagnosticErrorListener {
             return;
         }
         let msg = format!(
-            "reportAmbiguity d={}: ambigAlts={:?}, input='{}'",
+            "reportAmbiguity d={}: ambigAlts={}, input='{}'",
             self.get_decision_description(recognizer, dfa),
             ambig_alts,
             recognizer

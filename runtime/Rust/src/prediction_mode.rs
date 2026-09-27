@@ -129,12 +129,12 @@ pub(crate) fn all_subsets_equal(altsets: &Vec<BitSet>) -> bool {
 }
 
 fn has_non_conflicting_alt_set(altsets: &Vec<BitSet>) -> bool {
-    altsets.iter().any(|it| it.len() == 1)
+    altsets.iter().any(|it| it.count() == 1)
 }
 
 fn has_conflicting_alt_set(altsets: &Vec<BitSet>) -> bool {
     for alts in altsets {
-        if alts.len() > 1 {
+        if alts.count() > 1 {
             return true;
         }
     }
@@ -175,7 +175,7 @@ fn get_state_to_alt_map(configs: &ATNConfigSet) -> HashMap<ATNStateRef, BitSet> 
 fn has_state_associated_with_one_alt(configs: &ATNConfigSet) -> bool {
     let x = get_state_to_alt_map(configs);
     for alts in x.values() {
-        if alts.len() == 1 {
+        if alts.count() == 1 {
             return true;
         }
     }
@@ -188,7 +188,7 @@ pub(crate) fn get_single_viable_alt(altsets: &Vec<BitSet>) -> i32 {
     for alt in altsets {
         min_alt = alt.iter().next().unwrap();
         viable_alts.insert(min_alt);
-        if viable_alts.len() > 1 {
+        if viable_alts.count() > 1 {
             return INVALID_ALT;
         }
     }

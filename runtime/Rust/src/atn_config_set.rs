@@ -67,7 +67,7 @@ impl Debug for ATNConfigSet {
         if self.conflicting_alts.is_empty() {
             _f.write_fmt(format_args!(",uniqueAlt={}", self.unique_alt))
         } else {
-            _f.write_fmt(format_args!(",conflictingAlts={:?}", self.conflicting_alts))
+            _f.write_fmt(format_args!(",conflictingAlts={}", self.conflicting_alts))
         }
     }
 }

@@ -62,7 +62,10 @@
 //! Rule context trait object support downcasting even for zero-copy case.
 //! Also generic types(currently these are `H:ErrorStrategy` and `I:`[`TokenStream`]) that you can
 //! access in generated parser from embedded actions also can be downcasted to concrete types.
-//! To do it `TidExt::downcast_*` extension methods should be used.
+//! To do it [`TidExt::downcast_*`](crate::tid::TidExt) extension methods should be used.
+//! [`std::any::Any`] cannot be used here because parse tree nodes borrow from the input;
+//! see the [`tid`](mod@crate::tid) module for the `Any` equivalent that works for a single
+//! lifetime.
 //!
 //! [`CharStream`]: crate::char_stream::CharStream
 //! [`TokenFactory`]: crate::token_factory::TokenFactory
@@ -81,7 +84,7 @@ pub use lazy_static::lazy_static;
 pub use parking_lot::RwLock;
 
 #[doc(hidden)]
-pub use better_any::{tid, Tid, TidAble, TidExt};
+pub use tid::{type_id, Tid, TidAble, TidExt};
 
 #[doc(inline)]
 pub use error_strategy::{BailErrorStrategy, DefaultErrorStrategy, ErrorStrategy};
@@ -158,6 +161,7 @@ pub mod trees;
 mod utils;
 //pub mod tokenstream_rewriter_test;
 mod atn_type;
+pub mod tid;
 // mod context_factory;
 pub mod rule_context;
 pub mod vocabulary;
@@ -166,8 +170,38 @@ pub mod vocabulary;
 
 use std::rc::Rc;
 /// Stable workaround for CoerceUnsized
+///
+/// # Safety
+///
+/// Implementors must ensure that each method, if it returns, returns its argument converted
+/// to `Self` by a coercion, such as the unsized coercion from `T` to `dyn Trait` that the
+/// `coerce_from!` macro performs with `from as _`. The result must refer to the same `T` value
+/// in the same allocation, taking over the argument's ownership (`coerce_rc`, `coerce_box`) or
+/// borrow (`coerce_ref`, `coerce_mut`). It must not drop, move, replace or reallocate that
+/// value.
+///
+/// [`BaseParser::remove_parse_listener`](crate::parser::BaseParser::remove_parse_listener)
+/// relies on this: it turns the box that `add_parse_listener` stored back into the caller's
+/// `Box<L>`, which is only sound if that box still owns the caller's value.
+///
+/// Implement this trait through `coerce_from!`. A safe `impl` is rejected:
+///
+/// ```compile_fail,E0200
+/// use antlr4rust::CoerceFrom;
+/// use std::rc::Rc;
+///
+/// trait Listener {}
+/// struct NotAListener;
+///
+/// impl CoerceFrom<NotAListener> for dyn Listener {
+///     fn coerce_rc(_: Rc<NotAListener>) -> Rc<Self> { unimplemented!() }
+///     fn coerce_box(_: Box<NotAListener>) -> Box<Self> { unimplemented!() }
+///     fn coerce_ref(_: &NotAListener) -> &Self { unimplemented!() }
+///     fn coerce_mut(_: &mut NotAListener) -> &mut Self { unimplemented!() }
+/// }
+/// ```
 // #[doc(hidden)]
-pub trait CoerceFrom<T> {
+pub unsafe trait CoerceFrom<T> {
     fn coerce_rc(from: Rc<T>) -> Rc<Self>;
     fn coerce_box(from: Box<T>) -> Box<Self>;
     fn coerce_ref(from: &T) -> &Self;
@@ -180,7 +214,13 @@ macro_rules! coerce_from {
     ($lt:lifetime : $p:path) => {
         const _: () = {
             use std::rc::Rc;
-            impl<$lt, T> $crate::CoerceFrom<T> for dyn $p + $lt
+            // SAFETY: `CoerceFrom` requires each method to return its argument coerced to
+            // `Self`, still referring to the same value in the same allocation. Every body
+            // below is `from as _` with `T: $p + $lt` and `Self = dyn $p + $lt`, which is the
+            // unsized coercion of `Rc<T>`, `Box<T>`, `&T` or `&mut T` to the same pointer type
+            // over `Self`: the pointee is unsized in place, so the result points to the same
+            // `T` with `T`'s vtable attached, and nothing is dropped, moved or reallocated.
+            unsafe impl<$lt, T> $crate::CoerceFrom<T> for dyn $p + $lt
             where
                 T: $p + $lt,
             {
@@ -202,15 +242,46 @@ macro_rules! coerce_from {
 }
 
 /// Stable workaround for CoerceUnsized
+///
+/// # Safety
+///
+/// The same as for [`CoerceFrom`], with `self` as the argument: implementors must ensure that
+/// each method, if it returns, returns `self` converted to `T` by a coercion, referring to the
+/// same value in the same allocation and taking over its ownership or borrow.
+/// [`BaseParser::add_parse_listener`](crate::parser::BaseParser::add_parse_listener) stores
+/// what `coerce_box_to` returns, and `remove_parse_listener` relies on it being the caller's
+/// box.
+///
+/// This trait is implemented for every `X` where `T: CoerceFrom<X>`; implement [`CoerceFrom`]
+/// instead. A safe `impl` is rejected:
+///
+/// ```compile_fail,E0200
+/// use antlr4rust::CoerceTo;
+/// use std::rc::Rc;
+///
+/// trait Listener {}
+/// struct NotAListener;
+///
+/// impl CoerceTo<dyn Listener> for NotAListener {
+///     fn coerce_rc_to(self: Rc<Self>) -> Rc<dyn Listener> { unimplemented!() }
+///     fn coerce_box_to(self: Box<Self>) -> Box<dyn Listener> { unimplemented!() }
+///     fn coerce_ref_to(&self) -> &(dyn Listener + 'static) { unimplemented!() }
+///     fn coerce_mut_to(&mut self) -> &mut (dyn Listener + 'static) { unimplemented!() }
+/// }
+/// ```
 // #[doc(hidden)]
-pub trait CoerceTo<T: ?Sized> {
+pub unsafe trait CoerceTo<T: ?Sized> {
     fn coerce_rc_to(self: Rc<Self>) -> Rc<T>;
     fn coerce_box_to(self: Box<Self>) -> Box<T>;
     fn coerce_ref_to(&self) -> &T;
     fn coerce_mut_to(&mut self) -> &mut T;
 }
 
-impl<T: ?Sized, X> CoerceTo<T> for X
+// SAFETY: `CoerceTo` requires each method to return `self` coerced to `T`, still referring to
+// the same value in the same allocation. Each method passes `self` to the matching method of
+// `T: CoerceFrom<X>` and returns its result unchanged, and the `CoerceFrom` contract guarantees
+// exactly that of the result.
+unsafe impl<T: ?Sized, X> CoerceTo<T> for X
 where
     T: CoerceFrom<X>,
 {

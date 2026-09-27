@@ -370,10 +370,14 @@ jobs:
           ubuntu-22.04,
           windows-2022
         ]
-        rust_version: [ '1.80', stable ]
+        rust_version: [ '1.85', stable ]
     defaults:
       run:
         working-directory: runtime/Rust
+    env:
+      # On the MSRV job, resolve dependencies to versions that support the crate's
+      # `rust-version`; stable keeps testing the latest releases.
+      CARGO_RESOLVER_INCOMPATIBLE_RUST_VERSIONS: ${{ matrix.rust_version != 'stable' && 'fallback' || 'allow' }}
     steps:
       - uses: actions/checkout@v3
       - name: Install Rust
@@ -382,10 +386,6 @@ jobs:
           toolchain: ${{ matrix.rust_version }}
           default: true
           components: rustfmt
-      - name: Downgrade
-        if: ${{ matrix.rust_version == '1.80' }}
-        # no msrv aware resolver yet so need to downgrade
-        run: cargo update -p uuid --precise 1.16.0
       - name: Build
         run: cargo build --verbose
       - name: Run tests

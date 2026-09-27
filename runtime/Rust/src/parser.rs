@@ -4,6 +4,7 @@ use std::cell::{Cell, RefCell};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use crate::atn::ATN;
@@ -16,6 +17,7 @@ use crate::parser_atn_simulator::ParserATNSimulator;
 use crate::parser_rule_context::ParserRuleContext;
 use crate::recognizer::{Actions, Recognizer};
 use crate::rule_context::{states_stack, CustomRuleContext, RuleContext};
+use crate::tid::TidAble;
 use crate::token::{Token, TOKEN_EOF};
 use crate::token_factory::{TokenAware, TokenFactory};
 use crate::token_stream::TokenStream;
@@ -23,7 +25,6 @@ use crate::tree::{ErrorNode, Listenable, ParseTreeListener, TerminalNode};
 use crate::utils::cell_update;
 use crate::vocabulary::Vocabulary;
 use crate::{CoerceFrom, CoerceTo};
-use better_any::TidAble;
 
 /// parser functionality required for `ParserATNSimulator` to work
 #[allow(missing_docs)] // todo rewrite it so downstream crates actually could meaningfully implement it
@@ -143,7 +144,9 @@ pub struct BaseParser<
     pub input: I,
     precedence_stack: Vec<i32>,
 
-    parse_listeners: Vec<Box<T>>,
+    /// Listeners paired with the id handed out by [`BaseParser::add_parse_listener`].
+    /// The id, not the listener's address, is what [`ListenerId`] refers to.
+    parse_listeners: Vec<(usize, Box<T>)>,
     _syntax_errors: Cell<i32>,
     error_listeners: RefCell<Vec<Box<dyn ErrorListener<'input, Self>>>>,
 
@@ -151,7 +154,7 @@ pub struct BaseParser<
     pd: PhantomData<fn() -> &'input str>,
 }
 
-better_any::tid! {
+crate::tid! {
     impl<'input, Ext, I, Ctx, T> TidAble<'input> for BaseParser<'input,Ext, I, Ctx, T>
     where I: TokenStream<'input>,
         Ctx: ParserNodeType<'input, TF = I::TF>,
@@ -274,7 +277,7 @@ where
                     .as_deref()
                     .unwrap()
                     .add_child(node.clone().coerce_rc_to());
-                for listener in &mut self.parse_listeners {
+                for (_, listener) in &mut self.parse_listeners {
                     listener.visit_error_node(&*node)
                 }
             } else {
@@ -283,7 +286,7 @@ where
                     .as_deref()
                     .unwrap()
                     .add_child(node.clone().coerce_rc_to());
-                for listener in &mut self.parse_listeners {
+                for (_, listener) in &mut self.parse_listeners {
                     listener.visit_terminal(&*node)
                 }
             }
@@ -472,14 +475,22 @@ where
     ///
     /// Embedded listener currently must outlive `'input`. If you need to have arbitrary listener use ParseTreeWalker.
     ///
+    /// # Panics
+    ///
+    /// Panics if `usize::MAX` listeners have already been added in this process, since
+    /// listener ids are never reused.
+    ///
     /// ### Example for listener usage:
     /// todo
     pub fn add_parse_listener<L>(&mut self, listener: Box<L>) -> ListenerId<L>
     where
         L: CoerceTo<T>,
     {
-        let id = ListenerId::new(&listener);
-        self.parse_listeners.push(listener.coerce_box_to());
+        let id = ListenerId::next();
+        // `remove_parse_listener` turns this box back into a `Box<L>`. That is sound only
+        // because the `CoerceTo` contract makes `coerce_box_to` return the caller's box itself.
+        self.parse_listeners
+            .push((id.actual_id, listener.coerce_box_to()));
         id
     }
 
@@ -492,9 +503,24 @@ where
         let index = self
             .parse_listeners
             .iter()
-            .position(|it| ListenerId::new(it).actual_id == listener_id.actual_id)
+            .position(|(id, _)| *id == listener_id.actual_id)
             .expect("listener not found");
-        unsafe { listener_id.into_listener(self.parse_listeners.remove(index)) }
+        let (_, listener) = self.parse_listeners.remove(index);
+        // SAFETY: `into_listener` requires `listener` to own the value passed to the
+        // `add_parse_listener` call that returned `listener_id`.
+        // - Ids come from a process-global counter that panics rather than wrapping (see
+        //   `mint_listener_id`), so they are never reused: a match on `actual_id` identifies
+        //   exactly that call, and `listener` is the box it stored. A listener dropped by
+        //   `remove_parse_listeners` leaves no matching id behind, so the search above finds
+        //   nothing and panics rather than reaching this point. Ids are also unique across
+        //   parser instances, so an id from another parser cannot match either.
+        // - That call stored `coerce_box_to()` of the caller's `Box<L>`, which the `CoerceTo`
+        //   contract (an `unsafe trait`) requires to be the same box holding the same value,
+        //   only unsized. So `listener` owns the value that was passed in.
+        // - If this `L` differs from the type that call was handed, it is a supertype reached
+        //   through `ListenerId`'s covariance, and the result is what coercing the original
+        //   `Box` to `Box<L>` would give.
+        unsafe { listener_id.into_listener(listener) }
     }
 
     /// Removes all added parse listeners without returning them
@@ -504,7 +530,7 @@ where
 
     pub fn trigger_enter_rule_event(&mut self) -> Result<(), ANTLRError> {
         let ctx = self.ctx.as_deref().unwrap();
-        for listener in self.parse_listeners.iter_mut() {
+        for (_, listener) in self.parse_listeners.iter_mut() {
             // listener.enter_every_rule(ctx);
             ctx.enter(listener)?;
         }
@@ -513,7 +539,7 @@ where
 
     pub fn trigger_exit_rule_event(&mut self) -> Result<(), ANTLRError> {
         let ctx = self.ctx.as_deref().unwrap();
-        for listener in self.parse_listeners.iter_mut().rev() {
+        for (_, listener) in self.parse_listeners.iter_mut().rev() {
             ctx.exit(listener)?;
             // listener.exit_every_rule(ctx);
         }
@@ -703,6 +729,41 @@ where
     //    fn set_trace(&self, trace: * TraceListener) { unimplemented!() }
 }
 
+/// Source of [`ListenerId::actual_id`].
+///
+/// Deliberately process-global rather than per parser. Ids must be unique across parser
+/// instances as well as over time: a `ListenerId` from one parser can be passed to
+/// `remove_parse_listener` on another parser of the same grammar and it type checks, so a
+/// per-parser counter would let two parsers both hand out id `0` and one would resurrect the
+/// other's listener at the wrong type.
+static NEXT_LISTENER_ID: AtomicUsize = AtomicUsize::new(0);
+
+/// Takes the current value of `counter` and advances it by one, panicking instead of wrapping.
+///
+/// A plain `fetch_add` wraps around on overflow, which on a 32-bit target would hand out id `0`
+/// again after 2^32 listeners. The increment is checked instead: once the counter reaches
+/// `usize::MAX` it stays there and every further call panics, so no value is returned twice.
+///
+/// `Relaxed` is enough: each successful `compare_exchange_weak` is an atomic read-modify-write
+/// that moves the counter from `n` to `n + 1`, so no two callers can both succeed from the same
+/// `n`, whatever the ordering, and no other memory is being synchronised through it.
+///
+/// # Panics
+///
+/// Panics if `counter` is already at `usize::MAX`.
+fn mint_listener_id(counter: &AtomicUsize) -> usize {
+    // Open-coded `fetch_update`, which is deprecated from Rust 1.99; its replacement,
+    // `try_update`, needs 1.95, above this crate's `rust-version`.
+    let mut current = counter.load(Ordering::Relaxed);
+    loop {
+        let next = current.checked_add(1).expect("listener ids exhausted");
+        match counter.compare_exchange_weak(current, next, Ordering::Relaxed, Ordering::Relaxed) {
+            Ok(id) => return id,
+            Err(actual) => current = actual,
+        }
+    }
+}
+
 /// Allows to safely cast listener back to user type
 #[derive(Debug)]
 pub struct ListenerId<T: ?Sized> {
@@ -711,16 +772,56 @@ pub struct ListenerId<T: ?Sized> {
 }
 
 impl<T: ?Sized> ListenerId<T> {
-    fn new(listener: &Box<T>) -> ListenerId<T> {
+    /// Mints an id that has never been used before and never will be again.
+    ///
+    /// This is the whole basis of [`ListenerId::into_listener`]'s soundness, so the counter
+    /// must only ever move forwards, and must not wrap: see [`mint_listener_id`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if listener ids are exhausted.
+    fn next() -> ListenerId<T> {
         ListenerId {
-            actual_id: listener.as_ref() as *const T as *const () as usize,
-            phantom: Default::default(),
+            actual_id: mint_listener_id(&NEXT_LISTENER_ID),
+            phantom: PhantomData,
         }
     }
 }
 
 impl<T> ListenerId<T> {
+    /// # Safety
+    ///
+    /// `boxed` must own the value that was passed to the [`BaseParser::add_parse_listener`]
+    /// call which returned this `ListenerId`, so that its pointee really is a `T`.
+    ///
+    /// Matching `actual_id` establishes that `boxed` is the box that call stored, because ids
+    /// come from [`NEXT_LISTENER_ID`] and are never reused: an id identifies one
+    /// `add_parse_listener` call for the lifetime of the process, and that call fixes the type.
+    /// It would *not* be enough if `actual_id` were the listener's address, since an address is
+    /// only unique among values alive at the same time and could be reused after a drop.
+    ///
+    /// That the stored box owns the value passed in, rather than some other value, is not
+    /// something a matching id can show. It holds because `add_parse_listener` stores
+    /// `coerce_box_to()` of the caller's box, and [`CoerceTo`] is an `unsafe trait` whose
+    /// implementations must return their argument's allocation, only unsized.
     unsafe fn into_listener<U: ?Sized>(self, boxed: Box<U>) -> Box<T> {
         Box::from_raw(Box::into_raw(boxed) as *mut T)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::AtomicUsize;
+
+    use super::mint_listener_id;
+
+    #[test]
+    #[should_panic(expected = "listener ids exhausted")]
+    fn listener_ids_panic_instead_of_wrapping() {
+        let counter = AtomicUsize::new(usize::MAX - 2);
+        assert_eq!(mint_listener_id(&counter), usize::MAX - 2);
+        assert_eq!(mint_listener_id(&counter), usize::MAX - 1);
+        // The counter is now at `usize::MAX`. Wrapping would return it and then `0` again.
+        mint_listener_id(&counter);
     }
 }

@@ -1,15 +1,27 @@
 mod gen {
+    #[rustfmt::skip]
     mod csvlexer;
+    #[rustfmt::skip]
     mod csvlistener;
+    #[rustfmt::skip]
     mod csvparser;
+    #[rustfmt::skip]
     mod csvvisitor;
+    #[rustfmt::skip]
     mod visitorbasiclexer;
+    #[rustfmt::skip]
     mod visitorbasiclistener;
+    #[rustfmt::skip]
     mod visitorbasicparser;
+    #[rustfmt::skip]
     mod visitorbasicvisitor;
+    #[rustfmt::skip]
     mod visitorcalclexer;
+    #[rustfmt::skip]
     mod visitorcalclistener;
+    #[rustfmt::skip]
     mod visitorcalcparser;
+    #[rustfmt::skip]
     mod visitorcalcvisitor;
 
     use crate::gen::csvparser::CSVParserContextType;
