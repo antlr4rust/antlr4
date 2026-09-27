@@ -475,6 +475,11 @@ where
     ///
     /// Embedded listener currently must outlive `'input`. If you need to have arbitrary listener use ParseTreeWalker.
     ///
+    /// # Panics
+    ///
+    /// Panics if `usize::MAX` listeners have already been added in this process, since
+    /// listener ids are never reused.
+    ///
     /// ### Example for listener usage:
     /// todo
     pub fn add_parse_listener<L>(&mut self, listener: Box<L>) -> ListenerId<L>
@@ -503,11 +508,12 @@ where
         let (_, listener) = self.parse_listeners.remove(index);
         // SAFETY: `into_listener` requires `listener` to own the value passed to the
         // `add_parse_listener` call that returned `listener_id`.
-        // - Ids come from a process-global counter and are never reused, so a match on
-        //   `actual_id` identifies exactly that call, and `listener` is the box it stored. A
-        //   listener dropped by `remove_parse_listeners` leaves no matching id behind, so the
-        //   search above finds nothing and panics rather than reaching this point. Ids are also
-        //   unique across parser instances, so an id from another parser cannot match either.
+        // - Ids come from a process-global counter that panics rather than wrapping (see
+        //   `mint_listener_id`), so they are never reused: a match on `actual_id` identifies
+        //   exactly that call, and `listener` is the box it stored. A listener dropped by
+        //   `remove_parse_listeners` leaves no matching id behind, so the search above finds
+        //   nothing and panics rather than reaching this point. Ids are also unique across
+        //   parser instances, so an id from another parser cannot match either.
         // - That call stored `coerce_box_to()` of the caller's `Box<L>`, which the `CoerceTo`
         //   contract (an `unsafe trait`) requires to be the same box holding the same value,
         //   only unsized. So `listener` owns the value that was passed in.
@@ -732,6 +738,32 @@ where
 /// other's listener at the wrong type.
 static NEXT_LISTENER_ID: AtomicUsize = AtomicUsize::new(0);
 
+/// Takes the current value of `counter` and advances it by one, panicking instead of wrapping.
+///
+/// A plain `fetch_add` wraps around on overflow, which on a 32-bit target would hand out id `0`
+/// again after 2^32 listeners. The increment is checked instead: once the counter reaches
+/// `usize::MAX` it stays there and every further call panics, so no value is returned twice.
+///
+/// `Relaxed` is enough: each successful `compare_exchange_weak` is an atomic read-modify-write
+/// that moves the counter from `n` to `n + 1`, so no two callers can both succeed from the same
+/// `n`, whatever the ordering, and no other memory is being synchronised through it.
+///
+/// # Panics
+///
+/// Panics if `counter` is already at `usize::MAX`.
+fn mint_listener_id(counter: &AtomicUsize) -> usize {
+    // Open-coded `fetch_update`, which is deprecated from Rust 1.99; its replacement,
+    // `try_update`, needs 1.95, above this crate's `rust-version`.
+    let mut current = counter.load(Ordering::Relaxed);
+    loop {
+        let next = current.checked_add(1).expect("listener ids exhausted");
+        match counter.compare_exchange_weak(current, next, Ordering::Relaxed, Ordering::Relaxed) {
+            Ok(id) => return id,
+            Err(actual) => current = actual,
+        }
+    }
+}
+
 /// Allows to safely cast listener back to user type
 #[derive(Debug)]
 pub struct ListenerId<T: ?Sized> {
@@ -743,12 +775,14 @@ impl<T: ?Sized> ListenerId<T> {
     /// Mints an id that has never been used before and never will be again.
     ///
     /// This is the whole basis of [`ListenerId::into_listener`]'s soundness, so the counter
-    /// must only ever move forwards. `Relaxed` is enough: `fetch_add` is atomic, so every
-    /// caller observes a distinct value regardless of ordering, and no other memory is being
-    /// synchronised through it.
+    /// must only ever move forwards, and must not wrap: see [`mint_listener_id`].
+    ///
+    /// # Panics
+    ///
+    /// Panics if listener ids are exhausted.
     fn next() -> ListenerId<T> {
         ListenerId {
-            actual_id: NEXT_LISTENER_ID.fetch_add(1, Ordering::Relaxed),
+            actual_id: mint_listener_id(&NEXT_LISTENER_ID),
             phantom: PhantomData,
         }
     }
@@ -772,5 +806,22 @@ impl<T> ListenerId<T> {
     /// implementations must return their argument's allocation, only unsized.
     unsafe fn into_listener<U: ?Sized>(self, boxed: Box<U>) -> Box<T> {
         Box::from_raw(Box::into_raw(boxed) as *mut T)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::AtomicUsize;
+
+    use super::mint_listener_id;
+
+    #[test]
+    #[should_panic(expected = "listener ids exhausted")]
+    fn listener_ids_panic_instead_of_wrapping() {
+        let counter = AtomicUsize::new(usize::MAX - 2);
+        assert_eq!(mint_listener_id(&counter), usize::MAX - 2);
+        assert_eq!(mint_listener_id(&counter), usize::MAX - 1);
+        // The counter is now at `usize::MAX`. Wrapping would return it and then `0` again.
+        mint_listener_id(&counter);
     }
 }
