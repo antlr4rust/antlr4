@@ -285,8 +285,13 @@ impl<'input, T: TokenSource<'input>> CommonTokenStream<'input, T> {
     //
     //    fn get_text_from_interval(&self, interval: &Interval) -> String { unimplemented!() }
     //
-    //    fn fill(&self) { unimplemented!() }
-    //
+    /// Buffers all remaining tokens from the token source, including EOF,
+    /// without changing the current position in the stream.
+    pub fn fill(&mut self) {
+        const BLOCK_SIZE: isize = 1000;
+        while self.base.fill(BLOCK_SIZE) == BLOCK_SIZE {}
+    }
+
     //    fn adjust_seek_index(&self, i: isize) -> int { unimplemented!() }
 
     fn lb(
