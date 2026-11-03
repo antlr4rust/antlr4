@@ -387,6 +387,45 @@ if (x < x && a > 0) then duh
         }
     }
 
+    #[test]
+    fn test_common_token_stream_fill() {
+        use antlr4rust::token::TOKEN_HIDDEN_CHANNEL;
+
+        let tf = ArenaCommonFactory::default();
+        let lexer = CSVLexer::new_with_token_factory(InputStream::new("a ,b\n"), &tf);
+        let mut ts = CommonTokenStream::new(lexer);
+        let initial_index = ts.index();
+        let initial_size = ts.size();
+
+        ts.fill();
+        assert_eq!(ts.index(), initial_index);
+        assert!(ts.size() > initial_size);
+        assert_eq!(ts.get(ts.size() - 1).get_token_type(), TOKEN_EOF);
+        assert_eq!(ts.get(1).get_channel(), TOKEN_HIDDEN_CHANNEL);
+        assert_eq!(ts.get(1).get_text(), " ");
+        assert_eq!(ts.la(1), ts.get(initial_index).get_token_type());
+
+        let size = ts.size();
+        ts.fill();
+        assert_eq!(ts.size(), size);
+        assert_eq!(ts.index(), initial_index);
+    }
+
+    #[test]
+    fn test_common_token_stream_fill_after_consuming() {
+        let tf = ArenaCommonFactory::default();
+        let lexer = CSVLexer::new_with_token_factory(InputStream::new("a,b\n"), &tf);
+        let mut ts = CommonTokenStream::new(lexer);
+        ts.consume();
+        let index = ts.index();
+        let current_type = ts.la(1);
+
+        ts.fill();
+        assert_eq!(ts.index(), index);
+        assert_eq!(ts.la(1), current_type);
+        assert_eq!(ts.get(ts.size() - 1).get_token_type(), TOKEN_EOF);
+    }
+
     // =========================================================================
     // Hidden token access tests
     // =========================================================================
